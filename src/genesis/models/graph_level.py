@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch_geometric.data import Batch
 
-from graph_neural_networks.models import MetricTrackingLitModule
+from genesis.models import MetricTrackingLitModule
 
 
 class GraphLevelLitModule(MetricTrackingLitModule):

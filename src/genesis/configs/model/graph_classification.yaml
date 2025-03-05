@@ -5,7 +5,7 @@ defaults:
   - optimizer: adamw
   - scheduler: step_lr
 
-_target_: graph_neural_networks.models.GraphLevelLitModule
+_target_: genesis.models.GraphLevelLitModule
 task: ${hparams.data.task}
 num_node_features: ${oc.select:hparams.data.num_node_features,0}
 num_edge_features: ${oc.select:hparams.data.num_edge_features,0}

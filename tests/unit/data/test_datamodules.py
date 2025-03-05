@@ -11,10 +11,7 @@ from _pytest.logging import LogCaptureFixture
 from lightning.pytorch.trainer.states import TrainerFn
 from torch_geometric.data import Dataset
 
-from graph_neural_networks.data import LightningDataset, SplitLightningDataset, k_fold, subsets_split
-from graph_neural_networks.data.datamodule import OGBLightningDataset
-
-from ...helpers.run import RunIf
+from genesis.data import LightningDataset, SplitLightningDataset, k_fold, subsets_split
 
 
 class AbstractLightningDatasetTest(ABC):
@@ -232,33 +229,3 @@ class TestSplitLightningDataset(AbstractLightningDatasetTest):
         )
         assert exc_info.type is RuntimeError
         assert "Newly generated requested splits do not match the saved splits from" in str(exc_info.value)
-
-
-@RunIf(ogb=True)
-@pytest.mark.slow
-class TestOGBLightningDataset(AbstractLightningDatasetTest):
-    """Tests for the `OGBLightningDataset` datamodule class."""
-
-    @staticmethod
-    @pytest.fixture
-    def dm(dataset_fn: Callable[[], Dataset], batch_size: int) -> OGBLightningDataset:
-        """A Pytest fixture for an `OGBLightningDataset` datamodule.
-
-        Args:
-            dataset_fn: The dataset function fixture to use.
-            batch_size: Batch size used for the dataloaders.
-        """
-        return OGBLightningDataset(dataset_fn, batch_size=batch_size)
-
-    @staticmethod
-    @pytest.fixture(params=["ogbg_molhiv_dataset_fn"])
-    def dataset_fn(request: FixtureRequest) -> Callable[[], Dataset]:
-        """A Pytest fixture for a function that returns a PyG `Dataset` instance.
-
-        Args:
-            request: The pytest request builtin fixture.
-
-        Returns:
-            A function that returns a dataset.
-        """
-        return request.getfixturevalue(request.param)

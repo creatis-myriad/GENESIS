@@ -1,7 +1,7 @@
 # @package data
 
 split:
-  _target_: graph_neural_networks.data.k_fold
+  _target_: genesis.data.k_fold
   _partial_: True
   n_splits: ${op.ternary:${.holdout_test_size}, 5, 10} # default to 5 if `holdout_test_size`, otherwise 10
   test_fold: True

@@ -1,7 +1,7 @@
 # @package data
 
 split:
-  _target_: graph_neural_networks.data.subsets_split
+  _target_: genesis.data.subsets_split
   _partial_: True
   val_size: 0.1
   test_size: 0.2
