@@ -1,0 +1,23 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - data: ??? # choose datamodule with `test_dataloader()` for evaluation
+  - model: ???
+  - logger: null
+  - trainer: default
+  - paths: default
+  - extras: default
+  - hydra: default
+
+task_name: "eval"
+
+tags: ["dev"]
+
+# passing checkpoint path is necessary for evaluation
+ckpt_path: ???
+
+# reserved key that is always evaluated
+# this is a good place to put assertions to check the validity of the config, using the `raise` custom Hydra resolver
+# see `train.yaml` for more details about how to use this field
+_assert_: null
