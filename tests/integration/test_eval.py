@@ -4,8 +4,8 @@ import pytest
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, open_dict
 
-from graph_neural_networks.eval import evaluate
-from graph_neural_networks.train import train
+from genesis.eval import evaluate
+from genesis.train import train
 
 
 @pytest.mark.slow

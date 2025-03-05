@@ -7,7 +7,7 @@ from lightning import Callback, LightningDataModule, LightningModule, Trainer
 from lightning.pytorch.loggers import Logger
 from omegaconf import DictConfig
 
-from graph_neural_networks.utils import (
+from genesis.utils import (
     RankedLogger,
     extras,
     get_metric_value,
@@ -17,7 +17,7 @@ from graph_neural_networks.utils import (
     pre_hydra_routine,
     task_wrapper,
 )
-from graph_neural_networks.utils.utils import hydra_serial_sweeper
+from genesis.utils.utils import hydra_serial_sweeper
 
 log = RankedLogger(__name__, rank_zero_only=True)
 

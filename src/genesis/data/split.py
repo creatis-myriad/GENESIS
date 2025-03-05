@@ -8,7 +8,7 @@ from lightning_utilities import apply_to_collection
 from numpy.random import RandomState
 from sklearn import model_selection
 
-from graph_neural_networks.utils import RankedLogger
+from genesis.utils import RankedLogger
 
 log = RankedLogger(__name__, rank_zero_only=True)
 

@@ -4,7 +4,7 @@ from typing import Any
 from lightning_utilities.core.rank_zero import rank_zero_only
 from omegaconf import OmegaConf
 
-from graph_neural_networks.utils import pylogger
+from genesis.utils import pylogger
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 

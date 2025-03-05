@@ -10,8 +10,8 @@ import pytest
 from _pytest.fixtures import FixtureRequest
 from _pytest.logging import LogCaptureFixture
 
-from graph_neural_networks.data import k_fold, subsets_split
-from graph_neural_networks.data.split import TEST_SET, TRAIN_SET, VAL_SET, DatasetSplit, serialize_split_fn
+from genesis.data import k_fold, subsets_split
+from genesis.data.split import TEST_SET, TRAIN_SET, VAL_SET, DatasetSplit, serialize_split_fn
 
 
 @pytest.fixture(scope="module", params=[100])

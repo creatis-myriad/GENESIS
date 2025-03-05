@@ -5,7 +5,7 @@ from lightning import LightningDataModule, LightningModule, Trainer
 from lightning.pytorch.loggers import Logger
 from omegaconf import DictConfig
 
-from graph_neural_networks.utils import (
+from genesis.utils import (
     RankedLogger,
     extras,
     instantiate_loggers,

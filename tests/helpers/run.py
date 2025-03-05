@@ -7,7 +7,7 @@ import torch
 from packaging.version import Version
 from pytest import MarkDecorator
 
-from .package_available import _IS_WINDOWS, _OGB_AVAILABLE, _SH_AVAILABLE, _WANDB_AVAILABLE, _XLA_AVAILABLE
+from .package_available import _IS_WINDOWS, _SH_AVAILABLE, _WANDB_AVAILABLE, _XLA_AVAILABLE
 
 if _SH_AVAILABLE:
     import sh
@@ -37,7 +37,6 @@ class RunIf:
         sh: bool = False,
         xla: bool = False,
         wandb: bool = False,
-        ogb: bool = False,
         **kwargs: dict[Any, Any],
     ) -> MarkDecorator:
         """Creates a new `@RunIf` `MarkDecorator` decorator.
@@ -91,10 +90,6 @@ class RunIf:
         if wandb:
             conditions.append(not _WANDB_AVAILABLE)
             reasons.append("wandb")
-
-        if ogb:
-            conditions.append(not _OGB_AVAILABLE)
-            reasons.append("ogb")
 
         reasons = [rs for cond, rs in zip(conditions, reasons, strict=False) if cond]
         return pytest.mark.skipif(

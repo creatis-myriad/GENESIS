@@ -11,8 +11,8 @@ from torch_geometric.data import Batch
 from torch_geometric.datasets import FakeDataset
 from torchmetrics import MeanMetric, MetricCollection, MetricTracker
 
-from graph_neural_networks.utils import RankedLogger, pad_keys
-from graph_neural_networks.utils.utils import import_from_module
+from genesis.utils import RankedLogger, pad_keys
+from genesis.utils.utils import import_from_module
 
 log = RankedLogger(__name__, rank_zero_only=True)
 

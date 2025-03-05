@@ -9,7 +9,7 @@ from hydra import compose, initialize
 from hydra.core.global_hydra import GlobalHydra
 from omegaconf import DictConfig, open_dict
 
-from graph_neural_networks.utils import pre_hydra_routine
+from genesis.utils import pre_hydra_routine
 
 
 @pytest.fixture(scope="package", autouse=True)
@@ -26,7 +26,7 @@ def cfg_path() -> Path:
         The path to the directory containing the Hydra configuration files, relative to the test directory.
     """
     test_dir = Path(__file__).parent
-    cfg_dir = Path(os.environ["PROJECT_ROOT"], "src/graph_neural_networks/configs")
+    cfg_dir = Path(os.environ["PROJECT_ROOT"], "src/genesis/configs")
     return cfg_dir.relative_to(test_dir, walk_up=True)
 
 
@@ -160,15 +160,12 @@ def application_overrides(request: FixtureRequest) -> list[str]:
 
 @pytest.fixture(scope="package")
 def mutag_classification_overrides() -> list[str]:
-    """A pytest fixture for the overrides to use in the tests for graph-level applications.
+    """A pytest fixture for the overrides to use for quick tests on the MUTAG graph-level classification dataset.
 
     Returns:
         A list of configuration overrides.
     """
     return [
         # Data overrides
-        "data=split_lightning_dataset",
         "data/dataset=mutag",
-        # Model overrides
-        "model=graph_classification",
     ]

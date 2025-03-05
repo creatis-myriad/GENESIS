@@ -1,6 +1,8 @@
 <div align="center">
 
-# Graph Neural Networks
+# GENESIS
+
+Code repository for the Graph nEural Networks for pulmonary EmboliSm rIsk Stratification (GENESIS) project.
 
 [![python](https://img.shields.io/badge/-Python_3.12-blue?logo=python&logoColor=white)](https://docs.python.org/3.12/)
 [![pytorch](https://img.shields.io/badge/PyTorch_2.0+-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/get-started/locally/)
@@ -11,13 +13,12 @@
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![pre-commit](https://img.shields.io/badge/Pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
-[![Renovate enabled](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com/)
 <br>
-[![code-quality](https://github.com/nathanpainchaud/graph-neural-networks/actions/workflows/code-quality-main.yaml/badge.svg)](https://github.com/nathanpainchaud/graph-neural-networks/actions/workflows/code-quality-main.yaml)
-[![tests](https://github.com/nathanpainchaud/graph-neural-networks/actions/workflows/tests.yaml/badge.svg)](https://github.com/nathanpainchaud/graph-neural-networks/actions/workflows/tests.yaml)
-[![codecov](https://codecov.io/gh/nathanpainchaud/graph-neural-networks/branch/main/graph/badge.svg)](https://codecov.io/gh/nathanpainchaud/graph-neural-networks)
+[![code-quality](https://github.com/creatis-myriad/GENESIS/actions/workflows/code-quality-main.yaml/badge.svg)](https://github.com/creatis-myriad/GENESIS/actions/workflows/code-quality-main.yaml)
+[![tests](https://github.com/creatis-myriad/GENESIS/actions/workflows/tests.yaml/badge.svg)](https://github.com/creatis-myriad/GENESIS/actions/workflows/tests.yaml)
+[![codecov](https://codecov.io/gh/creatis-myriad/GENESIS/branch/main/graph/badge.svg)](https://codecov.io/gh/creatis-myriad/GENESIS)
 <br>
-[![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/nathanpainchaud/graph-neural-networks?tab=Apache-2.0-1-ov-file)
+[![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/creatis-myriad/GENESIS?tab=Apache-2.0-1-ov-file)
 
 # Publications
 
@@ -25,12 +26,13 @@
 
 ## Description
 
-A template project for training graph neural networks with PyTorch Lightning and Hydra. It tries to minimize the
-complexity of the boilerplate code and configuration management, so that they can be easily understood and modified to
-suit your needs, while still providing a feature-complete and flexible framework for working with GNNs.
+A project applying graph neural networks to the task of pulmonary embolism risk stratification.
+It is assumed that an image processing pipeline previously segmented and extracted the graph of the vascular tree from
+lung images (e.g. CT pulmonary angiograms). This code repository then takes these graphs as input and trains graph
+neural networks to predict the risk of pulmonary embolism.
 
 > [!IMPORTANT]
-> Using this template requires a basic understanding of PyTorch Lightning and Hydra. If you do not know at least what
+> Using this project requires a basic understanding of PyTorch Lightning and Hydra. If you do not know at least what
 > these libraries do and how they work at a high level, you should familiarize yourself with them.
 > We refer you to the [PyTorch Lightning documentation](https://lightning.ai/docs/pytorch/stable/) and the
 > [Hydra documentation](https://hydra.cc/docs/intro/).
@@ -50,25 +52,22 @@ suit your needs, while still providing a feature-complete and flexible framework
 
 1. Download the repository.
    ```bash
-   git clone https://github.com/nathanpainchaud/graph-neural-networks
-   cd graph-neural-networks
+   git clone https://github.com/creatis-myriad/GENESIS
+   cd genesis
    ```
 2. Create a virtual environment and install the project and its dependencies. You must specify as an extra the desired
-   compute platform for PyTorch (i.e. CPU/CUDA). Supported values are: `cpu`, `cu124`, `cu121`, `cu118`.
+   compute platform for PyTorch (i.e. CPU/CUDA). Supported values are: `cpu`, `cu126`, `cu124`, `cu118`.
    ```bash
    # e.g. to install the project with the PyTorch version built for CPU
    uv sync --extra cpu
 
-   # e.g. to install the project with the PyTorch version built for CUDA 12.4
-   uv sync --extra cu124
+   # e.g. to install the project with the PyTorch version built for CUDA 12.6
+   uv sync --extra cu126
    ```
    [OPTIONAL] You can also specify other extras for additional functionalities:
    ```bash
    # e.g. to install the `wandb` and `tensorboard` extras for loggers' integration
    uv sync --extra cpu --extra wandb --extra tensorboard
-
-   # e.g. to install the `ogb` extra for Open Graph Benchmark datasets
-   uv sync --extra cpu --extra ogb
 
    # e.g. to install all extra functionalities at once
    uv sync --extra cpu --extra all
@@ -82,8 +81,8 @@ suit your needs, while still providing a feature-complete and flexible framework
 
 1. Download the repository.
    ```bash
-   git clone https://github.com/nathanpainchaud/graph-neural-networks
-   cd graph-neural-networks
+   git clone https://github.com/creatis-myriad/GENESIS
+   cd genesis
    ```
 2. Create a virtual environment and activate it.
    ```bash
@@ -96,8 +95,8 @@ suit your needs, while still providing a feature-complete and flexible framework
    # e.g. to install the PyTorch version built for CPU
    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
-   # e.g. to install the PyTorch version built for CUDA 12.1
-   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+   # e.g. to install the PyTorch version built for CUDA 12.6
+   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
    ```
 4. Install the project in editable mode.
    ```bash
@@ -107,9 +106,6 @@ suit your needs, while still providing a feature-complete and flexible framework
    ```bash
    # e.g. to install the `wandb` and `tensorboard` extras for loggers' integration
    pip install -e .[wandb,tensorboard]
-
-   # e.g. to install the `ogb` extra for Open Graph Benchmark datasets
-   pip install -e .[ogb]
 
    # e.g. to install all extra functionalities at once
    pip install -e .[all]
@@ -129,12 +125,12 @@ Make sure that you install the `wandb` extra when installing the project, as sho
 #### Configure your credentials
 
 The recommended way to configure your W&B credentials is to expose them as environment variables
-(see [W&B's documentation on this](https://docs.wandb.ai/guides/track/environment-variables/)). You can do this by
-copying the [`.env.example`](.env.example) file to a new `.env` file (which will be ignored by Git) and filling in your
-W&B credentials.
+(see [W&B's documentation on this](https://docs.wandb.ai/guides/track/environment-variables/)). You can do this by copying the
+[`configs/local/example.yaml`](src/genesis/configs/local/example.yaml) to a new `default.yaml` (which will be ignored by
+Git) and filling in your W&B credentials.
 
-You don't have to do anything more than that, as the project is configured to automatically load environment variables
-from the `.env` file when executing the scripts.
+You don't have to do anything more than that, as the project is configured to automatically load keys under
+`hydra.job.env_set` as environment variables when executing the scripts.
 
 #### Use the wandb logger
 
@@ -146,16 +142,12 @@ Follow the instructions provided in the [How to run](#track-experiments) section
 
 Train model with the default configuration.
 
-> [!WARNING]
-> The default configuration is not complete and running it as-is will fail, asking you to specify the missing `data`
-> and `model` groups.
-
 ```bash
 # train on CPU
-gnn-train trainer=cpu data=<YOUR_DATA_CONFIG> data.dataset=<YOUR_DATASET_CONFIG> model=<YOUR_MODEL_CONFIG>
+gnn-train trainer=cpu data.dataset=<YOUR_DATASET_CONFIG>
 
 # train on GPU
-gnn-train trainer=gpu data=<YOUR_DATA_CONFIG> data.dataset=<YOUR_DATASET_CONFIG> model=<YOUR_MODEL_CONFIG>
+gnn-train trainer=gpu data.dataset=<YOUR_DATASET_CONFIG>
 ```
 
 Override any individual parameter in the config files from the command line like this:
@@ -166,7 +158,7 @@ gnn-train trainer.max_epochs=20 data.batch_size=64 ...
 
 ### Use preset configs
 
-Train model with chosen experiment configuration from [configs/experiment/](src/graph_neural_networks/configs/experiment/).
+Train model with chosen experiment configuration from [configs/experiment/](src/genesis/configs/experiment/).
 
 > [!TIP]
 > This allows you to provide (complete) presets on top of the default configuration, typically for experiments you want

@@ -15,7 +15,7 @@ def train_script() -> Path:
     """
     # This has to be a fixture rather than a module-level variable because it relies on the PROJECT_ROOT env var
     # having been set by another session-scoped fixture
-    return Path(os.environ["PROJECT_ROOT"], "src/graph_neural_networks/train.py")
+    return Path(os.environ["PROJECT_ROOT"], "src/genesis/train.py")
 
 
 @pytest.fixture
