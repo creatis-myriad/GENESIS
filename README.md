@@ -53,7 +53,7 @@ neural networks to predict the risk of pulmonary embolism.
 1. Download the repository.
    ```bash
    git clone https://github.com/creatis-myriad/GENESIS
-   cd genesis
+   cd GENESIS
    ```
 2. Create a virtual environment and install the project and its dependencies. You must specify as an extra the desired
    compute platform for PyTorch (i.e. CPU/CUDA). Supported values are: `cpu`, `cu126`, `cu124`, `cu118`.
@@ -66,8 +66,8 @@ neural networks to predict the risk of pulmonary embolism.
    ```
    [OPTIONAL] You can also specify other extras for additional functionalities:
    ```bash
-   # e.g. to install the `wandb` and `tensorboard` extras for loggers' integration
-   uv sync --extra cpu --extra wandb --extra tensorboard
+   # e.g. to install the `wandb` extra for W&B integration
+   uv sync --extra cpu --extra wandb
 
    # e.g. to install all extra functionalities at once
    uv sync --extra cpu --extra all
@@ -82,7 +82,7 @@ neural networks to predict the risk of pulmonary embolism.
 1. Download the repository.
    ```bash
    git clone https://github.com/creatis-myriad/GENESIS
-   cd genesis
+   cd GENESIS
    ```
 2. Create a virtual environment and activate it.
    ```bash
@@ -104,12 +104,20 @@ neural networks to predict the risk of pulmonary embolism.
    ```
    [OPTIONAL] You can also specify other extras for additional functionalities:
    ```bash
-   # e.g. to install the `wandb` and `tensorboard` extras for loggers' integration
-   pip install -e .[wandb,tensorboard]
+   # e.g. to install the `wandb` extra for W&B integration
+   pip install -e .[wandb]
 
    # e.g. to install all extra functionalities at once
    pip install -e .[all]
    ```
+
+### List of available extras
+
+- \[`cpu`|`cu126`|`cu124`|`cu118`\]: Required mutually exclusive extras to install the project with a PyTorch version
+  built for CPU or a specific CUDA version (only available when using `uv`, not `pip`).
+- `wandb`: For experiment tracking with Weights & Biases.
+- `tensorboard`: For experiment tracking with TensorBoard.
+- `all`: Install all (non-mutually exclusive) extras at once.
 
 ### Setup Weight & Biases
 
@@ -178,11 +186,6 @@ experiments is [Weights & Biases](https://wandb.ai/site), by using W&B's
 > You must have followed the [W&B setup instructions](#setup-weight--biases) to use this feature.
 
 ```bash
-# track experiment locally w/ TensorBoard
-gnn-train experiment=<YOUR_EXPERIMENT_CONFIG> logger=tensorboard
-# and in another terminal
-tensorboard --logdir ./logs/
-
 # track experiment online w/ W&B
 gnn-train experiment=<YOUR_EXPERIMENT_CONFIG> logger=wandb
 
