@@ -1,0 +1,33 @@
+# @package _global_
+
+# to execute this experiment run:
+# python clinical_baseline.py experiment=clinical_baseline
+
+defaults:
+  - override /data: split_lightning_dataset
+  - override /data/dataset: persevere_clinical
+  - override /model: tabular_estimator
+  # Metrics should only depend on the data task, and therefore should be able to be inferred from the data config.
+  # However, they belong to the model config, and because of limitations to the interpolation in the defaults list,
+  # it is not possible to use the data task value to interpolate which metrics config to use.
+  # Therefore, the least bad solution is to assign the metrics manually in the experiment config.
+  - override /model/metrics: multi_classification
+
+# all parameters below will be merged with parameters from default configurations ('train.yaml' or 'eval.yaml')
+# this allows you to overwrite only specified parameters
+
+tags:
+  - ${hydra:runtime.choices.data/dataset} # automatically tag with the chosen dataset
+  - ${hydra:runtime.choices.model} # automatically tag with the chosen model/task
+
+seed: 12345
+
+logger:
+  wandb:
+    tags: ${tags}
+    group: ${tags.0} # by default, group runs by the first tag (dataset)
+
+# Assert data config values are compatible with the model
+# Implementing these assertions in the config file allows Hydra to check them
+# and stop the program from running if the configs are known to be incompatible
+_assert_:

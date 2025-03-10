@@ -2,12 +2,13 @@ import os
 from pathlib import Path
 
 import pytest
+from _pytest.fixtures import FixtureRequest
 
 from ..helpers.run import RunIf, run_sh_command  # noqa: TID252
 
 
-@pytest.fixture(scope="module")
-def train_script() -> Path:
+@pytest.fixture(scope="module", params=["src/genesis/train.py"])
+def script(request: FixtureRequest) -> Path:
     """A pytest fixture for the training script.
 
     Returns:
@@ -15,7 +16,7 @@ def train_script() -> Path:
     """
     # This has to be a fixture rather than a module-level variable because it relies on the PROJECT_ROOT env var
     # having been set by another session-scoped fixture
-    return Path(os.environ["PROJECT_ROOT"], "src/genesis/train.py")
+    return Path(os.environ["PROJECT_ROOT"], request.param)
 
 
 @pytest.fixture
@@ -36,17 +37,17 @@ def testing_overrides(tmp_path: Path) -> list[str]:
 
 @RunIf(sh=True)
 @pytest.mark.slow
-def test_experiments(train_script: Path, testing_overrides: list[str]) -> None:
-    """Test running all available experiment configs with `fast_dev_run=True`.
+def test_experiments(script: Path, testing_overrides: list[str]) -> None:
+    """Test running all available experiment configs (except for clinical baselines) with `fast_dev_run=True`.
 
     Args:
-        train_script: The path of the script to invoke.
+        script: The path of the script to invoke.
         testing_overrides: The generic overrides to suitably configure tests.
     """
     command = [
-        str(train_script),
+        str(script),
         "-m",
-        "experiment=glob(*)",
+        "experiment=glob(*,exclude=clinical_baseline)",
         "++trainer.fast_dev_run=true",
         *testing_overrides,
     ]
@@ -55,16 +56,40 @@ def test_experiments(train_script: Path, testing_overrides: list[str]) -> None:
 
 @RunIf(sh=True)
 @pytest.mark.slow
-def test_hydra_sweep(train_script: Path, application_overrides: list[str], testing_overrides: list[str]) -> None:
+@pytest.mark.parametrize("script", ["src/genesis/clinical_baseline.py"], indirect=True)
+@pytest.mark.parametrize("experiment", ["clinical_baseline"])
+def test_clinical_baseline_experiments(
+    script: Path, shared_datadir: Path, experiment: str, testing_overrides: list[str]
+) -> None:
+    """Test running all available clinical baseline experiment configs.
+
+    Args:
+        script: The path of the script to invoke.
+        shared_datadir: The directory containing the dummy data.
+        experiment: The experiment config to run with the designated script.
+        testing_overrides: The generic overrides to suitably configure tests.
+    """
+    command = [
+        str(script),
+        "experiment=clinical_baseline",
+        f"paths.data_dir={shared_datadir}",  # Override the data path with the test dummy data path
+        *testing_overrides,
+    ]
+    run_sh_command(command)
+
+
+@RunIf(sh=True)
+@pytest.mark.slow
+def test_hydra_sweep(script: Path, application_overrides: list[str], testing_overrides: list[str]) -> None:
     """Test default hydra sweep.
 
     Args:
-        train_script: The path of the script to invoke.
+        script: The path of the script to invoke.
         application_overrides: The application-specific overrides to use.
         testing_overrides: The generic overrides to suitably configure tests.
     """
     command = [
-        str(train_script),
+        str(script),
         "-m",
         "model.optimizer.lr=0.005,0.01",
         "++trainer.fast_dev_run=true",
@@ -76,13 +101,11 @@ def test_hydra_sweep(train_script: Path, application_overrides: list[str], testi
 
 @RunIf(sh=True)
 @pytest.mark.slow
-def test_optuna_sweep(
-    train_script: Path, mutag_classification_overrides: list[str], testing_overrides: list[str]
-) -> None:
+def test_optuna_sweep(script: Path, mutag_classification_overrides: list[str], testing_overrides: list[str]) -> None:
     """Test Optuna hyperparam sweeping.
 
     Args:
-        train_script: The path of the script to invoke.
+        script: The path of the script to invoke.
         mutag_classification_overrides: The overrides to use for the MUTAG classification task.
         testing_overrides: The generic overrides to suitably configure tests.
     """
@@ -90,7 +113,7 @@ def test_optuna_sweep(
     #       and automatically picking the `hparams_search` config based on the application overrides.
     #       Not done because it is not trivial to find a reliable way to pick an appropriate `hparams_search` config.
     command = [
-        str(train_script),
+        str(script),
         "-m",
         "hparams_search=graph_level_optuna",
         "~serial_sweeper",  # Disable the serial sweeper here to test it separately
@@ -106,16 +129,16 @@ def test_optuna_sweep(
 
 @RunIf(sh=True)
 @pytest.mark.slow
-def test_serial_sweep(train_script: Path, application_overrides: list[str], testing_overrides: list[str]) -> None:
+def test_serial_sweep(script: Path, application_overrides: list[str], testing_overrides: list[str]) -> None:
     """Test single-process serial sweeping.
 
     Args:
-        train_script: The path of the script to invoke.
+        script: The path of the script to invoke.
         application_overrides: The application-specific overrides to use.
         testing_overrides: The generic overrides to suitably configure tests.
     """
     command = [
-        str(train_script),
+        str(script),
         "serial_sweeper=cross_validation",
         "++trainer.fast_dev_run=true",
         *application_overrides,

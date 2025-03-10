@@ -117,6 +117,7 @@ neural networks to predict the risk of pulmonary embolism.
   built for CPU or a specific CUDA version (only available when using `uv`, not `pip`).
 - `wandb`: For experiment tracking with Weights & Biases.
 - `tensorboard`: For experiment tracking with TensorBoard.
+- `baselines`: Extra dependencies required to run the baselines (e.g. XGBoost).
 - `all`: Install all (non-mutually exclusive) extras at once.
 
 ### Setup Weight & Biases
