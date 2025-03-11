@@ -34,9 +34,6 @@ class MetricTrackingLitModule(LightningModule, ABC):
           the best values across the whole run, for example to monitor them for automatic hyperparameter tuning.
     """
 
-    task_level: Literal["node", "graph"]
-    """The type of task the model is designed for, used to generate an example input batch."""
-
     def __init__(
         self,
         criterion: nn.Module,
@@ -214,6 +211,9 @@ class MetricTrackingLitModule(LightningModule, ABC):
 
 class GraphLitModule(MetricTrackingLitModule, ABC):
     """A `LightningModule` that provides the boilerplate code for GNNs."""
+
+    task_level: Literal["node", "graph"]
+    """The type of task the model is designed for, used to generate an example input batch."""
 
     def __init__(self, num_node_features: int = None, num_edge_features: int = None, *args, **kwargs):
         """Initializes a `GraphLitModule`.
