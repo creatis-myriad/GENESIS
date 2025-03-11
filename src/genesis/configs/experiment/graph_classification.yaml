@@ -3,9 +3,11 @@
 # to execute this experiment run:
 # python train.py experiment=graph_classification
 
-# TODO: Update the default `/data/dataset` override when PERSEVERE is implemented
 defaults:
+  - override /data: split_lightning_dataset
+  # TODO: Update the default `/data/dataset` override when PERSEVERE is implemented
   - override /data/dataset: mutag
+  - override /model: graph_classifier
 
 # all parameters below will be merged with parameters from default configurations ('train.yaml' or 'eval.yaml')
 # this allows you to overwrite only specified parameters

@@ -2,14 +2,13 @@
 
 defaults:
   - _self_
-  - data: split_lightning_dataset
-  - model: graph_classifier
+  - data: ??? # no sane default can be provided here, data has to be provided by the user
+  - model: ??? # no sane default can be provided here, model has to be provided by the user
   - logger: null
   - trainer: default
   - paths: default
   - extras: default
   - hydra: default
-  - override data/dataset: ???
 
 task_name: "eval"
 
