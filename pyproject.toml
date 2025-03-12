@@ -6,7 +6,7 @@ readme = "README.md"
 repository = "https://github.com/creatis-myriad/GENESIS"
 authors = [
     {name = "Nathan Painchaud", email = "nathan.painchaud@insa-lyon.fr"},
-    {name = "Tristan Habemont", email = "tristan.habemont@insa-lyon.fr" }
+    {name = "Tristan Habémont", email = "tristan.habemont@insa-lyon.fr" }
 ]
 requires-python = ">=3.12,<4"
 dependencies = [
@@ -25,6 +25,8 @@ dependencies = [
     # so that our fork also gets chosen when installing the package using `pip install .`
     "torch-geometric @ git+https://github.com/nathanpainchaud/pytorch_geometric.git@0bea004a831b2fde32b12cdaa03e3715cb44c240",
     "torchmetrics>=1.6.1,<1.7",
+    "networkx>=3.4.2",
+    "pyyaml>=6.0.2",
 ]
 [project.optional-dependencies]
 all = [
@@ -69,6 +71,7 @@ lint = [
 test = [
     "pytest>=8.3.4,<9",
     "pytest-cov>=6.0.0,<7",
+    "pytest-datadir>=1.6.1",
     "sh>=2.2.1,<3",
 ]
 
