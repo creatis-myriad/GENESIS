@@ -19,15 +19,18 @@ def json_to_pyg(
     json_to_nx_kwargs: dict[str, Any] | None = None,
     nx_to_pyg_kwargs: dict[str, Any] | None = None,
 ) -> Data:
-    """Parses JSON file into a PyG Data object.
+    """Parse a JSON file into a PyG `Data`, representing a graph.
 
-    :param json_path: File path to read as PyG Data object
-    :param target_key: Key of the graph attribute to use as target
-    :param target_num_classes: Number of classes of the target final tensor
-    :param line_graph: Whether to convert the parsed graph to its line graph
-    :param json_to_nx_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`
-    :param nx_to_pyg_kwargs: Node and edge features filters to pass to `from_networkx`
-    :return: PyG Data object
+    Args:
+        json_path: File path to read as PyG graph.
+        target_key: Key of the graph attribute to use as target.
+        target_num_classes: Number of classes of the target final tensor.
+        line_graph: Whether to convert the parsed graph to its line graph.
+        json_to_nx_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`.
+        nx_to_pyg_kwargs: Node and edge features filters to pass to `pyg.utils.from_networkx`.
+
+    Returns:
+        PyG `Data` object loaded from the JSON file.
     """
     if json_to_nx_kwargs is None:
         json_to_nx_kwargs = {}
@@ -38,12 +41,15 @@ def json_to_pyg(
 
 
 def json_graph_to_networkx(json_path: Path, line_graph: bool = False, **node_link_graph_kwargs) -> nx.Graph:
-    """Parses JSON file into a nx graph.
+    """Parses JSON file into a NetworkX `Graph`.
 
-    :param json_path: File path to read as nx graph
-    :param line_graph: Whether to convert the parsed graph to its line graph
-    :param node_link_graph_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`
-    :return: nx graph
+    Args:
+        json_path: File path to read as NetworkX graph.
+        line_graph: Whether to convert the parsed graph to its line graph.
+        **node_link_graph_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`.
+
+    Returns:
+        NetworkX `Graph` loaded from the JSON file.
     """
     with open(json_path) as file:
         json_graph = json.load(file)

@@ -56,8 +56,11 @@ def edge_features_count(json_graph: dict) -> int:
 def extract_json_graph_features(json_graph: dict) -> tuple[list[str], list[str]]:
     """Extract node and edge features from the JSON graph.
 
-    :param json_graph: JSON graph
-    :return: Node and edge features
+    Args:
+        json_graph: JSON graph
+
+    Returns:
+        Node and edge features
     """
     node_features = [key for key in json_graph[NODES_KEY][0] if key != ID_KEY]
     edge_features = [key for key in json_graph[EDGES_KEY][0] if key not in [SOURCE_KEY, TARGET_KEY]]

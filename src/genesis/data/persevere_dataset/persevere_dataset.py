@@ -33,19 +33,20 @@ class PersevereDataset(InMemoryDataset):
     ) -> None:
         """Initializes a `PersevereDataset`.
 
-        :param root: Root directory
-        :param transform: PyG data transform, applies on-access transformation without altering stored data
-        :param pre_transform: PyG data pre-transform, applies transformation before storing
-        :param pre_filter: PyG data pre-filter, filters data before storing
-        :param force_reload: PyG force reload, forces reprocessing to update pre_transform/filter changes
-        :param line_graph: Whether to convert graphs to their line graphs
-        :param target_key: Key of the graph attribute to use as target
-        :param target_num_classes: Number of classes of the target final tensor
-        :param node_attrs_filter: List of node features to keep in the `Data` objects, from all available node features.
-        If `None`, defaults to keeping all node features.
-        :param edge_attrs_filter: List of edge features to keep in the `Data` objects, from all available edge features.
-        If `None`, defaults to keeping all edge features.
-        :param json_to_nx_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`
+        Args:
+            root: Root directory where the dataset is saved.
+            transform: PyG data transform, applies on-access transformation without altering stored data.
+            pre_transform: PyG data pre-transform, applies transformation before storing.
+            pre_filter: PyG data pre-filter, filters data before storing.
+            force_reload: PyG force reload, forces reprocessing to update pre_transform/filter changes.
+            line_graph: Whether to convert graphs to their line graphs.
+            target_key: Key of the graph attribute to use as target.
+            target_num_classes: Number of classes of the target attribute.
+            node_attrs_filter: List of node features to keep in the `Data` objects, from all available node features.
+                If `None`, defaults to keeping all node features.
+            edge_attrs_filter: List of edge features to keep in the `Data` objects, from all available edge features.
+                If `None`, defaults to keeping all edge features.
+            json_to_nx_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`.
         """
         self.__line_graph = line_graph
         self.__target_key = target_key
