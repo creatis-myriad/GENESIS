@@ -4,6 +4,8 @@ import pytest
 
 from genesis.data.persevere_dataset.persevere_dataset import PersevereDataset
 
+from .conftest import EDGES_KEY, NODES_KEY
+
 
 @pytest.mark.parametrize("node_attrs_filter", [None, ["node_feat1"]])
 @pytest.mark.parametrize("edge_attrs_filter", [None, ["edge_feat1"]])
@@ -27,8 +29,8 @@ def test_persevere_dataset(
         node_attrs_filter=node_attrs_filter,
         edge_attrs_filter=edge_attrs_filter,
         json_to_nx_kwargs={
-            "nodes": "nodes",
-            "edges": "links",
+            "nodes": NODES_KEY,
+            "edges": EDGES_KEY,
         },
     )
 
