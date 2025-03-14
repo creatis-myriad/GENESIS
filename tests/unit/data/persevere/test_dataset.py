@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from genesis.data.persevere_dataset.persevere_dataset import PersevereDataset
+from genesis.data.persevere import PersevereDataset
 
 from .conftest import EDGES_KEY, NODES_KEY
 

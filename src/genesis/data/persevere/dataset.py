@@ -3,7 +3,7 @@ from pathlib import Path
 
 from torch_geometric.data import InMemoryDataset
 
-from .utils.io import json_to_pyg
+from genesis.data.utils import json_to_pyg
 
 
 class PersevereDataset(InMemoryDataset):

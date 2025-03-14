@@ -5,10 +5,7 @@ from typing import Any
 import networkx as nx
 from torch_geometric.data import Data
 
-from .networkx import (
-    networkx_line_graph,
-    networkx_to_torch_geometric,
-)
+from genesis.data.utils import networkx_line_graph, networkx_to_torch_geometric
 
 
 def json_to_pyg(
