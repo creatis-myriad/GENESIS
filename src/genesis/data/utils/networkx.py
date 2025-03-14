@@ -5,13 +5,13 @@ from torch_geometric.utils import from_networkx
 
 
 def networkx_to_torch_geometric(
-    graph: nx.Graph, target_key: str, target_num_classes: int, **from_networkx_kwargs
+    graph: nx.Graph, target_attr: str, target_num_classes: int, **from_networkx_kwargs
 ) -> Data:
     """Convert NetworkX `Graph` to PyG `Data`.
 
     Args:
         graph: NetworkX graph.
-        target_key: Key of the graph attribute to use as target.
+        target_attr: Key of the graph attribute to use as target.
         target_num_classes: Number of classes of the target.
         **from_networkx_kwargs: Node and edge filter lists to pass to `from_networkx`.
 
@@ -31,7 +31,7 @@ def networkx_to_torch_geometric(
     # Don't manage string attributes
     data = from_networkx(graph, **from_networkx_kwargs)
     data = __clean_data_attributes(data)
-    target_label = graph.graph[target_key]
+    target_label = graph.graph[target_attr]
     data.y = __categorical_to_tensor(target_label, target_num_classes)
     return data
 
