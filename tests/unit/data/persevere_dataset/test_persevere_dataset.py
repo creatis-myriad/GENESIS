@@ -1,27 +1,24 @@
 from pathlib import Path
-from typing import Optional
 
 import pytest
 
 from genesis.data.persevere_dataset.persevere_dataset import PersevereDataset
-from .conftest import dataset_root
 
 
-@pytest.mark.parametrize("node_attrs_filter", [None, ['node_feat1']])
-@pytest.mark.parametrize("edge_attrs_filter", [None, ['edge_feat1']])
+@pytest.mark.parametrize("node_attrs_filter", [None, ["node_feat1"]])
+@pytest.mark.parametrize("edge_attrs_filter", [None, ["edge_feat1"]])
 @pytest.mark.parametrize("line_graph", [False, True])
 def test_persevere_dataset(
-        node_attrs_filter: Optional[list[str]],
-        edge_attrs_filter: Optional[list[str]],
-        line_graph: bool,
-        dataset_root: Path,
-        nodes_count: int,
-        edges_count: int,
-        node_features_count: int,
-        edge_features_count: int
-    ):
+    node_attrs_filter: list[str] | None,
+    edge_attrs_filter: list[str] | None,
+    line_graph: bool,
+    dataset_root: Path,
+    nodes_count: int,
+    edges_count: int,
+    node_features_count: int,
+    edge_features_count: int,
+) -> None:
     """Test PersevereDataset with and without attribute filters and in line graph mode."""
-
     dataset = PersevereDataset(
         root=str(dataset_root),
         force_reload=True,
@@ -32,7 +29,7 @@ def test_persevere_dataset(
         json_to_nx_kwargs={
             "nodes": "nodes",
             "edges": "links",
-        }
+        },
     )
 
     node_features_count = 1 if node_attrs_filter else node_features_count
@@ -53,5 +50,5 @@ def test_persevere_dataset(
             assert data.edge_attr.shape == (edges_count, edge_features_count)
 
         # PyG Data attributes tests
-        for attr in data.keys():
-            assert attr in ['x', 'y', 'edge_index', 'edge_attr']
+        for attr in data.keys():  # noqa: SIM118
+            assert attr in ["x", "y", "edge_index", "edge_attr"]

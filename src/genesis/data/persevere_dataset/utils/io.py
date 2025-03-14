@@ -6,16 +6,21 @@ import networkx as nx
 from torch_geometric.data import Data
 
 from .networkx import (
-    networkx_to_torch_geometric,
     networkx_line_graph,
+    networkx_to_torch_geometric,
 )
 
+
 def json_to_pyg(
-    json_path: Path, target_key: str, target_num_classes: int, line_graph: bool = False,
-    json_to_nx_kwargs: dict[str, Any] = None, nx_to_pyg_kwargs: dict[str, Any] = None
+    json_path: Path,
+    target_key: str,
+    target_num_classes: int,
+    line_graph: bool = False,
+    json_to_nx_kwargs: dict[str, Any] | None = None,
+    nx_to_pyg_kwargs: dict[str, Any] | None = None,
 ) -> Data:
-    """
-    Parses JSON file into a PyG Data object.
+    """Parses JSON file into a PyG Data object.
+
     :param json_path: File path to read as PyG Data object
     :param target_key: Key of the graph attribute to use as target
     :param target_num_classes: Number of classes of the target final tensor
@@ -32,11 +37,9 @@ def json_to_pyg(
     return networkx_to_torch_geometric(nx_graph, target_key, target_num_classes, **nx_to_pyg_kwargs)
 
 
-def json_graph_to_networkx(
-    json_path: Path, line_graph: bool = False, **node_link_graph_kwargs
-) -> nx.Graph:
-    """
-    Parses JSON file into a nx graph.
+def json_graph_to_networkx(json_path: Path, line_graph: bool = False, **node_link_graph_kwargs) -> nx.Graph:
+    """Parses JSON file into a nx graph.
+
     :param json_path: File path to read as nx graph
     :param line_graph: Whether to convert the parsed graph to its line graph
     :param node_link_graph_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`

@@ -1,5 +1,5 @@
+from collections.abc import Callable
 from pathlib import Path
-from typing import Optional, Callable
 
 from torch_geometric.data import InMemoryDataset
 
@@ -7,22 +7,24 @@ from .utils.io import json_to_pyg
 
 
 class PersevereDataset(InMemoryDataset):
+    """PyG dataset for the PERSEVERE dataset."""
+
     def __init__(
         self,
         root: str,
-        transform: Optional[Callable] = None,
-        pre_transform: Optional[Callable] = None,
-        pre_filter: Optional[Callable] = None,
+        transform: Callable | None = None,
+        pre_transform: Callable | None = None,
+        pre_filter: Callable | None = None,
         force_reload: bool = False,
         line_graph: bool = True,
         target_key: str = "risk",
         target_num_classes: int = 3,
-        node_attrs_filter: Optional[list] = None,
-        edge_attrs_filter: Optional[list] = None,
-        json_to_nx_kwargs: Optional[dict] = None,
-    ):
-        """
-        Persevere Dataset
+        node_attrs_filter: list | None = None,
+        edge_attrs_filter: list | None = None,
+        json_to_nx_kwargs: dict | None = None,
+    ) -> None:
+        """Initializes a `PersevereDataset`.
+
         :param root: Root directory
         :param transform: PyG data transform, applies on-access transformation without altering stored data
         :param pre_transform: PyG data pre-transform, applies transformation before storing
@@ -47,7 +49,7 @@ class PersevereDataset(InMemoryDataset):
             "group_edge_attrs": node_attrs_filter if line_graph else edge_attrs_filter,
         }
 
-        super(PersevereDataset, self).__init__(
+        super().__init__(
             root=root,
             transform=transform,
             pre_transform=pre_transform,
@@ -56,15 +58,13 @@ class PersevereDataset(InMemoryDataset):
         )
         self.load(self.processed_paths[0])
 
-
     @property
     def processed_file_names(self) -> str:
-        """By default, processed data is saved in 'data.pt'"""
+        """By default, processed data is saved in 'data.pt'."""
         return "data.pt"
 
-
-    def process(self):
-        """Process the raw data and save it to data.pt"""
+    def process(self) -> None:
+        """Process the raw data and save it to data.pt."""
         data_list = [
             json_to_pyg(
                 json_path,

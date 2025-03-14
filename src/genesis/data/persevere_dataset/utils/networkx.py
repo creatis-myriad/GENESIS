@@ -4,15 +4,16 @@ from torch_geometric.data import Data
 from torch_geometric.utils import from_networkx
 
 
-def networkx_to_torch_geometric(graph: nx.Graph, target_key: str, target_num_classes: int,
-                                **from_networkx_kwargs) -> Data:
-    """
-    Convert NetworkX Graph to PyG Data
+def networkx_to_torch_geometric(
+    graph: nx.Graph, target_key: str, target_num_classes: int, **from_networkx_kwargs
+) -> Data:
+    """Convert NetworkX Graph to PyG Data.
+
     :param graph: NetworkX Graph
     :param target_key: Key of the graph attribute to use as target
     :param target_num_classes: Number of classes of the target final tensor
     :param from_networkx_kwargs: Node and edge filter lists to pass to `from_networkx`
-    :return: PyG Data
+    :return: PyG Data.
     """
     if not __has_node_attributes(graph):
         from_networkx_kwargs["group_node_attrs"] = None
@@ -33,10 +34,9 @@ def networkx_to_torch_geometric(graph: nx.Graph, target_key: str, target_num_cla
 
 
 def networkx_line_graph(graph: nx.Graph) -> nx.Graph:
-    """
-    Convert NetworkX Graph to its line graph.
-    Only transpose original edge features to dual graph nodes,
-    as edge features are not used in most GNNs.
+    """Convert NetworkX Graph to its line graph.
+
+    Only transpose original edge features to dual graph nodes, as edge features are not used in most GNNs.
     :param graph: Original graph
     :return: Line graph
     """
@@ -48,8 +48,8 @@ def networkx_line_graph(graph: nx.Graph) -> nx.Graph:
 
 
 def __has_node_attributes(graph: nx.Graph) -> bool:
-    """
-    Check if the NetworkX Graph has node attributes.
+    """Check if the NetworkX Graph has node attributes.
+
     :param graph: NetworkX Graph
     :return: True if graph has node attributes, False otherwise
     """
@@ -57,8 +57,8 @@ def __has_node_attributes(graph: nx.Graph) -> bool:
 
 
 def __has_edge_attributes(graph: nx.Graph) -> bool:
-    """
-    Check if the NetworkX Graph has edge attributes.
+    """Check if the NetworkX Graph has edge attributes.
+
     :param graph: NetworkX Graph
     :return: True if graph has edge attributes, False otherwise
     """
@@ -66,9 +66,8 @@ def __has_edge_attributes(graph: nx.Graph) -> bool:
 
 
 def __categorical_to_tensor(cat: int, num_classes: int) -> torch.Tensor:
-    """
-    Encode categorical datum to one-hot tensor
-    :param cat: Categorical datum to encode as one-hot.
+    """Encode categorical datum to one-hot tensor :param cat: Categorical datum to encode as one-hot.
+
     :return: One-hot encoded tensor
     """
     output = [0] * num_classes
@@ -77,13 +76,12 @@ def __categorical_to_tensor(cat: int, num_classes: int) -> torch.Tensor:
 
 
 def __clean_data_attributes(data: Data) -> Data:
-    """
-    Remove all attributes from PyG Data object except x, y, edge_index, and edge_attr.
+    """Remove all attributes from PyG Data object except x, y, edge_index, and edge_attr.
+
     :param data: PyG Data object
     :return: PyG Data object cleaned from non-essential attributes
     """
-    for key in data.keys():
-        if key not in ['x', 'y', 'edge_index', 'edge_attr']:
+    for key in data.keys():  # noqa: SIM118
+        if key not in ["x", "y", "edge_index", "edge_attr"]:
             delattr(data, key)
     return data
-
