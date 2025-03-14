@@ -7,7 +7,15 @@ from .utils.io import json_to_pyg
 
 
 class PersevereDataset(InMemoryDataset):
-    """PyG dataset for the PERSEVERE dataset."""
+    """PyG dataset for the PERSEVERE dataset, which contains multiple graphs of pulmonary vessel trees.
+
+    The dataset is stored as JSON files (1 per graph) implementing the node-link format of NetworkX. See
+    https://networkx.org/documentation/stable/reference/readwrite/json_graph.html
+    for more information about the JSON data format.
+
+    This dataset reconstructs the graphs from the JSON files, converts them to PyG Data objects, and groups them in a
+    single dataset.
+    """
 
     def __init__(
         self,
