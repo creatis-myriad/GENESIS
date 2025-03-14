@@ -503,7 +503,7 @@ dev = [
     { name = "pre-commit", specifier = ">=4.0.1,<5" },
     { name = "pytest", specifier = ">=8.3.4,<9" },
     { name = "pytest-cov", specifier = ">=6.0.0,<7" },
-    { name = "pytest-datadir", specifier = ">=1.6.1" },
+    { name = "pytest-datadir", specifier = ">=1.6.1,<2" },
     { name = "ruff", specifier = ">=0.10,<0.11" },
     { name = "sh", specifier = ">=2.2.1,<3" },
 ]
@@ -514,7 +514,7 @@ lint = [
 test = [
     { name = "pytest", specifier = ">=8.3.4,<9" },
     { name = "pytest-cov", specifier = ">=6.0.0,<7" },
-    { name = "pytest-datadir", specifier = ">=1.6.1" },
+    { name = "pytest-datadir", specifier = ">=1.6.1,<2" },
     { name = "sh", specifier = ">=2.2.1,<3" },
 ]
 
