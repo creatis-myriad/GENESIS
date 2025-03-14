@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 from torch_geometric.data import InMemoryDataset
 
@@ -27,9 +28,9 @@ class PersevereDataset(InMemoryDataset):
         line_graph: bool = True,
         target_key: str = "risk",
         target_num_classes: int = 3,
-        node_attrs_filter: list | None = None,
-        edge_attrs_filter: list | None = None,
-        json_to_nx_kwargs: dict | None = None,
+        node_attrs_filter: list[str] | None = None,
+        edge_attrs_filter: list[str] | None = None,
+        json_to_nx_kwargs: dict[str, Any] | None = None,
     ) -> None:
         """Initializes a `PersevereDataset`.
 
