@@ -5,15 +5,16 @@ import pytest
 from _pytest.fixtures import FixtureRequest
 
 # Keys used in the JSON files
-NODES_KEY = 'nodes'
-EDGES_KEY = 'links'
-ID_KEY = 'id'
-SOURCE_KEY = 'source'
-TARGET_KEY = 'target'
+NODES_KEY = "nodes"
+EDGES_KEY = "links"
+ID_KEY = "id"
+SOURCE_KEY = "source"
+TARGET_KEY = "target"
 
 
 @pytest.fixture(params=["node_edge_feats_dataset", "node_feats_dataset", "edge_feats_dataset"])
 def dataset_root(request: FixtureRequest, shared_datadir: Path) -> Path:
+    """Fixture for the dataset root directory."""
     return shared_datadir / request.param
 
 
@@ -53,22 +54,11 @@ def edge_features_count(json_graph: dict) -> int:
 
 
 def extract_json_graph_features(json_graph: dict) -> tuple[list[str], list[str]]:
-    """
-    Extract node and edge features from the JSON graph.
+    """Extract node and edge features from the JSON graph.
+
     :param json_graph: JSON graph
     :return: Node and edge features
     """
-    node_features = [
-        key
-        for key in json_graph[NODES_KEY][0].keys()
-        if key != ID_KEY
-    ]
-    edge_features = [
-        key
-        for key in json_graph[EDGES_KEY][0].keys()
-        if key not in [SOURCE_KEY, TARGET_KEY]
-    ]
+    node_features = [key for key in json_graph[NODES_KEY][0].keys() if key != ID_KEY]  # noqa: SIM118
+    edge_features = [key for key in json_graph[EDGES_KEY][0].keys() if key not in [SOURCE_KEY, TARGET_KEY]]  # noqa: SIM118
     return node_features, edge_features
-
-
-
