@@ -19,7 +19,7 @@ tags:
 seed: 12345
 
 trainer:
-  min_epochs: 350
+  min_epochs: 50
   max_epochs: 350
 
 data:
