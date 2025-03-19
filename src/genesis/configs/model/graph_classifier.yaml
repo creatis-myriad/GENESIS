@@ -1,6 +1,6 @@
 defaults:
   - components@encoder: gcn
-  - components/global_pool@readout: mean
+  - components/global_pool@readout: add
   - components@head: mlp
   - optimizer: adamw
   - scheduler: step_lr
@@ -18,7 +18,7 @@ head:
   hidden_channels: ${.in_channels}
   num_layers: 2
   dropout: ${..encoder.dropout}
-  norm: null
+  norm: batch_norm
 
 criterion:
   # Use `CrossEntropyLoss` when task is multiclass, otherwise use `BCEWithLogitsLoss`
