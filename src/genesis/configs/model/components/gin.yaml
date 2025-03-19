@@ -4,3 +4,4 @@ defaults:
 _target_: torch_geometric.nn.GIN
 hidden_channels: 64
 num_layers: 5
+train_eps: true
