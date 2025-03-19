@@ -1,0 +1,25 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - paths: default
+  - hydra: default
+
+source_dir: "data/PERSEVERE/pre-raw"
+pyg_raw_dir: "data/PERSEVERE/raw"
+
+global_attr:
+  db_filename: "PERSEVERE_database.xlsx"
+  patient_sheet: "selection"
+  patient_id_column: 0
+  global_attr_columns:
+    risk: 3
+
+attr_to_remove:
+  node: ["pos"]
+  link:
+    ["id", "name", "lateral", "lobe", "centerline", "radius", "contour_points"]
+
+task_name: "parse"
+tags: ["dev"]
+_assert_: null

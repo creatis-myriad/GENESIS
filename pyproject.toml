@@ -27,6 +27,8 @@ dependencies = [
     "torch-geometric @ git+https://github.com/nathanpainchaud/pytorch_geometric.git@0bea004a831b2fde32b12cdaa03e3715cb44c240",
     "torchmetrics>=1.6.1,<1.7",
     "networkx>=3.4.2",
+    "pandas>=2.2.3",
+    "openpyxl>=3.1.5",
 ]
 [project.optional-dependencies]
 all = [
@@ -78,6 +80,7 @@ test = [
 [project.scripts]
 gnn-train = "genesis.train:main"
 gnn-eval = "genesis.eval:main"
+parse = "genesis.parse:main"
 
 [build-system]
 requires = ["hatchling"]
