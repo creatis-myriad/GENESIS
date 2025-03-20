@@ -65,7 +65,7 @@ def __has_edge_attributes(graph: nx.Graph) -> bool:
 
 
 def __categorical_to_tensor(cat: int, num_classes: int) -> torch.Tensor:
-    """Encode categorical datum to one-hot tensor :param cat: Categorical datum to encode as one-hot.
+    """Encode categorical datum to one-hot tensor.
 
     Args:
         cat: Categorical datum to encode as one-hot.
