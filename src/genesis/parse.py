@@ -6,7 +6,11 @@ import hydra
 import pandas as pd
 from omegaconf import DictConfig
 
+from genesis.utils import RankedLogger
+
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
+
+log = RankedLogger(__name__, rank_zero_only=True)
 
 
 def add_graph_attributes(json_graph: dict, graph_attributes: dict) -> dict:
@@ -30,6 +34,7 @@ def remove_nodes_links_attributes(json_graph: dict, node_attribute_keys: list, l
 
 def extract_patient_global_attributes(xlsx_path: Path, sheet_name: str, id_col: int, attr_cols: dict) -> dict:
     """Extract patient global attributes from an XLSX database."""
+    log.info(f"Extracting global attributes from {xlsx_path} (sheet: {sheet_name})")
     df = pd.read_excel(xlsx_path, sheet_name=sheet_name, skiprows=1, header=None, dtype=str)
     df = df.dropna(subset=[id_col])
     df["patient_id"] = df.iloc[:, id_col].astype(str).str[:4]
@@ -40,6 +45,7 @@ def extract_patient_global_attributes(xlsx_path: Path, sheet_name: str, id_col: 
 
     attrs_df.index = df["patient_id"]
     attrs_df = attrs_df[~attrs_df.index.duplicated(keep="first")]
+    log.info(f"Extracted attributes for {len(attrs_df)} patients")
     return attrs_df.to_dict(orient="index")
 
 
@@ -50,6 +56,8 @@ def main(cfg: DictConfig) -> None:
     pyg_raw_dir = Path(cfg.pyg_raw_dir)
     pyg_raw_dir.mkdir(parents=True, exist_ok=True)
 
+    log.info(f"Parsing JSON graphs from '{source_dir}' to '{pyg_raw_dir}'")
+
     patient_attrs = extract_patient_global_attributes(
         xlsx_path=source_dir / cfg.global_attr.db_filename,
         sheet_name=cfg.global_attr.patient_sheet,
@@ -57,10 +65,17 @@ def main(cfg: DictConfig) -> None:
         attr_cols=cfg.global_attr.global_attr_columns,
     )
 
-    for json_path in source_dir.glob("*.json"):
+    json_files = list(source_dir.glob("*.json"))
+    log.info(f"Found {len(json_files)} JSON files to parse.")
+
+    processed_count = 0
+    skipped_count = 0
+
+    for json_path in json_files:
         patient_prefix = json_path.stem[:4]
 
         if patient_prefix in patient_attrs:
+            log.debug(f"Parsing file '{json_path.name}' for patient ID '{patient_prefix}'")
             with open(json_path) as f:
                 json_graph = json.load(f)
 
@@ -71,6 +86,13 @@ def main(cfg: DictConfig) -> None:
             output_path = pyg_raw_dir / output_filename
             with open(output_path, "w") as file:
                 json.dump(json_graph, file, indent=2)
+
+            processed_count += 1
+        else:
+            log.warning(f"No global attributes found for patient ID '{patient_prefix}', skipping '{json_path.name}'")
+            skipped_count += 1
+
+    log.info(f"Parsing completed: {processed_count} files processed, {skipped_count} files skipped.")
 
 
 if __name__ == "__main__":
