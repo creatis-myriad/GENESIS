@@ -57,6 +57,9 @@ def main(cfg: DictConfig) -> None:
     pyg_raw_dir.mkdir(parents=True, exist_ok=True)
 
     log.info(f"Parsing JSON graphs from '{source_dir}' to '{pyg_raw_dir}'")
+    log.info(f"Global attributes to add: {list(cfg.global_attr.global_attr_columns.keys())}")
+    log.info(f"Node attributes to remove: {cfg.attr_to_remove.node}")
+    log.info(f"Link attributes to remove: {cfg.attr_to_remove.link}")
 
     patient_attrs = extract_patient_global_attributes(
         xlsx_path=source_dir / cfg.global_attr.db_filename,
