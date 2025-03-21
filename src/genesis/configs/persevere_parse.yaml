@@ -5,8 +5,8 @@ defaults:
   - paths: default
   - hydra: default
 
-source_dir: "data/PERSEVERE/pre-raw"
-pyg_raw_dir: "data/PERSEVERE/raw"
+source_dir: "${paths.data_dir}/PERSEVERE/pre-raw"
+pyg_raw_dir: "${paths.data_dir}/PERSEVERE/raw"
 
 global_attr:
   db_filename: "PERSEVERE_database.xlsx"
