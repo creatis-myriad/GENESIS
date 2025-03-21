@@ -6,6 +6,7 @@ defaults:
 dataset:
   _target_: genesis.data.PersevereDataset
   root: ${paths.data_dir}/PERSEVERE
+  transform: null
   line_graph: True
   target_attr: ${hparams.data.target_attr}
   target_num_classes: ${hparams.data.num_classes}
