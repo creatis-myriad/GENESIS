@@ -80,7 +80,7 @@ test = [
 [project.scripts]
 gnn-train = "genesis.train:main"
 gnn-eval = "genesis.eval:main"
-parse = "genesis.parse:main"
+persevere-parse = "genesis.persevere_parse:main"
 
 [build-system]
 requires = ["hatchling"]

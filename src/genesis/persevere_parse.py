@@ -6,7 +6,7 @@ import hydra
 import pandas as pd
 from omegaconf import DictConfig
 
-from genesis.utils import RankedLogger
+from genesis.utils import RankedLogger, pre_hydra_routine
 
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
@@ -49,8 +49,8 @@ def extract_patient_global_attributes(xlsx_path: Path, sheet_name: str, id_col: 
     return attrs_df.to_dict(orient="index")
 
 
-@hydra.main(config_path="configs", config_name="parse", version_base=None)
-def main(cfg: DictConfig) -> None:
+@hydra.main(config_path="configs", config_name="persevere_parse", version_base=None)
+def hydra_main(cfg: DictConfig) -> None:
     """Parse raw JSON graphs into PyG-ready raw JSON graphs."""
     source_dir = Path(cfg.source_dir)
     pyg_raw_dir = Path(cfg.pyg_raw_dir)
@@ -96,6 +96,17 @@ def main(cfg: DictConfig) -> None:
             skipped_count += 1
 
     log.info(f"Parsing completed: {processed_count} files processed, {skipped_count} files skipped.")
+
+
+def main() -> float | None:
+    """Main entry point for training, before Hydra is called.
+
+    This is a workaround for issues with Python packaging tools requiring a function to target for script entrypoints.
+    It provides a target for entrypoints that comes before Hydra is called, allowing for pre-Hydra routines to be run
+    (e.g. setting up environment variables, registering custom OmegaConf resolvers etc.)
+    """
+    pre_hydra_routine()
+    return hydra_main()
 
 
 if __name__ == "__main__":
