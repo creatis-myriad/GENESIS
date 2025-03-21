@@ -1,5 +1,4 @@
 import json
-import warnings
 from pathlib import Path
 
 import hydra
@@ -7,8 +6,6 @@ import pandas as pd
 from omegaconf import DictConfig
 
 from genesis.utils import RankedLogger, pre_hydra_routine
-
-warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 log = RankedLogger(__name__, rank_zero_only=True)
 
