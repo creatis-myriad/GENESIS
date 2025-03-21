@@ -12,7 +12,7 @@ graph_attrs:
   csv_file: "PERSEVERE_selection.csv"
   patient_id_column: 0
   attrs_to_extract:
-    risk: 3
+    vte_severity: 3
 
 attrs_to_remove:
   node: ["pos"]
