@@ -20,7 +20,9 @@ def add_graph_attributes(json_graph: dict, graph_attributes: dict) -> dict:
     return json_graph
 
 
-def remove_nodes_links_attributes(json_graph: dict, node_attribute_keys: list, link_attribute_keys: list) -> dict:
+def remove_nodes_links_attributes(
+    json_graph: dict, node_attribute_keys: list[str], link_attribute_keys: list[str]
+) -> dict:
     """Remove unwanted attributes from nodes and links dictionaries."""
     for node in json_graph["nodes"]:
         for key in node_attribute_keys:
