@@ -58,8 +58,8 @@ def hydra_main(cfg: DictConfig) -> None:
 
     log.info(f"Parsing JSON graphs from '{source_dir}' to '{pyg_raw_dir}'")
     log.info(f"Global attributes to add: {list(cfg.global_attr.global_attr_columns.keys())}")
-    log.info(f"Node attributes to remove: {cfg.attr_to_remove.node}")
-    log.info(f"Link attributes to remove: {cfg.attr_to_remove.link}")
+    log.info(f"Node attributes to remove: {cfg.attrs_to_remove.node}")
+    log.info(f"Link attributes to remove: {cfg.attrs_to_remove.link}")
 
     patient_attrs = extract_patient_global_attributes(
         xlsx_path=source_dir / cfg.global_attr.db_filename,
@@ -83,7 +83,7 @@ def hydra_main(cfg: DictConfig) -> None:
                 json_graph = json.load(f)
 
             json_graph = add_graph_attributes(json_graph, patient_attrs[patient_prefix])
-            json_graph = remove_nodes_links_attributes(json_graph, cfg.attr_to_remove.node, cfg.attr_to_remove.link)
+            json_graph = remove_nodes_links_attributes(json_graph, cfg.attrs_to_remove.node, cfg.attrs_to_remove.link)
 
             output_filename = f"{json_path.stem}_parsed.json"
             output_path = pyg_raw_dir / output_filename
