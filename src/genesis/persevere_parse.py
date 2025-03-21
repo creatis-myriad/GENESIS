@@ -34,10 +34,10 @@ def remove_nodes_links_attributes(
     return json_graph
 
 
-def extract_patient_global_attributes(xlsx_path: Path, sheet_name: str, id_col: int, attr_cols: dict) -> dict:
-    """Extract patient global attributes from an XLSX database."""
-    log.info(f"Extracting global attributes from {xlsx_path} (sheet: {sheet_name})")
-    df = pd.read_excel(xlsx_path, sheet_name=sheet_name, skiprows=1, header=None, dtype=str)
+def extract_patient_global_attributes(csv_path: Path, id_col: int, attr_cols: dict) -> dict:
+    """Extract patient global attributes from a CSV file."""
+    log.info(f"Extracting global attributes from {csv_path}")
+    df = pd.read_csv(csv_path, skiprows=1, header=None, dtype=str)
     df = df.dropna(subset=[id_col])
     df["patient_id"] = df.iloc[:, id_col].astype(str).str[:4]
 
@@ -59,15 +59,14 @@ def hydra_main(cfg: DictConfig) -> None:
     pyg_raw_dir.mkdir(parents=True, exist_ok=True)
 
     log.info(f"Parsing JSON graphs from '{source_dir}' to '{pyg_raw_dir}'")
-    log.info(f"Global attributes to add: {list(cfg.global_attr.global_attr_columns.keys())}")
+    log.info(f"Global attributes to add: {list(cfg.graph_attrs.attrs_to_extract.keys())}")
     log.info(f"Node attributes to remove: {cfg.attrs_to_remove.node}")
     log.info(f"Link attributes to remove: {cfg.attrs_to_remove.link}")
 
     patient_attrs = extract_patient_global_attributes(
-        xlsx_path=source_dir / cfg.global_attr.db_filename,
-        sheet_name=cfg.global_attr.patient_sheet,
-        id_col=cfg.global_attr.patient_id_column,
-        attr_cols=cfg.global_attr.global_attr_columns,
+        csv_path=source_dir / cfg.graph_attrs.csv_file,
+        id_col=cfg.graph_attrs.patient_id_column,
+        attr_cols=cfg.graph_attrs.attrs_to_extract,
     )
 
     json_files = list(source_dir.glob("*.json"))

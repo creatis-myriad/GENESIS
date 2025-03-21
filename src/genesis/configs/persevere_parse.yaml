@@ -8,14 +8,15 @@ defaults:
 source_dir: "${paths.data_dir}/PERSEVERE/pre-raw"
 pyg_raw_dir: "${paths.data_dir}/PERSEVERE/raw"
 
-global_attr:
-  db_filename: "PERSEVERE_database.xlsx"
-  patient_sheet: "selection"
+graph_attrs:
+  csv_file: "PERSEVERE_selection.csv"
   patient_id_column: 0
-  global_attr_columns:
+  attrs_to_extract:
     risk: 3
 
 attrs_to_remove:
   node: ["pos"]
   link:
     ["id", "name", "lateral", "lobe", "centerline", "radius", "contour_points"]
+
+task_name: persevere_parse
