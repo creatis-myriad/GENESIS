@@ -1,7 +1,0 @@
-defaults:
-  - basic_gnn
-
-_target_: torch_geometric.nn.GAT
-hidden_channels: 64
-num_layers: 5
-v2: true
