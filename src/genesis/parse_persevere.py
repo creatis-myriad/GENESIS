@@ -99,7 +99,7 @@ def hydra_main(cfg: DictConfig) -> None:
     log.info(f"Parsing completed: {processed_count} files processed, {skipped_count} files skipped.")
 
 
-def main() -> float | None:
+def main() -> None:
     """Main entry point for training, before Hydra is called.
 
     This is a workaround for issues with Python packaging tools requiring a function to target for script entrypoints.
@@ -107,7 +107,7 @@ def main() -> float | None:
     (e.g. setting up environment variables, registering custom OmegaConf resolvers etc.)
     """
     pre_hydra_routine()
-    return hydra_main()
+    hydra_main()
 
 
 if __name__ == "__main__":
