@@ -19,4 +19,4 @@ attrs_to_remove:
   link:
     ["id", "name", "lateral", "lobe", "centerline", "radius", "contour_points"]
 
-task_name: persevere_parse
+task_name: parse_persevere

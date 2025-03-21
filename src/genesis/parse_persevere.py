@@ -51,7 +51,7 @@ def extract_patient_global_attributes(csv_path: Path, id_col: int, attr_cols: di
     return attrs_df.to_dict(orient="index")
 
 
-@hydra.main(config_path="configs", config_name="persevere_parse", version_base=None)
+@hydra.main(config_path="configs", config_name="parse_persevere", version_base=None)
 def hydra_main(cfg: DictConfig) -> None:
     """Parse raw JSON graphs into PyG-ready raw JSON graphs."""
     source_dir = Path(cfg.source_dir)
