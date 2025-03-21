@@ -1,0 +1,25 @@
+# @package _global_
+
+defaults:
+  # To filter nodes/edges attributes to include in the dataset, use the following config group:
+  - optional /data/dataset/attrs_filter: null
+  # To add transforms (or pre-transforms) to the dataset, use the following config group:
+  - optional /data/dataset/transform: null
+  - optional /data/dataset/transform@data.dataset.pre_transform: null
+
+dataset:
+  _target_: genesis.data.PersevereDataset
+  root: ${paths.data_dir}/PERSEVERE
+  line_graph: True
+  target_attr: ${hparams.data.target_attr}
+  target_num_classes: ${hparams.data.num_classes}
+  edge_attrs_filter: null
+
+hparams:
+  data:
+    num_graphs: 10
+    # If no explicit filter of edge attributes is provided, the maximum number of edge features (8) is used
+    num_edge_features: ${op:length_hint,${data.dataset.edge_attrs_filter}, 8}
+    num_classes: 3
+    target_attr: vte_severity
+    task: multiclass

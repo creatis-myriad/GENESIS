@@ -25,7 +25,7 @@ def test_persevere_dataset(
         root=str(dataset_root),
         force_reload=True,
         line_graph=line_graph,
-        target_key="risk",
+        target_attr="risk",
         node_attrs_filter=node_attrs_filter,
         edge_attrs_filter=edge_attrs_filter,
         json_to_nx_kwargs={

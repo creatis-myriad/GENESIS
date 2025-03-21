@@ -26,7 +26,7 @@ class PersevereDataset(InMemoryDataset):
         pre_filter: Callable | None = None,
         force_reload: bool = False,
         line_graph: bool = True,
-        target_key: str = "risk",
+        target_attr: str = "vte_severity",
         target_num_classes: int = 3,
         node_attrs_filter: list[str] | None = None,
         edge_attrs_filter: list[str] | None = None,
@@ -41,7 +41,7 @@ class PersevereDataset(InMemoryDataset):
             pre_filter: PyG data pre-filter, filters data before storing.
             force_reload: PyG force reload, forces reprocessing to update pre_transform/filter changes.
             line_graph: Whether to convert graphs to their line graphs.
-            target_key: Key of the graph attribute to use as target.
+            target_attr: Key of the graph attribute to use as target.
             target_num_classes: Number of classes of the target attribute.
             node_attrs_filter: List of node features to keep in the `Data` objects, from all available node features.
                 If `None`, defaults to keeping all node features.
@@ -50,7 +50,7 @@ class PersevereDataset(InMemoryDataset):
             json_to_nx_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`.
         """
         self.__line_graph = line_graph
-        self.__target_key = target_key
+        self.__target_attr = target_attr
         self.__target_num_classes = target_num_classes
         self.__json_to_nx_kwargs = json_to_nx_kwargs
 
@@ -78,7 +78,7 @@ class PersevereDataset(InMemoryDataset):
         data_list = [
             json_to_pyg(
                 json_path,
-                self.__target_key,
+                self.__target_attr,
                 self.__target_num_classes,
                 line_graph=self.__line_graph,
                 json_to_nx_kwargs=self.__json_to_nx_kwargs,
