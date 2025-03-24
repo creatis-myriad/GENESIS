@@ -50,31 +50,28 @@ def remove_nodes_links_attributes(
 
 
 def extract_patient_global_attributes(
-    csv_path: Path, id_col: int, attr_cols: dict[str, int]
+    csv_path: Path, id_col: str, attr_cols: dict[str, str]
 ) -> dict[str, dict[str, Any]]:
     """Extract patient global attributes from a CSV file.
 
     Args:
         csv_path: Path to the CSV file.
-        id_col: Index of the column containing patient IDs.
-        attr_cols: Dictionary mapping attribute names to their column indices.
+        id_col: Name of the column containing patient IDs.
+        attr_cols: Dictionary mapping attribute names to their respective column names.
 
     Returns:
         Dictionary mapping patient IDs to dictionaries of global attributes.
     """
     log.info(f"Extracting global attributes from {csv_path}")
-    df = pd.read_csv(csv_path, skiprows=1, header=None, dtype=str)
-    df = df.dropna(subset=[id_col])
-    df["patient_id"] = df.iloc[:, id_col].astype(str).str[:4]
+    df = pd.read_csv(csv_path, index_col=id_col, usecols=[id_col, *attr_cols.values()])
 
-    attrs_df = pd.DataFrame()
-    for attr_name, col_idx in attr_cols.items():
-        attrs_df[attr_name] = pd.to_numeric(df.iloc[:, col_idx], errors="coerce")
+    df.index = df.index.str[:4]  # Truncate patient IDs to the first 4 characters
+    # Rename index and columns to the configured attribute names
+    df.index.rename("patient_id", inplace=True)
+    df.rename(columns={col: attr for attr, col in attr_cols.items()}, inplace=True)
 
-    attrs_df.index = df["patient_id"]
-    attrs_df = attrs_df[~attrs_df.index.duplicated(keep="first")]
-    log.info(f"Extracted attributes for {len(attrs_df)} patients")
-    return attrs_df.to_dict(orient="index")
+    log.info(f"Extracted attributes for {len(df)} patients")
+    return df.to_dict(orient="index")
 
 
 @hydra.main(config_path="configs", config_name="parse_persevere", version_base=None)

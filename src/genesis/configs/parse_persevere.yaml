@@ -10,9 +10,9 @@ pyg_raw_dir: "${paths.data_dir}/PERSEVERE/raw"
 
 graph_attrs:
   csv_file: "PERSEVERE_selection.csv"
-  patient_id_column: 0
+  patient_id_column: "N° patient"
   attrs_to_extract:
-    vte_severity: 3
+    vte_severity: "Gravité MVT"
 
 attrs_to_remove:
   node: ["pos"]
