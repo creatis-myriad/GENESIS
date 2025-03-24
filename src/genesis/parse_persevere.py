@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 log = RankedLogger(__name__, rank_zero_only=True)
 
 
-def add_graph_attributes(json_graph: dict, graph_attributes: dict) -> dict[str, Any]:
+def add_graph_attributes(json_graph: dict[str, Any], graph_attributes: dict[str, Any]) -> dict[str, Any]:
     """Add attributes to the graph dictionary.
 
     Args:
@@ -52,7 +52,9 @@ def remove_nodes_links_attributes(
     return json_graph
 
 
-def extract_patient_global_attributes(csv_path: Path, id_col: int, attr_cols: dict) -> dict[str, dict[str, Any]]:
+def extract_patient_global_attributes(
+    csv_path: Path, id_col: int, attr_cols: dict[str, int]
+) -> dict[str, dict[str, Any]]:
     """Extract patient global attributes from a CSV file.
 
     Args:
