@@ -1,5 +1,7 @@
 import json
+import warnings
 from pathlib import Path
+from typing import Any
 
 import hydra
 import pandas as pd
@@ -7,11 +9,21 @@ from omegaconf import DictConfig
 
 from genesis.utils import RankedLogger, pre_hydra_routine
 
+warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
+
 log = RankedLogger(__name__, rank_zero_only=True)
 
 
-def add_graph_attributes(json_graph: dict, graph_attributes: dict) -> dict:
-    """Add attributes to the graph dictionary."""
+def add_graph_attributes(json_graph: dict, graph_attributes: dict) -> dict[str, Any]:
+    """Add attributes to the graph dictionary.
+
+    Args:
+        json_graph: JSON NetworkX graph dictionary.
+        graph_attributes: Dictionary of attributes to add to the graph.
+
+    Returns:
+        JSON NetworkX graph with added attributes.
+    """
     for key, value in graph_attributes.items():
         json_graph["graph"][key] = value
     return json_graph
@@ -19,8 +31,17 @@ def add_graph_attributes(json_graph: dict, graph_attributes: dict) -> dict:
 
 def remove_nodes_links_attributes(
     json_graph: dict, node_attribute_keys: list[str], link_attribute_keys: list[str]
-) -> dict:
-    """Remove unwanted attributes from nodes and links dictionaries."""
+) -> dict[str, Any]:
+    """Remove unwanted attributes from nodes and links dictionaries.
+
+    Args:
+        json_graph: JSON NetworkX graph dictionary.
+        node_attribute_keys: List of node attribute keys to remove.
+        link_attribute_keys: List of link attribute keys to remove.
+
+    Returns:
+        JSON NetworkX graph with unwanted attributes removed.
+    """
     for node in json_graph["nodes"]:
         for key in node_attribute_keys:
             node.pop(key, None)
@@ -31,8 +52,17 @@ def remove_nodes_links_attributes(
     return json_graph
 
 
-def extract_patient_global_attributes(csv_path: Path, id_col: int, attr_cols: dict) -> dict:
-    """Extract patient global attributes from a CSV file."""
+def extract_patient_global_attributes(csv_path: Path, id_col: int, attr_cols: dict) -> dict[str, dict[str, Any]]:
+    """Extract patient global attributes from a CSV file.
+
+    Args:
+        csv_path: Path to the CSV file.
+        id_col: Index of the column containing patient IDs.
+        attr_cols: Dictionary mapping attribute names to their column indices.
+
+    Returns:
+        Dictionary mapping patient IDs to dictionaries of global attributes.
+    """
     log.info(f"Extracting global attributes from {csv_path}")
     df = pd.read_csv(csv_path, skiprows=1, header=None, dtype=str)
     df = df.dropna(subset=[id_col])
@@ -48,7 +78,7 @@ def extract_patient_global_attributes(csv_path: Path, id_col: int, attr_cols: di
     return attrs_df.to_dict(orient="index")
 
 
-@hydra.main(config_path="configs", config_name="parse_persevere", version_base=None)
+@hydra.main(config_path="configs", config_name="persevere_parse", version_base=None)
 def hydra_main(cfg: DictConfig) -> None:
     """Parse raw JSON graphs into PyG-ready raw JSON graphs."""
     source_dir = Path(cfg.source_dir)
@@ -96,7 +126,7 @@ def hydra_main(cfg: DictConfig) -> None:
     log.info(f"Parsing completed: {processed_count} files processed, {skipped_count} files skipped.")
 
 
-def main() -> None:
+def main() -> float | None:
     """Main entry point for training, before Hydra is called.
 
     This is a workaround for issues with Python packaging tools requiring a function to target for script entrypoints.
@@ -104,7 +134,7 @@ def main() -> None:
     (e.g. setting up environment variables, registering custom OmegaConf resolvers etc.)
     """
     pre_hydra_routine()
-    hydra_main()
+    return hydra_main()
 
 
 if __name__ == "__main__":
