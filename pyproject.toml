@@ -17,6 +17,7 @@ dependencies = [
     "hydra-optuna-sweeper>=1.2.0,<2",
     "lightning>=2.5.0.post0,<2.6",
     "networkx>=3.4.2,<4",
+    "pandas>=2.2.3,<3",
     "rich>=13.9.4,<14",
     "rootutils>=1.0.7,<2",
     "scikit-learn>=1.6.1,<2",
@@ -26,7 +27,6 @@ dependencies = [
     # so that our fork also gets chosen when installing the package using `pip install .`
     "torch-geometric @ git+https://github.com/nathanpainchaud/pytorch_geometric.git@0bea004a831b2fde32b12cdaa03e3715cb44c240",
     "torchmetrics>=1.6.1,<1.7",
-    "pandas>=2.2.3",
 ]
 [project.optional-dependencies]
 all = [
