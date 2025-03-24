@@ -46,10 +46,9 @@ class RunIf:
             max_torch: Maximum pytorch version to run test.
             min_python: Minimum python version required to run test.
             skip_windows: Skip test for Windows platform.
-            xla: If XLA is available.
             sh: If `sh` module is required to run the test.
+            xla: If XLA is available.
             wandb: If `wandb` module is required to run the test.
-            ogb: If `ogb` module is required to run the test.
             **kwargs: Native `pytest.mark.skipif` keyword arguments.
         """
         conditions = []
