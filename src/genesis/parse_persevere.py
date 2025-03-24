@@ -1,5 +1,4 @@
 import json
-import warnings
 from pathlib import Path
 from typing import Any
 
@@ -8,8 +7,6 @@ import pandas as pd
 from omegaconf import DictConfig
 
 from genesis.utils import RankedLogger, pre_hydra_routine
-
-warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 log = RankedLogger(__name__, rank_zero_only=True)
 
@@ -30,7 +27,7 @@ def add_graph_attributes(json_graph: dict[str, Any], graph_attributes: dict[str,
 
 
 def remove_nodes_links_attributes(
-    json_graph: dict, node_attribute_keys: list[str], link_attribute_keys: list[str]
+    json_graph: dict[str, Any], node_attribute_keys: list[str], link_attribute_keys: list[str]
 ) -> dict[str, Any]:
     """Remove unwanted attributes from nodes and links dictionaries.
 
@@ -80,7 +77,7 @@ def extract_patient_global_attributes(
     return attrs_df.to_dict(orient="index")
 
 
-@hydra.main(config_path="configs", config_name="persevere_parse", version_base=None)
+@hydra.main(config_path="configs", config_name="parse_persevere", version_base=None)
 def hydra_main(cfg: DictConfig) -> None:
     """Parse raw JSON graphs into PyG-ready raw JSON graphs."""
     source_dir = Path(cfg.source_dir)
@@ -128,7 +125,7 @@ def hydra_main(cfg: DictConfig) -> None:
     log.info(f"Parsing completed: {processed_count} files processed, {skipped_count} files skipped.")
 
 
-def main() -> float | None:
+def main() -> None:
     """Main entry point for training, before Hydra is called.
 
     This is a workaround for issues with Python packaging tools requiring a function to target for script entrypoints.
@@ -136,7 +133,7 @@ def main() -> float | None:
     (e.g. setting up environment variables, registering custom OmegaConf resolvers etc.)
     """
     pre_hydra_routine()
-    return hydra_main()
+    hydra_main()
 
 
 if __name__ == "__main__":
