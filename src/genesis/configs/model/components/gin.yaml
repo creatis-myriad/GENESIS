@@ -1,0 +1,5 @@
+defaults:
+  - basic_gnn
+
+_target_: torch_geometric.nn.GIN
+train_eps: true
