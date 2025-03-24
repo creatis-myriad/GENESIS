@@ -26,6 +26,7 @@ dependencies = [
     # so that our fork also gets chosen when installing the package using `pip install .`
     "torch-geometric @ git+https://github.com/nathanpainchaud/pytorch_geometric.git@0bea004a831b2fde32b12cdaa03e3715cb44c240",
     "torchmetrics>=1.6.1,<1.7",
+    "pandas>=2.2.3",
 ]
 [project.optional-dependencies]
 all = [
@@ -77,6 +78,7 @@ test = [
 [project.scripts]
 gnn-train = "genesis.train:main"
 gnn-eval = "genesis.eval:main"
+persevere-parse = "genesis.parse_persevere:main"
 
 [build-system]
 requires = ["hatchling"]
