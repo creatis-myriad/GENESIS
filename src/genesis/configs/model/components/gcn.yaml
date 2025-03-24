@@ -6,5 +6,3 @@ defaults:
   - basic_gnn
 
 _target_: torch_geometric.nn.GCN
-hidden_channels: 64
-num_layers: 5
