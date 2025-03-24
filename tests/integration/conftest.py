@@ -50,7 +50,7 @@ def cfg_train_global(cfg_path: Path, application_overrides: list[str]) -> DictCo
             cfg.paths.data_dir = os.path.join(os.environ["PROJECT_ROOT"], "data")
             cfg.trainer.min_epochs = 0
             cfg.trainer.max_epochs = 1
-            cfg.trainer.limit_train_batches = 5
+            cfg.trainer.limit_train_batches = 10
             cfg.trainer.limit_val_batches = 2
             cfg.trainer.limit_test_batches = 2
             cfg.trainer.accelerator = "cpu"
@@ -148,7 +148,7 @@ def cfg_eval(cfg_eval_global: DictConfig, tmp_path: Path) -> DictConfig:
     GlobalHydra.instance().clear()
 
 
-@pytest.fixture(scope="package", params=["mutag_classification_overrides"])
+@pytest.fixture(scope="package", params=["mutag_classification_overrides", "enzymes_classification_overrides"])
 def application_overrides(request: FixtureRequest) -> list[str]:
     """A pytest fixture for the overrides to use to specify the application (i.e. data, model, etc.) for the tests.
 
@@ -171,4 +171,22 @@ def mutag_classification_overrides() -> list[str]:
         "data/dataset=mutag",
         # Model overrides
         "model=graph_classifier",
+        "model/metrics=binary_classification",
+    ]
+
+
+@pytest.fixture(scope="package")
+def enzymes_classification_overrides() -> list[str]:
+    """A pytest fixture for the overrides to use for quick tests on the MUTAG graph-level classification dataset.
+
+    Returns:
+        A list of configuration overrides.
+    """
+    return [
+        # Data overrides
+        "data=split_lightning_dataset",
+        "data/dataset=enzymes",
+        # Model overrides
+        "model=graph_classifier",
+        "model/metrics=multi_classification",
     ]
