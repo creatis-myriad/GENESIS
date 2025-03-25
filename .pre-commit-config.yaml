@@ -74,10 +74,3 @@ repos:
     rev: 0.8.1
     hooks:
       - id: nbstripout
-
-  # jupyter notebook linting
-  - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.9.1
-    hooks:
-      - id: nbqa-ruff-check
-      - id: nbqa-ruff-format
