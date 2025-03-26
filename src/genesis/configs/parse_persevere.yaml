@@ -4,17 +4,11 @@ defaults:
   - _self_
   - paths: default
   - hydra: default
+  - data/dataset@clinical_data: persevere_clinical
 
-source_dir: "${paths.data_dir}/PERSEVERE/seg2graphs"
-pyg_raw_dir: "${paths.data_dir}/PERSEVERE/raw"
-
-graph_attrs:
-  csv_file: "PERSEVERE_selection.csv"
-  patient_id_column: "N° patient"
-  attrs_to_extract:
-    vte_severity: "Gravité MVT"
+source_dir: ${paths.data_dir}/PERSEVERE/seg2graphs
+pyg_raw_dir: ${paths.data_dir}/PERSEVERE/raw
 
 attrs_to_remove:
-  node: ["pos"]
-  link:
-    ["id", "name", "lateral", "lobe", "centerline", "radius", "contour_points"]
+  nodes: [pos]
+  links: [id, name, lateral, lobe, centerline, radius, contour_points]
