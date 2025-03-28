@@ -1,6 +1,7 @@
 # @package _global_
 
 defaults:
+  - /data/dataset/target: vte_severity
   # To filter nodes/edges attributes to include in the dataset, use the following config group:
   - optional /data/dataset/attrs_filter: null
   # To add transforms (or pre-transforms) to the dataset, use the following config group:
@@ -19,6 +20,3 @@ hparams:
     num_graphs: 10
     # If no explicit filter of edge attributes is provided, the maximum number of edge features (8) is used
     num_edge_features: ${op:length_hint,${data.dataset.edge_attrs_filter}, 8}
-    num_classes: 3
-    target_attr: vte_severity
-    task: multiclass
