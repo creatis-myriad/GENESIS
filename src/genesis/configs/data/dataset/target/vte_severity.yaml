@@ -1,0 +1,7 @@
+# @package _global_
+
+hparams:
+  data:
+    num_classes: 3
+    target_attr: vte_severity
+    task: multiclass

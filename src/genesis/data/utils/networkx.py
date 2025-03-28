@@ -1,3 +1,5 @@
+from typing import Any
+
 import networkx as nx
 import torch
 from torch_geometric.data import Data
@@ -49,6 +51,38 @@ def networkx_line_graph(graph: nx.Graph) -> nx.Graph:
     for source, target, feats in graph.edges(data=True):
         dual_graph.nodes[(source, target)].update(feats)
     return dual_graph
+
+
+def node_link_data_add_attrs(node_link_data: dict[str, Any], key: str, attrs: dict[str, Any]) -> dict[str, Any]:
+    """Add attributes to the node-link data.
+
+    Args:
+        node_link_data: Node-link data.
+        key: Key to add attributes to, e.g. "graph", "nodes", or "edges".
+        attrs: Attributes to add.
+
+    Returns:
+        Node-link data with added attributes.
+    """
+    node_link_data[key].update(attrs)
+    return node_link_data
+
+
+def node_link_data_remove_attrs(node_link_data: dict[str, Any], key: str, attrs: list[str]) -> dict[str, Any]:
+    """Remove attributes from the node-link data.
+
+    Args:
+        node_link_data: Node-link data.
+        key: Key to remove attributes from, e.g. "graph", "nodes", or "edges".
+        attrs: Attributes to remove.
+
+    Returns:
+        Node-link data with removed attributes.
+    """
+    for item in node_link_data[key]:
+        for attr in attrs:
+            item.pop(attr, None)
+    return node_link_data
 
 
 def __has_node_attributes(graph: nx.Graph) -> bool:
