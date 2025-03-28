@@ -4,15 +4,12 @@ from torch_geometric.data import Data
 from torch_geometric.utils import from_networkx
 
 
-def networkx_to_torch_geometric(
-    graph: nx.Graph, target_attr: str, target_num_classes: int, **from_networkx_kwargs
-) -> Data:
+def networkx_to_torch_geometric(graph: nx.Graph, target_attr: str, **from_networkx_kwargs) -> Data:
     """Convert NetworkX `Graph` to PyG `Data`.
 
     Args:
         graph: NetworkX graph.
         target_attr: Key of the graph attribute to use as target.
-        target_num_classes: Number of classes of the target.
         **from_networkx_kwargs: Node and edge filter lists to pass to `from_networkx`.
 
     Returns:
@@ -32,7 +29,7 @@ def networkx_to_torch_geometric(
     data = from_networkx(graph, **from_networkx_kwargs)
     data = __clean_data_attributes(data)
     target_label = graph.graph[target_attr]
-    data.y = __categorical_to_tensor(target_label, target_num_classes)
+    data.y = torch.tensor(target_label, dtype=torch.long)
     return data
 
 
@@ -62,21 +59,6 @@ def __has_node_attributes(graph: nx.Graph) -> bool:
 def __has_edge_attributes(graph: nx.Graph) -> bool:
     """Check if the NetworkX Graph has edge attributes."""
     return any(feats for _, _, feats in graph.edges(data=True))
-
-
-def __categorical_to_tensor(cat: int, num_classes: int) -> torch.Tensor:
-    """Encode categorical datum to one-hot tensor.
-
-    Args:
-        cat: Categorical datum to encode as one-hot.
-        num_classes: Number of classes of the categorical
-
-    Returns:
-        One-hot encoded tensor.
-    """
-    output = [0] * num_classes
-    output[int(cat)] = 1
-    return torch.tensor(output, dtype=torch.long)
 
 
 def __clean_data_attributes(data: Data) -> Data:

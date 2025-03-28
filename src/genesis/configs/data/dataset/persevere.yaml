@@ -12,7 +12,6 @@ dataset:
   root: ${paths.data_dir}/PERSEVERE
   line_graph: True
   target_attr: ${hparams.data.target_attr}
-  target_num_classes: ${hparams.data.num_classes}
   edge_attrs_filter: null
 
 hparams:
