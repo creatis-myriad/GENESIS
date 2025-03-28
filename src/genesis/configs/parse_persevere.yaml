@@ -10,5 +10,5 @@ source_dir: ${paths.data_dir}/PERSEVERE/seg2graphs
 pyg_raw_dir: ${paths.data_dir}/PERSEVERE/raw
 
 attrs_to_remove:
-  nodes: [pos]
+  nodes: [pos, radius]
   links: [id, name, lateral, lobe, centerline, radius, contour_points]
