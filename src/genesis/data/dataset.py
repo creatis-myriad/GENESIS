@@ -1,4 +1,3 @@
-from numbers import Number
 from pathlib import Path
 
 import numpy as np
@@ -20,13 +19,16 @@ class CSVDataset(Dataset):
         """
         self.root = Path(src).parent
         self.data = pd.read_csv(src, **read_csv_kwargs)
-        self.target_attr = target_attr
+        # Assign input and target features to `x` and `y`, respectively, to follow the PyG convention and work
+        # transparently with dataset utils (e.g. `SplitLightningDataset`) expecting the PyG convention
+        self.x = self.data.copy()
+        self.y = self.x.pop(target_attr) if target_attr is not None else None
 
     def __len__(self) -> int:
         """Get the length of the dataset."""
         return len(self.data)
 
-    def __getitem__(self, index: int) -> np.ndarray | tuple[np.ndarray, Number]:
+    def __getitem__(self, index: int) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
         """Get item by index.
 
         Args:
@@ -36,17 +38,18 @@ class CSVDataset(Dataset):
             The item at the specified index. If `target_attr` is not None, returns a tuple of (features, target),
             otherwise returns only the features.
         """
-        item = self.data.iloc[index]
-        if self.target_attr is not None:
-            target = item.pop(self.target_attr)
-            return item.to_numpy(), target
-        return item.to_numpy()
+        item = self.x.iloc[index].to_numpy()
+        if self.y is not None:
+            return item, self.y.iloc[index]
+        return item
+
+    # TODO: Check if `__getitem__` provides support for indexing the dataset, e.g. to extract train/val/test splits
 
     def indices(self) -> list[int | str]:
         """Get the index labels of the dataset."""
         return self.data.index.tolist()
 
-    def loc(self, key: int | str) -> np.ndarray | tuple[np.ndarray, Number]:
+    def loc(self, key: int | str) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
         """Get item by label.
 
         Args:
