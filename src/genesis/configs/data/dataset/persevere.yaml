@@ -8,15 +8,19 @@ defaults:
   - optional /data/dataset/transform: null
   - optional /data/dataset/transform@data.dataset.pre_transform: null
 
-dataset:
-  _target_: genesis.data.PersevereDataset
-  root: ${paths.data_dir}/PERSEVERE
-  line_graph: True
-  target_attr: ${hparams.data.target_attr}
-  edge_attrs_filter: null
+data:
+  dataset:
+    _target_: genesis.data.persevere.PersevereDataset
+    root: ${paths.data_dir}/PERSEVERE
+    line_graph: True
+    target_attr: ${hparams.data.target_attr}
+    edge_attrs_filter: null
 
 hparams:
   data:
     num_graphs: 10
     # If no explicit filter of edge attributes is provided, the maximum number of edge features (8) is used
-    num_edge_features: ${op:length_hint,${data.dataset.edge_attrs_filter}, 8}
+    num_raw_edge_features: 6
+    num_filtered_edge_features: ${op:length_hint,${oc.select:data.dataset.edge_attrs_filter}, ${.num_raw_edge_features}}
+    num_edge_features: ${op.ternary:${data.dataset.line_graph}, 0, ${.num_filtered_edge_features}}
+    num_node_features: ${op.ternary:${data.dataset.line_graph}, ${.num_filtered_edge_features}, 0}
