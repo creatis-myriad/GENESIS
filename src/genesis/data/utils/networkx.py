@@ -64,14 +64,15 @@ def networkx_add_attrs(graph: nx.Graph, element: str, attrs: dict[str, Any]) -> 
     Returns:
         Graph with added attributes.
     """
-    if element == "graph":
-        graph.graph.update(attrs)
-    elif element == "nodes":
-        nx.set_node_attributes(graph, attrs)
-    elif element in ["edges", "links"]:
-        nx.set_edge_attributes(graph, attrs)
-    else:
-        raise ValueError("Element must be 'graph', 'nodes', or 'edges'/'links'.")
+    match element:
+        case "graph":
+            graph.graph.update(attrs)
+        case "nodes":
+            nx.set_node_attributes(graph, attrs)
+        case "edges" | "links":
+            nx.set_edge_attributes(graph, attrs)
+        case _:
+            raise ValueError("Element must be 'graph', 'nodes', or 'edges'/'links'.")
     return graph
 
 
@@ -86,48 +87,47 @@ def networkx_remove_attrs(graph: nx.Graph, element: str, attrs: list[str]) -> nx
     Returns:
         Graph with removed attributes.
     """
-    if element == "graph":
-        for attr in attrs:
-            graph.graph.pop(attr, None)
-    elif element == "nodes":
-        for _, data in graph.nodes(data=True):
+    match element:
+        case "graph":
             for attr in attrs:
-                data.pop(attr, None)
-    elif element in ["edges", "links"]:
-        for _, _, data in graph.edges(data=True):
-            for attr in attrs:
-                data.pop(attr, None)
-    else:
-        raise ValueError("Element must be 'graph', 'nodes', or 'edges'/'links'.")
+                graph.graph.pop(attr, None)
+        case "nodes":
+            for _, node_attrs in graph.nodes(data=True):
+                for attr in attrs:
+                    node_attrs.pop(attr, None)
+        case "edges" | "links":
+            for _, _, edge_attrs in graph.edges(data=True):
+                for attr in attrs:
+                    edge_attrs.pop(attr, None)
+        case _:
+            raise ValueError("Element must be 'graph', 'nodes', or 'edges'/'links'.")
     return graph
 
 
-def networkx_default_attrs(graph: nx.Graph, element: str) -> nx.Graph:
-    """Set default attribute values to zero if not present in the graph, nodes, or edges.
+def networkx_setdefault_attrs(graph: nx.Graph, element: str, default: Any) -> nx.Graph:
+    """Set default attribute values if not present in all nodes or edges.
 
     Args:
         graph: NetworkX graph.
-        element: Element to set default attribute values; should be 'graph', 'nodes', or 'edges'/'links'.
+        element: Element to set default attribute values; should be 'nodes' or 'edges'/'links'.
+        default: Default value to set for missing attributes.
 
     Returns:
         Graph with zero-covered attributes.
     """
-    if element == "graph":
-        all_keys = set(graph.graph.keys())
-        for key in all_keys:
-            graph.graph.setdefault(key, 0)
-    elif element == "nodes":
-        all_keys = {k for _, data in graph.nodes(data=True) for k in data}
-        for _, data in graph.nodes(data=True):
-            for key in all_keys:
-                data.setdefault(key, 0)
-    elif element in ["edges", "links"]:
-        all_keys = {k for _, _, data in graph.edges(data=True) for k in data}
-        for _, _, data in graph.edges(data=True):
-            for key in all_keys:
-                data.setdefault(key, 0)
-    else:
-        raise ValueError("Element must be 'graph', 'nodes', or 'edges'/'links'.")
+    match element:
+        case "nodes":
+            all_node_attrs = {node_attr for _, node_attrs in graph.nodes(data=True) for node_attr in node_attrs}
+            for _, node_attrs in graph.nodes(data=True):
+                for key in all_node_attrs:
+                    node_attrs.setdefault(key, default)
+        case "edges" | "links":
+            all_edge_attrs = {edge_attr for _, _, edge_attrs in graph.edges(data=True) for edge_attr in edge_attrs}
+            for _, _, edge_attrs in graph.edges(data=True):
+                for key in all_edge_attrs:
+                    edge_attrs.setdefault(key, default)
+        case _:
+            raise ValueError("Element must be 'nodes' or 'edges'/'links'.")
     return graph
 
 
