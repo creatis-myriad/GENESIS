@@ -8,7 +8,20 @@ defaults:
 
 source_dir: ${paths.data_dir}/PERSEVERE/seg2graphs
 pyg_raw_dir: ${paths.data_dir}/PERSEVERE/raw
+override_edges_key: edges
 
 attrs_to_remove:
   nodes: [pos, radius]
-  links: [id, name, lateral, lobe, centerline, radius, contour_points]
+  links:
+    [
+      id,
+      name,
+      lateral,
+      lobe,
+      centerline,
+      radius,
+      contour_points,
+      ep_id,
+      ep_coordinates,
+      segments_below,
+    ]

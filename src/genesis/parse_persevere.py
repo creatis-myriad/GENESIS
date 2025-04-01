@@ -2,9 +2,14 @@ import json
 from pathlib import Path
 
 import hydra
+import networkx as nx
 from omegaconf import DictConfig
 
-from genesis.data.utils.networkx import node_link_data_add_attrs, node_link_data_remove_attrs
+from genesis.data.utils.networkx import (
+    networkx_add_attrs,
+    networkx_default_attrs,
+    networkx_remove_attrs,
+)
 from genesis.utils import RankedLogger, pre_hydra_routine
 
 log = RankedLogger(__name__, rank_zero_only=True)
@@ -42,12 +47,16 @@ def hydra_main(cfg: DictConfig) -> None:
             log.debug(f"Parsing file '{json_path.name}' for patient ID '{patient_id}'")
             with open(json_path) as f:
                 node_link_data = json.load(f)
+                edges_key = "edges" if "edges" in node_link_data else "links"
+                graph = nx.node_link_graph(node_link_data, edges=edges_key)
 
             patient_attrs = dict(zip(global_attrs, clinical_data.loc(patient_id), strict=False))
-            node_link_data = node_link_data_add_attrs(node_link_data, "graph", patient_attrs)
+            graph = networkx_add_attrs(graph, "graph", patient_attrs)
             for key, attrs_to_remove in cfg.attrs_to_remove.items():
-                node_link_data = node_link_data_remove_attrs(node_link_data, key, attrs_to_remove)
+                graph = networkx_remove_attrs(graph, key, attrs_to_remove)
+                graph = networkx_default_attrs(graph, key)
 
+            node_link_data = nx.node_link_data(graph, edges=cfg.override_edges_key)
             output_filename = f"{json_path.stem}_parsed.json"
             output_path = pyg_raw_dir / output_filename
             with open(output_path, "w") as file:
@@ -55,9 +64,9 @@ def hydra_main(cfg: DictConfig) -> None:
 
             processed_count += 1
         else:
-            log.warning(f"No global attributes found for patient ID '{patient_id}', skipping '{json_path.name}'")
             skipped_count += 1
 
+    log.info(f"Edges key overridden to: '{cfg.override_edges_key}'")
     log.info(f"Parsing completed: {processed_count} files processed, {skipped_count} files skipped.")
 
 
