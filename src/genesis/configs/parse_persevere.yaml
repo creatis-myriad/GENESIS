@@ -6,9 +6,23 @@ defaults:
   - hydra: default
   - data/dataset@clinical_data: persevere_clinical
 
-source_dir: ${paths.data_dir}/PERSEVERE/seg2graphs
+source_dir: ${paths.data_dir}/PERSEVERE/graphs
 pyg_raw_dir: ${paths.data_dir}/PERSEVERE/raw
+node_link_data_nodes_key: nodes
+node_link_data_edges_key: edges
 
 attrs_to_remove:
   nodes: [pos, radius]
-  links: [id, name, lateral, lobe, centerline, radius, contour_points]
+  links:
+    [
+      id,
+      name,
+      lateral,
+      lobe,
+      centerline,
+      radius,
+      contour_points,
+      ep_id,
+      ep_coordinates,
+      segments_below,
+    ]

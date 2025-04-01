@@ -53,36 +53,82 @@ def networkx_line_graph(graph: nx.Graph) -> nx.Graph:
     return dual_graph
 
 
-def node_link_data_add_attrs(node_link_data: dict[str, Any], key: str, attrs: dict[str, Any]) -> dict[str, Any]:
-    """Add attributes to the node-link data.
+def networkx_add_attrs(graph: nx.Graph, element: str, attrs: dict[str, Any]) -> nx.Graph:
+    """Add attributes to the graph, nodes, or edges.
 
     Args:
-        node_link_data: Node-link data.
-        key: Key to add attributes to, e.g. "graph", "nodes", or "edges".
+        graph: NetworkX graph.
+        element: Element to add attributes to; should be 'graph', 'nodes', or 'edges'/'links'.
         attrs: Attributes to add.
 
     Returns:
-        Node-link data with added attributes.
+        Graph with added attributes.
     """
-    node_link_data[key].update(attrs)
-    return node_link_data
+    match element:
+        case "graph":
+            graph.graph.update(attrs)
+        case "nodes":
+            nx.set_node_attributes(graph, attrs)
+        case "edges" | "links":
+            nx.set_edge_attributes(graph, attrs)
+        case _:
+            raise ValueError("Element must be 'graph', 'nodes', or 'edges'/'links'.")
+    return graph
 
 
-def node_link_data_remove_attrs(node_link_data: dict[str, Any], key: str, attrs: list[str]) -> dict[str, Any]:
-    """Remove attributes from the node-link data.
+def networkx_remove_attrs(graph: nx.Graph, element: str, attrs: list[str]) -> nx.Graph:
+    """Remove attributes from the graph, nodes, or edges.
 
     Args:
-        node_link_data: Node-link data.
-        key: Key to remove attributes from, e.g. "graph", "nodes", or "edges".
+        graph: NetworkX graph.
+        element: Element to remove attributes from; should be 'graph', 'nodes', or 'edges'/'links'.
         attrs: Attributes to remove.
 
     Returns:
-        Node-link data with removed attributes.
+        Graph with removed attributes.
     """
-    for item in node_link_data[key]:
-        for attr in attrs:
-            item.pop(attr, None)
-    return node_link_data
+    match element:
+        case "graph":
+            for attr in attrs:
+                graph.graph.pop(attr, None)
+        case "nodes":
+            for _, node_attrs in graph.nodes(data=True):
+                for attr in attrs:
+                    node_attrs.pop(attr, None)
+        case "edges" | "links":
+            for _, _, edge_attrs in graph.edges(data=True):
+                for attr in attrs:
+                    edge_attrs.pop(attr, None)
+        case _:
+            raise ValueError("Element must be 'graph', 'nodes', or 'edges'/'links'.")
+    return graph
+
+
+def networkx_setdefault_attrs(graph: nx.Graph, element: str, default: Any) -> nx.Graph:
+    """Set default attribute values if not present in all nodes or edges.
+
+    Args:
+        graph: NetworkX graph.
+        element: Element to set default attribute values; should be 'nodes' or 'edges'/'links'.
+        default: Default value to set for missing attributes.
+
+    Returns:
+        Graph with zero-covered attributes.
+    """
+    match element:
+        case "nodes":
+            all_node_attrs = {node_attr for _, node_attrs in graph.nodes(data=True) for node_attr in node_attrs}
+            for _, node_attrs in graph.nodes(data=True):
+                for key in all_node_attrs:
+                    node_attrs.setdefault(key, default)
+        case "edges" | "links":
+            all_edge_attrs = {edge_attr for _, _, edge_attrs in graph.edges(data=True) for edge_attr in edge_attrs}
+            for _, _, edge_attrs in graph.edges(data=True):
+                for key in all_edge_attrs:
+                    edge_attrs.setdefault(key, default)
+        case _:
+            raise ValueError("Element must be 'nodes' or 'edges'/'links'.")
+    return graph
 
 
 def __has_node_attributes(graph: nx.Graph) -> bool:

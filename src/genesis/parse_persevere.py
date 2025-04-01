@@ -2,9 +2,10 @@ import json
 from pathlib import Path
 
 import hydra
+import networkx as nx
 from omegaconf import DictConfig
 
-from genesis.data.utils.networkx import node_link_data_add_attrs, node_link_data_remove_attrs
+from genesis.data.utils.networkx import networkx_add_attrs, networkx_remove_attrs, networkx_setdefault_attrs
 from genesis.utils import RankedLogger, pre_hydra_routine
 
 log = RankedLogger(__name__, rank_zero_only=True)
@@ -24,16 +25,17 @@ def hydra_main(cfg: DictConfig) -> None:
         global_attrs.remove(index_col)
     log.info(f"Clinical attributes to add: {global_attrs}")
     for key, attrs_to_remove in cfg.attrs_to_remove.items():
-        log.info(f"Remove {key} attributes: {attrs_to_remove}")
+        log.info(f"{key.title()} attributes to remove: {attrs_to_remove}")
+    log.info(f"Key to use for nodes data: '{cfg.node_link_data_nodes_key}'")
+    log.info(f"Key to use for edges data: '{cfg.node_link_data_edges_key}'")
 
     clinical_data = hydra.utils.instantiate(cfg.clinical_data)
-    log.info(f"Extracted attributes for {len(clinical_data)} patients")
+    log.info(f"Extracted clinical attributes for {len(clinical_data)} patients")
 
     json_files = list(source_dir.glob("*.json"))
-    log.info(f"Found {len(json_files)} JSON files to parse.")
+    log.info(f"Found {len(json_files)} JSON files to parse")
 
-    processed_count = 0
-    skipped_count = 0
+    skipped_patient_ids = []
 
     for json_path in json_files:
         patient_id = json_path.stem[:4]
@@ -42,23 +44,36 @@ def hydra_main(cfg: DictConfig) -> None:
             log.debug(f"Parsing file '{json_path.name}' for patient ID '{patient_id}'")
             with open(json_path) as f:
                 node_link_data = json.load(f)
+                edges_key = "edges" if "edges" in node_link_data else "links"
+                graph = nx.node_link_graph(node_link_data, edges=edges_key)
 
+            # Add patient attributes as graph attributes
             patient_attrs = dict(zip(global_attrs, clinical_data.loc(patient_id), strict=False))
-            node_link_data = node_link_data_add_attrs(node_link_data, "graph", patient_attrs)
-            for key, attrs_to_remove in cfg.attrs_to_remove.items():
-                node_link_data = node_link_data_remove_attrs(node_link_data, key, attrs_to_remove)
+            graph = networkx_add_attrs(graph, "graph", patient_attrs)
 
-            output_filename = f"{json_path.stem}_parsed.json"
-            output_path = pyg_raw_dir / output_filename
-            with open(output_path, "w") as file:
+            # Remove unnecessary attributes
+            for key, attrs_to_remove in cfg.attrs_to_remove.items():
+                graph = networkx_remove_attrs(graph, key, attrs_to_remove)
+                if key == "graph":
+                    continue  # Skip setting default attributes for the graph
+                # Uniformize remaining attributes to be present in all nodes/edges, setting them to 0 if not present
+                graph = networkx_setdefault_attrs(graph, key, 0)
+
+            # Override 'nodes' and 'edges' keys in the node-link data, and save the modified graph
+            node_link_data = nx.node_link_data(
+                graph, nodes=cfg.node_link_data_nodes_key, edges=cfg.node_link_data_edges_key
+            )
+            with open(pyg_raw_dir / json_path.name, "w") as file:
                 json.dump(node_link_data, file, indent=2)
 
-            processed_count += 1
         else:
-            log.warning(f"No global attributes found for patient ID '{patient_id}', skipping '{json_path.name}'")
-            skipped_count += 1
+            skipped_patient_ids.append(patient_id)
 
-    log.info(f"Parsing completed: {processed_count} files processed, {skipped_count} files skipped.")
+    skipped_count = len(skipped_patient_ids)
+    parsed_count = len(json_files) - skipped_count
+    log.info(f"Parsed {parsed_count} JSON files")
+    if skipped_patient_ids:
+        log.warning(f"{skipped_count} patient(s) skipped because absent from clinical data: {skipped_patient_ids}")
 
 
 def main() -> None:
