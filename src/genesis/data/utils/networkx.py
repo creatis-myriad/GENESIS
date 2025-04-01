@@ -17,19 +17,19 @@ def networkx_to_torch_geometric(graph: nx.Graph, target_attr: str, **from_networ
     Returns:
         PyG `Data` representation of the NetworkX `Graph`.
     """
-    if not __has_node_attributes(graph):
+    if not _has_node_attributes(graph):
         from_networkx_kwargs["group_node_attrs"] = None
     elif from_networkx_kwargs.get("group_node_attrs") is None:
         from_networkx_kwargs["group_node_attrs"] = "all"
 
-    if not __has_edge_attributes(graph):
+    if not _has_edge_attributes(graph):
         from_networkx_kwargs["group_edge_attrs"] = None
     elif from_networkx_kwargs.get("group_edge_attrs") is None:
         from_networkx_kwargs["group_edge_attrs"] = "all"
 
     # Don't manage string attributes
     data = from_networkx(graph, **from_networkx_kwargs)
-    data = __clean_data_attributes(data)
+    data = _clean_data_attributes(data)
     target_label = graph.graph[target_attr]
     data.y = torch.tensor(target_label, dtype=torch.long)
     return data
@@ -131,17 +131,17 @@ def networkx_setdefault_attrs(graph: nx.Graph, element: str, default: Any) -> nx
     return graph
 
 
-def __has_node_attributes(graph: nx.Graph) -> bool:
+def _has_node_attributes(graph: nx.Graph) -> bool:
     """Check if a NetworkX graph has node attributes."""
     return any(feats for _, feats in graph.nodes(data=True))
 
 
-def __has_edge_attributes(graph: nx.Graph) -> bool:
+def _has_edge_attributes(graph: nx.Graph) -> bool:
     """Check if the NetworkX Graph has edge attributes."""
     return any(feats for _, _, feats in graph.edges(data=True))
 
 
-def __clean_data_attributes(data: Data) -> Data:
+def _clean_data_attributes(data: Data) -> Data:
     """Remove all attributes from PyG `Data` object except 'x', 'y', 'edge_index', and 'edge_attr'.
 
     Args:
