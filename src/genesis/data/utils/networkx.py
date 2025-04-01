@@ -57,12 +57,12 @@ def networkx_add_attrs(graph: nx.Graph, element: str, attrs: dict[str, Any]) -> 
     """Add attributes to the graph, nodes, or edges.
 
     Args:
-        graph: The NetworkX graph.
+        graph: NetworkX graph.
         element: Element to add attributes to; should be 'graph', 'nodes', or 'edges'/'links'.
         attrs: Attributes to add.
 
     Returns:
-        The graph with added attributes.
+        Graph with added attributes.
     """
     if element == "graph":
         graph.graph.update(attrs)
@@ -79,12 +79,12 @@ def networkx_remove_attrs(graph: nx.Graph, element: str, attrs: list[str]) -> nx
     """Remove attributes from the graph, nodes, or edges.
 
     Args:
-        graph: The NetworkX graph.
+        graph: NetworkX graph.
         element: Element to remove attributes from; should be 'graph', 'nodes', or 'edges'/'links'.
         attrs: Attributes to remove.
 
     Returns:
-        The graph with removed attributes.
+        Graph with removed attributes.
     """
     if element == "graph":
         for attr in attrs:
@@ -106,11 +106,11 @@ def networkx_default_attrs(graph: nx.Graph, element: str) -> nx.Graph:
     """Set default attribute values to zero if not present in the graph, nodes, or edges.
 
     Args:
-        graph: The NetworkX graph.
+        graph: NetworkX graph.
         element: Element to set default attribute values; should be 'graph', 'nodes', or 'edges'/'links'.
 
     Returns:
-        The graph with zero-covered attributes.
+        Graph with zero-covered attributes.
     """
     if element == "graph":
         all_keys = set(graph.graph.keys())
