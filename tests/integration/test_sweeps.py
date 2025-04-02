@@ -115,7 +115,7 @@ def test_optuna_sweep(script: Path, mutag_classification_overrides: list[str], t
     command = [
         str(script),
         "-m",
-        "hparams_search=graph_level_optuna",
+        "hparams_search=graph_classification_optuna",
         "~serial_sweeper",  # Disable the serial sweeper here to test it separately
         "hydra.sweeper.n_jobs=1",
         "hydra.sweeper.n_trials=10",

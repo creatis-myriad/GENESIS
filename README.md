@@ -241,7 +241,7 @@ Launch an automatic hyperparameter search using the [Optuna sweeper for Hydra](h
 
 ```bash
 # Example of a predefined Optuna config for graph-level models with a compatible experiment
-gnn-train experiment=graph_classification hparams_search=graph_level_optuna
+gnn-train experiment=graph_level_prediction hparams_search=graph_classification_optuna
 ```
 
 > [!TIP]
