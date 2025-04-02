@@ -12,7 +12,7 @@ usecols:
   - bnp
 dtype:
   patient_id: str
-  vte_severity: category
+  vte_severity: int
   # TODO: Enable type coercion after we have manually cleaned the data
   #  troponin: float
   bnp: float
