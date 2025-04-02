@@ -64,7 +64,7 @@ def hydra_main(cfg: DictConfig) -> None:
                 graph, nodes=cfg.node_link_data_nodes_key, edges=cfg.node_link_data_edges_key
             )
             with open(pyg_raw_dir / json_path.name, "w") as file:
-                json.dump(node_link_data, file, indent=2)
+                json.dump(node_link_data, file, indent=2, default=lambda o: o.item() if hasattr(o, "item") else o)
 
         else:
             skipped_patient_ids.append(patient_id)
