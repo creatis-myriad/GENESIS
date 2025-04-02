@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 
 import networkx as nx
+import numpy as np
 from torch_geometric.data import Data
 
 from genesis.data.utils import networkx_line_graph, networkx_to_torch_geometric
@@ -57,3 +58,17 @@ def json_graph_to_networkx(json_path: Path, line_graph: bool = False, **node_lin
     if line_graph:
         graph = networkx_line_graph(graph)
     return graph
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """Custom JSON encoder for handling NumPy data types."""
+
+    def default(self, obj: object) -> object:
+        """Convert NumPy data types to native Python types for JSON serialization."""
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(self).default(obj)

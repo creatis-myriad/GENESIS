@@ -5,8 +5,7 @@ import hydra
 import networkx as nx
 from omegaconf import DictConfig
 
-from genesis.data.encoder import NumpyEncoder
-from genesis.data.utils.networkx import networkx_add_attrs, networkx_remove_attrs, networkx_setdefault_attrs
+from genesis.data.utils import NumpyEncoder, networkx_add_attrs, networkx_remove_attrs, networkx_setdefault_attrs
 from genesis.utils import RankedLogger, pre_hydra_routine
 
 log = RankedLogger(__name__, rank_zero_only=True)
