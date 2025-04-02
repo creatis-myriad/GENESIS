@@ -1,10 +1,10 @@
 # @package _global_
 
 defaults:
-  - _self_
   - paths: default
   - hydra: default
   - data/dataset@clinical_data: persevere_clinical
+  - _self_
 
 source_dir: ${paths.data_dir}/PERSEVERE/graphs
 pyg_raw_dir: ${paths.data_dir}/PERSEVERE/raw
@@ -26,3 +26,9 @@ attrs_to_remove:
       ep_coordinates,
       segments_below,
     ]
+
+# disable output directory, since the script should be run interactively, and we don't need to save the output
+hydra:
+  output_subdir: null
+  run:
+    dir: .
