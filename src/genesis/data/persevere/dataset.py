@@ -2,6 +2,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import torch
 from torch_geometric.data import InMemoryDataset
 
 from genesis.data.utils import json_to_pyg
@@ -27,6 +28,7 @@ class PersevereDataset(InMemoryDataset):
         force_reload: bool = False,
         line_graph: bool = True,
         target_attr: str = "vte_severity",
+        target_dtype: str | torch.dtype = torch.long,
         node_attrs_filter: list[str] | None = None,
         edge_attrs_filter: list[str] | None = None,
         json_to_nx_kwargs: dict[str, Any] | None = None,
@@ -41,17 +43,19 @@ class PersevereDataset(InMemoryDataset):
             force_reload: PyG force reload, forces reprocessing to update pre_transform/filter changes.
             line_graph: Whether to convert graphs to their line graphs.
             target_attr: Key of the graph attribute to use as target.
+            target_dtype: Data type of the target attribute.
             node_attrs_filter: List of node features to keep in the `Data` objects, from all available node features.
                 If `None`, defaults to keeping all node features.
             edge_attrs_filter: List of edge features to keep in the `Data` objects, from all available edge features.
                 If `None`, defaults to keeping all edge features.
             json_to_nx_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`.
         """
-        self.__line_graph = line_graph
-        self.__target_attr = target_attr
-        self.__json_to_nx_kwargs = json_to_nx_kwargs
+        self._line_graph = line_graph
+        self._target_attr = target_attr
+        self._target_dtype = target_dtype
+        self._json_to_nx_kwargs = json_to_nx_kwargs
 
-        self.__nx_to_pyg_kwargs = {
+        self._nx_to_pyg_kwargs = {
             "group_node_attrs": edge_attrs_filter if line_graph else node_attrs_filter,
             "group_edge_attrs": node_attrs_filter if line_graph else edge_attrs_filter,
         }
@@ -75,10 +79,11 @@ class PersevereDataset(InMemoryDataset):
         data_list = [
             json_to_pyg(
                 json_path,
-                self.__target_attr,
-                line_graph=self.__line_graph,
-                json_to_nx_kwargs=self.__json_to_nx_kwargs,
-                nx_to_pyg_kwargs=self.__nx_to_pyg_kwargs,
+                self._target_attr,
+                self._target_dtype,
+                line_graph=self._line_graph,
+                json_to_nx_kwargs=self._json_to_nx_kwargs,
+                nx_to_pyg_kwargs=self._nx_to_pyg_kwargs,
             )
             for json_path in Path(self.raw_dir).glob("*.json")
         ]

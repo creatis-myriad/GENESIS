@@ -1,6 +1,15 @@
 # @package _global_
 
+data:
+  dataset:
+    target_attr: bnp
+    # Workaround to have hydra import the torch dtype, suggested in the comment referenced below:
+    # https://github.com/facebookresearch/hydra/issues/2140#issuecomment-2334918114
+    target_dtype:
+      _target_: torch.__dict__.get
+      _args_:
+        - float
+
 hparams:
   data:
-    target_attr: bnp
     task: regression
