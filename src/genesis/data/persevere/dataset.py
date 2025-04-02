@@ -50,12 +50,12 @@ class PersevereDataset(InMemoryDataset):
                 If `None`, defaults to keeping all edge features.
             json_to_nx_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`.
         """
-        self.__line_graph = line_graph
-        self.__target_attr = target_attr
-        self.__target_dtype = target_dtype
-        self.__json_to_nx_kwargs = json_to_nx_kwargs
+        self._line_graph = line_graph
+        self._target_attr = target_attr
+        self._target_dtype = target_dtype
+        self._json_to_nx_kwargs = json_to_nx_kwargs
 
-        self.__nx_to_pyg_kwargs = {
+        self._nx_to_pyg_kwargs = {
             "group_node_attrs": edge_attrs_filter if line_graph else node_attrs_filter,
             "group_edge_attrs": node_attrs_filter if line_graph else edge_attrs_filter,
         }
@@ -79,11 +79,11 @@ class PersevereDataset(InMemoryDataset):
         data_list = [
             json_to_pyg(
                 json_path,
-                self.__target_attr,
-                self.__target_dtype,
-                line_graph=self.__line_graph,
-                json_to_nx_kwargs=self.__json_to_nx_kwargs,
-                nx_to_pyg_kwargs=self.__nx_to_pyg_kwargs,
+                self._target_attr,
+                self._target_dtype,
+                line_graph=self._line_graph,
+                json_to_nx_kwargs=self._json_to_nx_kwargs,
+                nx_to_pyg_kwargs=self._nx_to_pyg_kwargs,
             )
             for json_path in Path(self.raw_dir).glob("*.json")
         ]
