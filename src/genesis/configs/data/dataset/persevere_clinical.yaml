@@ -1,9 +1,12 @@
+defaults:
+  - optional target: vte_severity
+
 _target_: genesis.data.CSVDataset
 # since pandas.read_csv does not recognize OmegaConf containers as their corresponding Python primitives
 # (when forwarding them to the read_csv function), force the conversion of OmegaConf containers to Python primitives
 _convert_: all
 src: ${paths.data_dir}/PERSEVERE/clinical_data.csv
-target_attr: ${oc.select:hparams.data.target_attr}
+target_attr: null # To be set by the target config, and not required when used by the `parse_persevere` main config
 index_col: patient_id
 usecols:
   - patient_id
@@ -13,7 +16,6 @@ usecols:
 dtype:
   patient_id: str
   vte_severity: int
-  # TODO: Enable type coercion after we have manually cleaned the data
-  #  troponin: float
+  troponin: float
   bnp: float
 na_values: ["NF"]

@@ -1,19 +1,20 @@
 # @package _global_
 
 defaults:
-  - /data/dataset/target: vte_severity
   # To filter nodes/edges attributes to include in the dataset, use the following config group:
   - optional /data/dataset/attrs_filter: null
   # To add transforms (or pre-transforms) to the dataset, use the following config group:
   - optional /data/dataset/transform: null
   - optional /data/dataset/transform@data.dataset.pre_transform: null
+  - _self_
+  - /data/dataset/target: vte_severity
 
 data:
   dataset:
     _target_: genesis.data.persevere.PersevereDataset
     root: ${paths.data_dir}/PERSEVERE
     line_graph: True
-    target_attr: ${hparams.data.target_attr}
+    target_attr: ??? # To be set by the target config
     edge_attrs_filter: null
 
 hparams:
@@ -24,3 +25,5 @@ hparams:
     num_filtered_edge_features: ${op:length_hint,${oc.select:data.dataset.edge_attrs_filter}, ${.num_raw_edge_features}}
     num_edge_features: ${op.ternary:${data.dataset.line_graph}, 0, ${.num_filtered_edge_features}}
     num_node_features: ${op.ternary:${data.dataset.line_graph}, ${.num_filtered_edge_features}, 0}
+    target_attr: ??? # To be set by the target config
+    task: ??? # To be set by the target config
