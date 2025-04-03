@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 import rich
 import rich.syntax
@@ -8,6 +9,7 @@ from hydra.core.hydra_config import HydraConfig
 from lightning_utilities.core.rank_zero import rank_zero_only
 from omegaconf import DictConfig, OmegaConf, open_dict
 from rich.prompt import Prompt
+from rich.table import Table
 
 from genesis.utils import pylogger
 
@@ -73,6 +75,42 @@ def print_config_tree(
     if save_to_file:
         with open(Path(cfg.paths.output_dir, "config_tree.log"), "w") as file:
             rich.print(tree, file=file)
+
+
+def metrics_table(metrics: dict[str, Any], cols_from_prefixes: Sequence[str] | None = None) -> Table:
+    """Creates a table of logged metrics using the Rich library.
+
+    Args:
+        metrics: Dictionary of metrics to be displayed in the table.
+        cols_from_prefixes: Prefixes in metrics to create columns from. If None, all metrics are displayed in a single
+            column.
+
+    Returns:
+        A Rich Table object containing the metrics.
+    """
+    columns, rows = set(), set()
+    data: dict[str, dict[str, Any]] = {}
+
+    for key, value in metrics.items():
+        prefix, metric = key.split("/", 1)
+        if cols_from_prefixes is None or prefix in cols_from_prefixes:
+            columns.add(prefix)
+            rows.add(metric)
+            data.setdefault(metric, {})[prefix] = value
+
+    sorted_columns = [col for col in cols_from_prefixes if col in columns]
+    sorted_rows = sorted(rows)
+
+    table = Table()
+    table.add_column("Metric", justify="center", style="cyan")
+    for prefix in sorted_columns:
+        table.add_column(prefix, justify="center", style="magenta")
+
+    for metric in sorted_rows:
+        row_values = [metric] + [str(data[metric].get(col, "")) for col in sorted_columns]
+        table.add_row(*row_values)
+
+    return table
 
 
 @rank_zero_only
