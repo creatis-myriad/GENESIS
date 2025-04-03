@@ -3,8 +3,8 @@
 defaults:
   - /data/dataset/pyg_base@data.dataset: tu_dataset
   # To add transforms (or pre-transforms) to the dataset, use the following config group:
-  - optional /data/dataset/transform: null
-  - optional /data/dataset/transform@data.dataset.pre_transform: null
+  - /data/dataset/transform: null
+  - /data/dataset/transform@data.dataset.pre_transform: null
 
 hparams:
   # hparams.data.* values are meant to expose the constant properties of the `torch_geometric.data.Dataset` instance

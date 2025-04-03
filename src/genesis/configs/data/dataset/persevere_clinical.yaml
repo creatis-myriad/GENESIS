@@ -1,5 +1,5 @@
 defaults:
-  - optional target: vte_severity
+  - target: vte_severity
 
 _target_: genesis.data.CSVDataset
 # since pandas.read_csv does not recognize OmegaConf containers as their corresponding Python primitives
