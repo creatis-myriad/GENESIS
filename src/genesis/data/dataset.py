@@ -18,6 +18,7 @@ class CSVDataset(Dataset):
                 targets.
             **read_csv_kwargs: Additional keyword arguments to pass to `pandas.read_csv`.
         """
+        self.root = Path(src).parent
         self.data = pd.read_csv(src, **read_csv_kwargs)
         self.target_attr = target_attr
 

@@ -180,7 +180,7 @@ class SplitLightningDataset(LightningDataset):
         # Acquire a lock on the (possibly not existing) splits file
         # This is done to prevent multiple processes from overwriting each other's splits, in case multiple experiments
         # are launched at the same time that all require the same non-existing splits
-        splits_file = Path(dataset.processed_dir, "splits", f"{splits_repr}.json")
+        splits_file = Path(dataset.root, "splits", f"{splits_repr}.json")
 
         with FileLock(str(splits_file.with_suffix(".lock"))):
             if save_splits := not splits_file.exists():
