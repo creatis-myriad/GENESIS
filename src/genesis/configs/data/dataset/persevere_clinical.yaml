@@ -1,4 +1,5 @@
 defaults:
+  - _self_
   - target: vte_severity
 
 _target_: genesis.data.CSVDataset
@@ -6,7 +7,7 @@ _target_: genesis.data.CSVDataset
 # (when forwarding them to the read_csv function), force the conversion of OmegaConf containers to Python primitives
 _convert_: all
 src: ${paths.data_dir}/PERSEVERE/clinical_data.csv
-target_attr: null # To be set by the target config, and not required when used by the `parse_persevere` main config
+target_attr: null # To be set by the target config
 index_col: patient_id
 usecols:
   - patient_id

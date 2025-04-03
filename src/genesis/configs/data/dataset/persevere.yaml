@@ -16,6 +16,7 @@ data:
     root: ${paths.data_dir}/PERSEVERE
     line_graph: True
     target_attr: ??? # To be set by the target config
+    target_dtype: ??? # To be set by the target_dtype config
     edge_attrs_filter: null
 
 hparams:
