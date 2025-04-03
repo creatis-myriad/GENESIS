@@ -6,9 +6,11 @@ from .networkx import (  # noqa: I001 # must be imported before io package to av
     networkx_setdefault_attrs,
 )
 from .io import json_graph_to_networkx, json_to_pyg, NumpyEncoder
+from .sklearn import impute
 
 __all__ = [
     "NumpyEncoder",
+    "impute",
     "json_graph_to_networkx",
     "json_to_pyg",
     "networkx_add_attrs",

@@ -4,24 +4,50 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from sklearn.impute._base import _BaseImputer
 from torch.utils.data import Dataset, Subset
+
+from genesis.data.utils import impute
 
 
 class CSVDataset(Dataset):
     """Dataset for loading tabular data from a CSV file."""
 
-    def __init__(self, src: str | Path, target_attr: str | None = None, **read_csv_kwargs) -> None:
+    def __init__(
+        self,
+        src: str | Path,
+        target_attr: str | None = None,
+        imputer: _BaseImputer | None = None,
+        impute_cols: list[str] | None = None,
+        **read_csv_kwargs,
+    ) -> None:
         """Initializes a `CSVDataset`.
 
         Args:
             src: Path to the CSV file.
             target_attr: Name of the target attribute (column) in the CSV file. If None, the dataset will not return
                 targets.
+            imputer: Imputer to complete missing values. If None, no imputation will be performed. In any case, any
+                remaining missing values will be dropped.
+            impute_cols: Columns for which to complete missing values. If None, default to all columns except the target
+                attribute. Can be made to impute the target by explicitly including it in the list.
             **read_csv_kwargs: Additional keyword arguments to pass to `pandas.read_csv`.
         """
         self.root = Path(src).parent
         self.data = pd.read_csv(src, **read_csv_kwargs)
         self._target_attr = target_attr
+
+        # Complete missing values if imputer is provided
+        if imputer is not None:
+            self.data = impute(
+                self.data,
+                imputer,
+                # By default, impute all columns except the target attribute
+                impute_cols=self.data.columns.difference([target_attr]) if impute_cols is None else impute_cols,
+            )
+
+        # Drop remaining missing values
+        self.data.dropna(inplace=True)
 
     @property
     def x(self) -> pd.DataFrame:
