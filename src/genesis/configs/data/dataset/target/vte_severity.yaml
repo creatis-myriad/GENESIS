@@ -3,12 +3,6 @@
 data:
   dataset:
     target_attr: vte_severity
-    # Workaround to have hydra import the torch dtype, suggested in the comment referenced below:
-    # https://github.com/facebookresearch/hydra/issues/2140#issuecomment-2334918114
-    target_dtype:
-      _target_: torch.__dict__.get
-      _args_:
-        - long
 
 hparams:
   data:
