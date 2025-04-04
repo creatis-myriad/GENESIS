@@ -195,7 +195,10 @@ class SplitLightningDataset(LightningDataset):
         # Acquire a lock on the (possibly not existing) splits file
         # This is done to prevent multiple processes from overwriting each other's splits, in case multiple experiments
         # are launched at the same time that all require the same non-existing splits
-        splits_file = Path(dataset.root, "splits", f"{splits_repr}.json")
+        # Only use `dataset.root` as last resort to get the root, since some datasets, e.g. `TUDataset`, make it point
+        # to the dataset's parent directory, one level up from the intuitive root
+        dataset_root = Path(dataset.raw_dir).parent if hasattr(dataset, "raw_dir") else dataset.root
+        splits_file = dataset_root / "splits" / f"{splits_repr}.json"
 
         with FileLock(str(splits_file.with_suffix(".lock"))):
             if not (splits_exist := splits_file.exists()):
