@@ -1,4 +1,5 @@
 defaults:
+  - imputer: null
   - _self_
   - target: vte_severity
 
@@ -20,3 +21,4 @@ dtype:
   troponin: float
   bnp: float
 na_values: ["NF"]
+impute_cols: null

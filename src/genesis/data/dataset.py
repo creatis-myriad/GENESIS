@@ -1,33 +1,82 @@
-from numbers import Number
+import copy
+from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from torch.utils.data import Dataset
+from sklearn.impute._base import _BaseImputer
+from torch.utils.data import Dataset, Subset
+
+from genesis.data.utils import impute
 
 
 class CSVDataset(Dataset):
     """Dataset for loading tabular data from a CSV file."""
 
-    def __init__(self, src: str | Path, target_attr: str | None = None, **read_csv_kwargs) -> None:
+    def __init__(
+        self,
+        src: str | Path,
+        target_attr: str | None = None,
+        imputer: _BaseImputer | None = None,
+        impute_cols: list[str] | None = None,
+        **read_csv_kwargs,
+    ) -> None:
         """Initializes a `CSVDataset`.
 
         Args:
             src: Path to the CSV file.
             target_attr: Name of the target attribute (column) in the CSV file. If None, the dataset will not return
                 targets.
+            imputer: Imputer to complete missing values. If None, no imputation will be performed. In any case, any
+                remaining missing values will be dropped.
+            impute_cols: Columns for which to complete missing values. If None, default to all columns except the target
+                attribute. Can be made to impute the target by explicitly including it in the list.
             **read_csv_kwargs: Additional keyword arguments to pass to `pandas.read_csv`.
         """
         self.root = Path(src).parent
         self.data = pd.read_csv(src, **read_csv_kwargs)
-        self.target_attr = target_attr
+        self._target_attr = target_attr
+
+        # Complete missing values if imputer is provided
+        if imputer is not None:
+            self.data = impute(
+                self.data,
+                imputer,
+                # By default, impute all columns except the target attribute
+                impute_cols=self.data.columns.difference([target_attr]) if impute_cols is None else impute_cols,
+            )
+
+        # Drop remaining missing values
+        self.data.dropna(inplace=True)
+
+    @property
+    def x(self) -> pd.DataFrame:
+        """Get the input features of the dataset.
+
+        Mirrors the PyG convention of using `x` for input features, allowing this dataset to work transparently with
+        dataset utils (e.g. `SplitLightningDataset`) expecting the PyG convention.
+        """
+        features = self.data.columns.difference([self._target_attr])
+        return self.data[features]
+
+    @property
+    def y(self) -> pd.Series | None:
+        """Get the target feature of the dataset.
+
+        Mirrors the PyG convention of using `y` for target features, allowing this dataset to work transparently with
+        dataset utils (e.g. `SplitLightningDataset`) expecting the PyG convention.
+        """
+        return self.data[self._target_attr] if self._target_attr is not None else None
 
     def __len__(self) -> int:
         """Get the length of the dataset."""
         return len(self.data)
 
-    def __getitem__(self, index: int) -> np.ndarray | tuple[np.ndarray, Number]:
-        """Get item by index.
+    def __getitem__(self, index: int | slice | Sequence[int]) -> np.ndarray | tuple[np.ndarray, np.ndarray] | Subset:
+        """In case `index` is of type integer, will return the data object at index `index`.
+
+        Otherwise, `index` is interpreted as a slicing object, e.g. `slice(2, 5)`, will return a subset of the dataset
+        at the specified indices.
 
         Args:
             index: Numerical index (i.e. row number) of the item to retrieve.
@@ -36,17 +85,45 @@ class CSVDataset(Dataset):
             The item at the specified index. If `target_attr` is not None, returns a tuple of (features, target),
             otherwise returns only the features.
         """
-        item = self.data.iloc[index]
-        if self.target_attr is not None:
-            target = item.pop(self.target_attr)
-            return item.to_numpy(), target
-        return item.to_numpy()
+        # Check if index is an int, and return the data item at that index
+        if isinstance(index, int):
+            item = self.x.iloc[index].to_numpy()
+            if self.y is not None:
+                return item, self.y.iloc[index]
+            return item
 
-    def indices(self) -> list[int | str]:
-        """Get the index labels of the dataset."""
-        return self.data.index.tolist()
+        # Otherwise, interpret index as a slice or sequence and return a subset of the dataset
+        return self.index_select(index)
 
-    def loc(self, key: int | str) -> np.ndarray | tuple[np.ndarray, Number]:
+    def index_select(self, index: slice | Sequence[int]) -> "CSVDataset":
+        """Select a subset of the dataset based on the provided indices.
+
+        Notes:
+            - This approach to copying the dataset and modifying its data, within an `index_select` method, is inspired
+              by PyG's way of slicing datasets, see:
+              https://github.com/pyg-team/pytorch_geometric/blob/2.6.1/torch_geometric/data/dataset.py#L276-L346
+            - The specific checks on `index` type and behavior in each case mirrors MONAI's dataset, see:
+              https://github.com/Project-MONAI/MONAI/blob/1.4.0/monai/data/dataset.py#L196-L108
+
+        Args:
+            index: Index to select from the dataset.
+
+        Returns:
+            A new `CSVDataset` containing only the selected indices.
+        """
+        if isinstance(index, slice):  # e.g. dataset[:42]
+            start, stop, step = index.indices(len(self))
+            indices = range(start, stop, step)
+        elif isinstance(index, Sequence):  # e.g. dataset[[1, 3, 4]]
+            indices = index
+        else:
+            raise IndexError(f"Only slices (':'), list, and tuples are valid indices (got '{type(index).__name__}')")
+
+        dataset = copy.copy(self)
+        dataset.data = self.data.iloc[indices]
+        return dataset
+
+    def loc(self, key: int | str) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
         """Get item by label.
 
         Args:

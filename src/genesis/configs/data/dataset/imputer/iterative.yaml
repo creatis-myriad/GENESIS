@@ -1,0 +1,13 @@
+_target_: sklearn.impute.IterativeImputer
+estimator:
+  _target_: sklearn.linear_model.BayesianRidge
+sample_posterior: false
+max_iter: 10
+tol: 0.001
+n_nearest_features: null
+initial_strategy: mean
+fill_value: null
+imputation_order: ascending
+skip_complete: false
+random_state: 12345 # Use a specific seed as it is meant to be done to pre-process the data, and should be reproducible
+keep_empty_features: false
