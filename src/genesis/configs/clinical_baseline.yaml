@@ -1,0 +1,66 @@
+# @package _global_
+
+# specify here default configuration
+# order of defaults determines the order in which configs override each other
+defaults:
+  - _self_
+  - data: ??? # no sane default can be provided here, data is set in `experiment` config
+  - model: ??? # no sane default can be provided here, model is set in `experiment` config
+  - logger: null # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - paths: default
+  - extras: default
+  - hydra: default
+  # serial sweeper is a custom sweeper that emulates the syntax of Hydra's built-in BasicSweeper
+  # to run multiple experiments in serial in the same process, e.g. cross-validation
+  - serial_sweeper: null
+
+  # experiment configs allow for version control of specific hyperparameters
+  # e.g. best hyperparameters for given model and datamodule
+  - experiment: clinical_baseline
+
+  # config for hyperparameter optimization
+  - hparams_search: null
+
+  # optional local config for machine/user specific settings
+  # it's optional since it doesn't need to exist and is excluded from version control
+  - optional local: default
+
+  # debugging config (enable through command line, e.g. `python train.py debug=default)
+  - debug: null
+
+# task name, determines output directory path
+task_name: "clinical_baseline"
+
+# tags to help you identify your experiments
+# you can overwrite this in experiment configs
+# overwrite from command line with `python train.py tags="[first_tag, second_tag]"`
+tags: ["dev"]
+
+# set False to skip model training
+train: True
+
+# evaluate on test set, using best model weights achieved during training
+# lightning chooses best weights based on the metric specified in checkpoint callback
+test: False
+
+# directory and filename to use for checkpointing
+ckpt_save_dirpath: ${paths.output_dir}
+ckpt_save_filename: "model.pickle"
+
+# simply provide checkpoint path to evaluate pre-fitted model
+ckpt_path: null
+
+# seed for random number generators in pytorch, numpy and python.random
+seed: null
+
+# reserved key that is always evaluated
+# this is a good place to put assertions to check the validity of the config, using the `raise` custom Hydra resolver
+_assert_:
+  # it is recommended to make this a dictionary, with the key being a descriptive name of the assertion and
+  # the value being the assertion itself
+  # this is because once assertion message is printed, the variables in the expression have been interpolated,
+  # and are therefore not informative
+  # thus, the key identifies the assertion, and it should be descriptive enough to help understand it
+
+  # an example of an assertion if you want to ensure that the batch size is a multiple of 8
+  # batch_size_multiple_of_8: ${assert:${op:eq,${op:mod,${data.batch_size},8},0}}

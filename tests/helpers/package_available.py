@@ -23,3 +23,5 @@ _IS_WINDOWS = platform.system() == "Windows"
 _SH_AVAILABLE = not _IS_WINDOWS
 
 _WANDB_AVAILABLE = _package_available("wandb")
+
+_XGBOOST_AVAILABLE = _package_available("xgboost")

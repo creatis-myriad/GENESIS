@@ -30,13 +30,16 @@ dependencies = [
 ]
 [project.optional-dependencies]
 all = [
-    "genesis[wandb,tensorboard]",
+    "genesis[wandb,tensorboard,baselines]",
 ]
 wandb = [
     "wandb>=0.19.3,<0.20",
 ]
 tensorboard = [
     "tensorboard>=2.19.0,<3",
+]
+baselines = [
+    "xgboost>=2.1.4,<3",
 ]
 # torch libraries are not included in the main dependencies because they can be platform-specific
 # rather, we leave them as optional dependencies (even though they are required for the code to run)

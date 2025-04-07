@@ -1,0 +1,3 @@
+_target_: xgboost.XGBClassifier
+enable_categorical: true
+random_state: ${seed}
