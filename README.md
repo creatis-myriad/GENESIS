@@ -56,7 +56,7 @@ neural networks to predict the risk of pulmonary embolism.
    cd GENESIS
    ```
 2. Create a virtual environment and install the project and its dependencies. You must specify as an extra the desired
-   compute platform for PyTorch (i.e. CPU/CUDA). Supported values are: `cpu`, `cu126`, `cu124`, `cu118`.
+   compute platform for PyTorch (i.e. CPU/CUDA). Supported values are: `cpu`, `cu128`, `cu126`, `cu118`.
    ```bash
    # e.g. to install the project with the PyTorch version built for CPU
    uv sync --extra cpu
@@ -113,7 +113,7 @@ neural networks to predict the risk of pulmonary embolism.
 
 ### List of available extras
 
-- \[`cpu`|`cu126`|`cu124`|`cu118`\]: Required mutually exclusive extras to install the project with a PyTorch version
+- \[`cpu`|`cu128`|`cu126`|`cu118`\]: Required mutually exclusive extras to install the project with a PyTorch version
   built for CPU or a specific CUDA version (only available when using `uv`, not `pip`).
 - `wandb`: For experiment tracking with Weights & Biases.
 - `tensorboard`: For experiment tracking with TensorBoard.
