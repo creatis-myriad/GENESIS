@@ -19,6 +19,7 @@ class CSVDataset(Dataset):
         target_attr: str | None = None,
         imputer: _BaseImputer | None = None,
         impute_cols: list[str] | None = None,
+        drop_na: bool = False,
         **read_csv_kwargs,
     ) -> None:
         """Initializes a `CSVDataset`.
@@ -31,6 +32,7 @@ class CSVDataset(Dataset):
                 remaining missing values will be dropped.
             impute_cols: Columns for which to complete missing values. If None, default to all columns except the target
                 attribute. Can be made to impute the target by explicitly including it in the list.
+            drop_na: If True and imputer is not provided, drop all rows with any missing value.
             **read_csv_kwargs: Additional keyword arguments to pass to `pandas.read_csv`.
         """
         self.root = Path(src).parent
@@ -46,8 +48,9 @@ class CSVDataset(Dataset):
                 impute_cols=self.data.columns.difference([target_attr]) if impute_cols is None else impute_cols,
             )
 
-        # Drop remaining missing values
-        self.data.dropna(inplace=True)
+        # Otherwise, drop missing values if requested
+        elif drop_na:
+            self.data.dropna(inplace=True)
 
     @property
     def x(self) -> pd.DataFrame:
