@@ -22,3 +22,4 @@ dtype:
   bnp: float
 na_values: ["NF"]
 impute_cols: null
+drop_na: false

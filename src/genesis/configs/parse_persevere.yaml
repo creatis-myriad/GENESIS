@@ -30,6 +30,7 @@ attrs_to_remove:
 
 clinical_data:
   target_attr: null # Disable the default target attribute, since we do not want to treat it differently at this stage
+  drop_na: true # Do not silently propagate missing value NaNs
 
 # disable output directory, since the script should be run interactively, and we don't need to save the output
 hydra:

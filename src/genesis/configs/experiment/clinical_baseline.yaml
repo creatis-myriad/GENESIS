@@ -15,6 +15,19 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations ('train.yaml' or 'eval.yaml')
 # this allows you to overwrite only specified parameters
+data:
+  dataset:
+    usecols:
+      - patient_id
+      - vte_severity
+      - troponin
+      - bnp
+      - age
+      - cancer_history
+      - cpd_history
+      - heart_rate
+      - systolic_bp
+      - spO2
 
 tags:
   - ${hydra:runtime.choices.data/dataset} # automatically tag with the chosen dataset
