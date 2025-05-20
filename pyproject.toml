@@ -22,6 +22,7 @@ dependencies = [
     "rich>=14,<15",
     "rootutils>=1.0.7,<2",
     "scikit-learn>=1.6.1,<2",
+    "scipy>=1.15.3,<2",
     # Use our fork of torch-geometric that patches Lightning imports until the following issue gets solved and released:
     # https://github.com/pyg-team/pytorch_geometric/issues/9811
     # NOTE: The direct reference is specified here using hatchling's syntax (instead of in `tool.uv.sources`)
@@ -76,6 +77,7 @@ test = [
     "pytest>=8.3.4,<9",
     "pytest-cov>=6.0.0,<7",
     "pytest-datadir>=1.6.1,<2",
+    "scikit-image>=0.25.2,<1",
     "sh>=2.2.1,<3",
 ]
 
