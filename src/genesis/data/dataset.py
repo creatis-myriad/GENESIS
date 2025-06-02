@@ -1,11 +1,12 @@
 import copy
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 import pandas as pd
 from sklearn.impute._base import _BaseImputer
-from torch.utils.data import Dataset, Subset
+from torch.utils.data import Dataset
 
 from genesis.data.utils import impute
 
@@ -75,7 +76,9 @@ class CSVDataset(Dataset):
         """Get the length of the dataset."""
         return len(self.data)
 
-    def __getitem__(self, index: int | slice | Sequence[int]) -> np.ndarray | tuple[np.ndarray, np.ndarray] | Subset:
+    def __getitem__(
+        self, index: int | slice | Sequence[int]
+    ) -> Union[np.ndarray, tuple[np.ndarray, np.ndarray], "CSVDataset"]:
         """In case `index` is of type integer, will return the data object at index `index`.
 
         Otherwise, `index` is interpreted as a slicing object, e.g. `slice(2, 5)`, will return a subset of the dataset
@@ -125,15 +128,3 @@ class CSVDataset(Dataset):
         dataset = copy.copy(self)
         dataset.data = self.data.iloc[indices]
         return dataset
-
-    def loc(self, key: int | str) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
-        """Get item by label.
-
-        Args:
-            key: Label of the item to retrieve.
-
-        Returns:
-            The item at the specified label. If `target_attr` is not None, returns a tuple of (features, target),
-            otherwise returns only the features.
-        """
-        return self[self.data.index.get_loc(key)]
