@@ -40,7 +40,7 @@ def hydra_main(cfg: DictConfig) -> None:
     for json_path in json_files:
         patient_id = json_path.stem[:4]
 
-        if patient_id in clinical_data.indices():
+        if patient_id in clinical_data.data.index:
             log.debug(f"Parsing file '{json_path.name}' for patient ID '{patient_id}'")
             with open(json_path) as f:
                 node_link_data = json.load(f)
@@ -48,7 +48,7 @@ def hydra_main(cfg: DictConfig) -> None:
                 graph = nx.node_link_graph(node_link_data, edges=edges_key)
 
             # Add patient attributes as graph attributes
-            patient_attrs = dict(zip(global_attrs, clinical_data.loc(patient_id), strict=False))
+            patient_attrs = dict(zip(global_attrs, clinical_data.data.loc[patient_id], strict=False))
             graph = networkx_add_attrs(graph, "graph", patient_attrs)
 
             # Remove unnecessary attributes
