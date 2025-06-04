@@ -7,13 +7,13 @@ defaults:
   - override /data: split_lightning_dataset
   - override /data/dataset: persevere_clinical
   - override /model: tabular_estimator
-  # Metrics should only depend on the data task, and therefore should be able to be inferred from the data config.
-  # However, they belong to the model config, and because of limitations to the interpolation in the defaults list,
-  # it is not possible to use the data task value to interpolate which metrics config to use.
-  # Therefore, the least bad solution is to assign the metrics manually in the experiment config.
+  # Metrics are part of the model, used to evaluate it during training, but they depend on the data task.
+  # Intuitively, the metrics config should be interpolated based on the data config. However, limitations in the
+  # interpolation capabilities of Hydra make this impractical.
+  # In this context, the least bad solution is to assign the metrics manually at the experiment (or main config) level.
   - override /model/metrics: multi_classification
 
-# all parameters below will be merged with parameters from default configurations ('train.yaml' or 'eval.yaml')
+# all parameters below will be merged with parameters from default configurations ('configs/clinical_baseline.yaml')
 # this allows you to overwrite only specified parameters
 data:
   dataset:

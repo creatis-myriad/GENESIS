@@ -1,8 +1,9 @@
 defaults:
   - components@model: xgboost_classifier
-  # Metrics depend on the data task, but because of limitations to the interpolation in the defaults list, it is not
-  # possible to use the data task value to interpolate which metrics config to use. Therefore, they are to be assigned
-  # manually by the user (e.g. in an experiment config).
-  - metrics: ???
+  # Metrics are part of the model, used to evaluate it during training, but they depend on the data task.
+  # Intuitively, the metrics config should be interpolated based on the data config. However, limitations in the
+  # interpolation capabilities of Hydra make this impractical.
+  # In this context, the least bad solution is to assign the metrics manually at the experiment (or main config) level.
+  - metrics: null # no sane default can be provided here, metrics are set in `experiment` config
 
 _target_: genesis.models.TabularEstimator
