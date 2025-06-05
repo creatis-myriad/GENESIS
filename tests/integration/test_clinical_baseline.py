@@ -105,7 +105,6 @@ def persevere_regression_overrides() -> list[str]:
         "data/dataset/target=bnp",
         # Model overrides
         "model=tabular_estimator",
-        "model/components@model.model=xgboost_regressor",
         "model/metrics=regression",
     ]
 

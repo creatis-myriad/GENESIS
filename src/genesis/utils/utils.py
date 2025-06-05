@@ -15,6 +15,7 @@ from hydra.core.override_parser.overrides_parser import OverridesParser
 from hydra.utils import call
 from omegaconf import DictConfig, OmegaConf
 
+from genesis.configs import register_config_resolvers
 from genesis.utils import pylogger, rich_utils
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
@@ -71,6 +72,7 @@ def pre_hydra_routine() -> None:
 
     # Register custom OmegaConf resolvers
     register_omegaconf_resolvers()
+    register_config_resolvers()
 
 
 def extras(cfg: DictConfig) -> None:

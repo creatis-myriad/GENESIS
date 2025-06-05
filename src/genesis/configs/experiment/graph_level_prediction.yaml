@@ -1,39 +1,34 @@
 # @package _global_
 
 # to execute this experiment run:
-# python clinical_baseline.py experiment=clinical_baseline
+# python train.py experiment=graph_level_prediction
 
 defaults:
   - override /data: split_lightning_dataset
-  - override /data/dataset: persevere_clinical
-  - override /model: tabular_estimator
+  # TODO: Update the default `/data/dataset` override when PERSEVERE is implemented
+  - override /data/dataset: mutag
+  - override /model: graph_level
   # Metrics are part of the model, used to evaluate it during training, but they depend on the data task.
   # Intuitively, the metrics config should be interpolated based on the data config. However, limitations in the
   # interpolation capabilities of Hydra make this impractical.
   # In this context, the least bad solution is to assign the metrics manually at the experiment (or main config) level.
-  - override /model/metrics: multi_classification
+  - override /model/metrics: binary_classification
 
-# all parameters below will be merged with parameters from default configurations ('configs/clinical_baseline.yaml')
+# all parameters below will be merged with parameters from default configurations ('train.yaml' or 'eval.yaml')
 # this allows you to overwrite only specified parameters
-data:
-  dataset:
-    usecols:
-      - patient_id
-      - vte_severity
-      - troponin
-      - bnp
-      - age
-      - cancer_history
-      - cpd_history
-      - heart_rate
-      - systolic_bp
-      - spO2
 
 tags:
   - ${hydra:runtime.choices.data/dataset} # automatically tag with the chosen dataset
   - ${hydra:runtime.choices.model} # automatically tag with the chosen model/task
 
 seed: 12345
+
+trainer:
+  min_epochs: 50
+  max_epochs: 350
+
+data:
+  batch_size: 32
 
 logger:
   wandb:
@@ -44,3 +39,5 @@ logger:
 # Implementing these assertions in the config file allows Hydra to check them
 # and stop the program from running if the configs are known to be incompatible
 _assert_:
+  data_more_than_one_graph: ${assert:${op:gt,${oc.select:hparams.data.num_graphs,0},1}}
+  data_at_least_one_num_node_features: ${assert:${op:ge,${oc.select:hparams.data.num_node_features,0},1}}

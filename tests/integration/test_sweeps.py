@@ -47,7 +47,7 @@ def test_experiments(script: Path, testing_overrides: list[str]) -> None:
     command = [
         str(script),
         "-m",
-        "experiment=glob(*,exclude=clinical_baseline)",
+        "experiment=glob(*,exclude=*baseline*)",
         "++trainer.fast_dev_run=true",
         *testing_overrides,
     ]
@@ -57,21 +57,18 @@ def test_experiments(script: Path, testing_overrides: list[str]) -> None:
 @RunIf(sh=True)
 @pytest.mark.slow
 @pytest.mark.parametrize("script", ["src/genesis/clinical_baseline.py"], indirect=True)
-@pytest.mark.parametrize("experiment", ["clinical_baseline"])
-def test_clinical_baseline_experiments(
-    script: Path, shared_datadir: Path, experiment: str, testing_overrides: list[str]
-) -> None:
+def test_clinical_baseline_experiments(script: Path, shared_datadir: Path, testing_overrides: list[str]) -> None:
     """Test running all available clinical baseline experiment configs.
 
     Args:
         script: The path of the script to invoke.
         shared_datadir: The directory containing the dummy data.
-        experiment: The experiment config to run with the designated script.
         testing_overrides: The generic overrides to suitably configure tests.
     """
     command = [
         str(script),
-        "experiment=clinical_baseline",
+        "-m",
+        "experiment=glob(*baseline*)",
         f"paths.data_dir={shared_datadir}",  # Override the data path with the test dummy data path
         *testing_overrides,
     ]
@@ -115,7 +112,7 @@ def test_optuna_sweep(script: Path, mutag_classification_overrides: list[str], t
     command = [
         str(script),
         "-m",
-        "hparams_search=graph_level_optuna",
+        "hparams_search=graph_classification_optuna",
         "~serial_sweeper",  # Disable the serial sweeper here to test it separately
         "hydra.sweeper.n_jobs=1",
         "hydra.sweeper.n_trials=10",

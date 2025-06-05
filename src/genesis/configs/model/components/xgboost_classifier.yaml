@@ -1,8 +1,0 @@
-_target_: xgboost.XGBClassifier
-enable_categorical: true
-random_state: ${seed}
-# Manually configure objective to ensure it is appropriate for the target,
-# even when not enough labels to infer number of classes and objective from the data
-num_class: ${hparams.data.num_classes}
-# Use "multi:softmax" objective when task is multiclass, otherwise use "binary:logistic"
-objective: ${op.ternary:${op:eq,${hparams.data.task},multiclass}, "multi:softmax", "binary:logistic"}

@@ -1,3 +1,0 @@
-_target_: xgboost.XGBRegressor
-enable_categorical: true
-random_state: ${seed}
