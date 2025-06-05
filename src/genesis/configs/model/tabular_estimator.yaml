@@ -1,5 +1,4 @@
 defaults:
-  - components@model: xgboost_classifier
   # Metrics are part of the model, used to evaluate it during training, but they depend on the data task.
   # Intuitively, the metrics config should be interpolated based on the data config. However, limitations in the
   # interpolation capabilities of Hydra make this impractical.
@@ -7,3 +6,16 @@ defaults:
   - metrics: null # no sane default can be provided here, metrics are set in `experiment` config
 
 _target_: genesis.models.TabularEstimator
+
+model:
+  # Use `XGBRegressor` when task is regression, otherwise use XGBClassifier
+  _target_: ${op.ternary:${op:eq,${hparams.data.task},regression}, xgboost.XGBRegressor, xgboost.XGBClassifier}
+  enable_categorical: true
+  random_state: ${seed}
+  # Manually configure objective, in case there isn't enough labels to infer number of classes and objective
+  # Note: `num_class` is not supported by XGBRegressor, and we benefit from Hydra dropping null config fields
+  num_class: ${oc.select:hparams.data.num_classes,null}
+  # if task is `regression` -> `reg:squarederror`
+  # if task is `multiclass` -> `multi:softmax`
+  # if task is `binary` -> `binary:logistic`
+  objective: ${cfg.xgboost_objective:${hparams.data.task}}

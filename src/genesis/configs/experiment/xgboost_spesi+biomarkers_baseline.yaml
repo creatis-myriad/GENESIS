@@ -1,7 +1,7 @@
 # @package _global_
 
 # to execute this experiment run:
-# python clinical_baseline.py experiment=clinical_baseline
+# python clinical_baseline.py experiment=xgboost_spesi+biomarkers_baseline
 
 defaults:
   - override /data: split_lightning_dataset
