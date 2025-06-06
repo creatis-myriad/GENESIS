@@ -5,9 +5,25 @@ from typing import Any
 import networkx as nx
 import numpy as np
 import torch
+from monai.data import NibabelReader
 from torch_geometric.data import Data
 
 from genesis.data.utils import networkx_line_graph, networkx_to_pyg
+
+
+def load_nifti(filepath: str | Path) -> tuple[np.ndarray, dict[str, Any]]:
+    """Loads a NIFTI image and returns the image and its metadata.
+
+    Args:
+        filepath: Path to the NIFTI image.
+
+    Returns:
+        - Image array.
+        - Image metadata.
+    """
+    nib_reader = NibabelReader()
+    img_obj = nib_reader.read(filepath)
+    return nib_reader.get_data(img_obj)
 
 
 def json_to_pyg(
