@@ -1,12 +1,57 @@
 import math
 
+import networkx as nx
 import numpy as np
 from scipy import ndimage
+from tqdm.auto import tqdm
 
 from genesis.data.transform.curve_planar_reformat import straightened_cpr
 from genesis.utils import RankedLogger
 
 log = RankedLogger(__name__, rank_zero_only=True)
+
+
+def full_graph_transversal_obstructions(
+    vessel_mask: np.ndarray,
+    obstruction_mask: np.ndarray,
+    vessel_graph: nx.Graph,
+    centerline_key: str = "centerline",
+    obstruction_key: str = "transversal_obstruction",
+    progress_bar: bool = False,
+    **transversal_obstruction_kwargs,
+) -> nx.Graph:
+    """Computes the transversal obstruction for vessels in a 3D image whose centerline are defined in a graph.
+
+    Args:
+        vessel_mask: (X, Y, Z) 3D segmentation of the vessels. Any non-zero voxel is considered part of the mask.
+        obstruction_mask: (X, Y, Z) 3D segmentation of the structures (e.g. thrombi) to consider as obstructions in the
+            vessels. Any non-zero voxel is considered part of the mask.
+        vessel_graph: NetworkX `Graph` containing the centerline points of the vessels to analyze.
+        centerline_key: Attribute in the `vessel_graph` edges that contains the centerline points of the vessels.
+        obstruction_key: Attribute in the `vessel_graph` edges where to store the computed transversal obstructions.
+        progress_bar: If ``True``, enables progress bars detailing the progress over vessels.
+        transversal_obstruction_kwargs: Keyword arguments to pass to `transversal_obstruction`.
+
+    Returns:
+        Copy of the input `vessel_graph` with the transversal obstruction values added as edge attributes.
+    """
+    vessel_graph = vessel_graph.copy()
+
+    edges = vessel_graph.edges(data=True)
+    if progress_bar:
+        edges = tqdm(edges, desc="Computing transversal obstructions", unit="vessel segment")
+
+    for source_node, target_node, edge_data in edges:
+        centerline = np.array(edge_data[centerline_key]).T  # (N, 3) -> (3, N)
+        # TODO Should use a unique vessel label for each segment to avoid including other vessel segments in the current
+        #  vessel segment
+        obstruction_values = transversal_obstruction(
+            vessel_mask, obstruction_mask, centerline, **transversal_obstruction_kwargs
+        )
+        # Add the computed obstruction values as an edge attribute
+        vessel_graph.edges[source_node, target_node][obstruction_key] = obstruction_values
+
+    return vessel_graph
 
 
 def transversal_obstruction(
