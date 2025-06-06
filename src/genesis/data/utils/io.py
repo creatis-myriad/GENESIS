@@ -63,6 +63,19 @@ def json_to_networkx(json_path: Path, line_graph: bool = False, **node_link_grap
     return graph
 
 
+def networkx_to_json(graph: nx.Graph, json_path: Path, **node_link_data_kwargs) -> None:
+    """Saves a NetworkX `Graph` to a JSON file in node-link format.
+
+    Args:
+        graph: NetworkX graph to save.
+        json_path: File path where to save the graph in JSON format.
+        **node_link_data_kwargs: Keys for serialized attribute names to pass to `nx.node_link_data`.
+    """
+    node_link_data = nx.node_link_data(graph, **node_link_data_kwargs)
+    with open(json_path, "w") as file:
+        json.dump(node_link_data, file, indent=2, cls=NumpyEncoder)
+
+
 class NumpyEncoder(json.JSONEncoder):
     """Custom JSON encoder for handling NumPy data types."""
 

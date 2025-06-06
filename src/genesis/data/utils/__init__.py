@@ -5,7 +5,7 @@ from .networkx import (  # noqa: I001 # must be imported before io package to av
     networkx_remove_attrs,
     networkx_setdefault_attrs,
 )
-from .io import json_to_networkx, json_to_pyg, NumpyEncoder
+from .io import json_to_networkx, json_to_pyg, NumpyEncoder, networkx_to_json
 from .sklearn import impute
 
 __all__ = [
@@ -17,5 +17,6 @@ __all__ = [
     "networkx_line_graph",
     "networkx_remove_attrs",
     "networkx_setdefault_attrs",
+    "networkx_to_json",
     "networkx_to_pyg",
 ]
