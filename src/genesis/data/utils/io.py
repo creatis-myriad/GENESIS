@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch_geometric.data import Data
 
-from genesis.data.utils import networkx_line_graph, networkx_to_torch_geometric
+from genesis.data.utils import networkx_line_graph, networkx_to_pyg
 
 
 def json_to_pyg(
@@ -35,12 +35,12 @@ def json_to_pyg(
         json_to_nx_kwargs = {}
     if nx_to_pyg_kwargs is None:
         nx_to_pyg_kwargs = {}
-    nx_graph = json_graph_to_networkx(json_path, line_graph, **json_to_nx_kwargs)
-    return networkx_to_torch_geometric(nx_graph, target_attr, target_dtype, **nx_to_pyg_kwargs)
+    nx_graph = json_to_networkx(json_path, line_graph, **json_to_nx_kwargs)
+    return networkx_to_pyg(nx_graph, target_attr, target_dtype, **nx_to_pyg_kwargs)
 
 
-def json_graph_to_networkx(json_path: Path, line_graph: bool = False, **node_link_graph_kwargs) -> nx.Graph:
-    """Parses JSON file into a NetworkX `Graph`.
+def json_to_networkx(json_path: Path, line_graph: bool = False, **node_link_graph_kwargs) -> nx.Graph:
+    """Parses a JSON file as the node-link data describing a NetworkX `Graph`.
 
     Args:
         json_path: File path to read as NetworkX graph.

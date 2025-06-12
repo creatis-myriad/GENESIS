@@ -6,9 +6,7 @@ from torch_geometric.data import Data
 from torch_geometric.utils import from_networkx
 
 
-def networkx_to_torch_geometric(
-    graph: nx.Graph, target_attr: str, target_dtype: torch.dtype, **from_networkx_kwargs
-) -> Data:
+def networkx_to_pyg(graph: nx.Graph, target_attr: str, target_dtype: torch.dtype, **from_networkx_kwargs) -> Data:
     """Convert NetworkX `Graph` to PyG `Data`.
 
     Args:
