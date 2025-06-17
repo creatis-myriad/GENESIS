@@ -15,6 +15,7 @@ def full_graph_transversal_obstructions(
     vessel_mask: np.ndarray,
     obstruction_mask: np.ndarray,
     vessel_graph: nx.Graph,
+    vessel_mask_by_segment: bool = False,
     centerline_key: str = "centerline",
     obstruction_key: str = "transversal_obstruction",
     progress_bar: bool = False,
@@ -27,6 +28,9 @@ def full_graph_transversal_obstructions(
         obstruction_mask: (X, Y, Z) 3D segmentation of the structures (e.g. thrombi) to consider as obstructions in the
             vessels. Any non-zero voxel is considered part of the mask.
         vessel_graph: NetworkX `Graph` containing the centerline points of the vessels to analyze.
+        vessel_mask_by_segment: If ``True``, the `vessel_mask` is assumed to assign a unique label to each vessel
+            segment, which should correspond to the segment's edge ID in the `vessel_graph`.
+            This segmentation format can help provide more accurate obstruction values at vessels' intersections.
         centerline_key: Attribute in the `vessel_graph` edges that contains the centerline points of the vessels.
         obstruction_key: Attribute in the `vessel_graph` edges where to store the computed transversal obstructions.
         progress_bar: If ``True``, enables progress bars detailing the progress over vessels.
@@ -43,10 +47,22 @@ def full_graph_transversal_obstructions(
 
     for source_node, target_node, edge_data in edges:
         centerline = np.array(edge_data[centerline_key]).T  # (N, 3) -> (3, N)
-        # TODO Should use a unique vessel label for each segment to avoid including other vessel segments in the current
-        #  vessel segment
+
+        # If the vessel mask is labelled by segment, use the edge ID to extract only the segment of interest
+        vessel_or_segment_mask = vessel_mask
+        if vessel_mask_by_segment:
+            vessel_id = int(edge_data["id"])
+
+            if np.any(vessel_mask == vessel_id):
+                vessel_or_segment_mask = vessel_mask == vessel_id
+            else:
+                log.warning(
+                    f"The vessel mask does not contain any voxels for the segment with ID: '{vessel_id}'. "
+                    f"Including all vessel labels in the vessel mask for this specific segment."
+                )
+
         obstruction_values = transversal_obstruction(
-            vessel_mask, obstruction_mask, centerline, **transversal_obstruction_kwargs
+            vessel_or_segment_mask, obstruction_mask, centerline, **transversal_obstruction_kwargs
         )
         # Add the computed obstruction values as an edge attribute
         vessel_graph.edges[source_node, target_node][obstruction_key] = obstruction_values

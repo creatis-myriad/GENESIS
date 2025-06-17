@@ -14,6 +14,11 @@ def main() -> None:
     parser.add_argument("obstruction_mask", type=Path, help="Path to the obstruction segmentation mask.")
     parser.add_argument("vessel_graph", type=Path, help="Path to the vessel graph in NetworkX's JSON format.")
     parser.add_argument(
+        "--vessel_mask_by_segment",
+        action="store_true",
+        help="If set, the vessel mask is assumed to be segmented by vessel.",
+    )
+    parser.add_argument(
         "--centerline_key", type=str, default="centerline", help="Key of the centerline in the vessel graph edges."
     )
     parser.add_argument(
@@ -47,6 +52,7 @@ def main() -> None:
         vessel_mask,
         obstruction_mask,
         vessel_graph,
+        vessel_mask_by_segment=args.vessel_mask_by_segment,
         centerline_key=args.centerline_key,
         obstruction_key=args.obstruction_key,
         cpr_padding=args.cpr_padding,
