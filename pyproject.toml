@@ -34,7 +34,7 @@ all = [
     "genesis[wandb,tensorboard,baselines]",
 ]
 wandb = [
-    "wandb>=0.20,<0.21",
+    "wandb>=0.21,<0.22",
 ]
 tensorboard = [
     "tensorboard>=2.19.0,<3",
