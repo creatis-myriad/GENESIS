@@ -1,0 +1,2 @@
+# Use `TabPFNRegressor` when task is regression, otherwise use `TabPFNClassifier`
+_target_: ${op.ternary:${op:eq,${hparams.data.task},regression}, tabpfn.TabPFNRegressor, tabpfn.TabPFNClassifier}

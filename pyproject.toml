@@ -40,6 +40,7 @@ tensorboard = [
     "tensorboard>=2.19.0,<3",
 ]
 baselines = [
+    "tabpfn>=2.0.9,<3",
     "xgboost>=2.1.4,<3",
 ]
 # torch libraries are not included in the main dependencies because they can be platform-specific
