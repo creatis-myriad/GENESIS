@@ -16,7 +16,7 @@ defaults:
 
   # experiment configs allow for version control of specific hyperparameters
   # e.g. best hyperparameters for given model and datamodule
-  - experiment: xgboost_spesi+biomarkers_baseline
+  - experiment: spesi+biomarkers_baseline
 
   # config for hyperparameter optimization
   - hparams_search: null
