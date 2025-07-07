@@ -26,9 +26,9 @@ data:
 
 hparams:
   data:
-    num_graphs: 10
+    num_graphs: 24
     # If no explicit filter of edge attributes is provided, the maximum number of edge features (8) is used
-    num_raw_edge_features: 6
+    num_raw_edge_features: 11
     num_filtered_edge_features: ${op:length_hint,${oc.select:data.dataset.edge_attrs_filter}, ${.num_raw_edge_features}}
     num_edge_features: ${op.ternary:${data.dataset.line_graph}, 0, ${.num_filtered_edge_features}}
     num_node_features: ${op.ternary:${data.dataset.line_graph}, ${.num_filtered_edge_features}, 0}
