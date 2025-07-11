@@ -63,9 +63,19 @@ def cfg(cfg_global: DictConfig, shared_datadir: Path, tmp_path: Path) -> DictCon
     GlobalHydra.instance().clear()
 
 
-@pytest.fixture(scope="module", params=["persevere_classification_overrides", "persevere_regression_overrides"])
-def application_overrides(request: FixtureRequest) -> list[str]:
+@pytest.fixture(scope="module")
+def application_overrides(data_overrides: list[str], model_overrides: list[str]) -> list[str]:
     """A pytest fixture for the overrides to use to specify the application (i.e. data, model, etc.) for the tests.
+
+    Returns:
+        A list of configuration overrides.
+    """
+    return [*data_overrides, *model_overrides]
+
+
+@pytest.fixture(scope="module", params=["persevere_classification_overrides", "persevere_regression_overrides"])
+def data_overrides(request: FixtureRequest) -> list[str]:
+    """A pytest fixture for the overrides to use to specify the data.
 
     Returns:
         A list of configuration overrides.
@@ -75,37 +85,69 @@ def application_overrides(request: FixtureRequest) -> list[str]:
 
 @pytest.fixture(scope="module")
 def persevere_classification_overrides() -> list[str]:
-    """A pytest fixture for the overrides to use in the tests for graph-level applications.
+    """A pytest fixture for the overrides to use for classification task tests on the PERSEVERE dataset.
 
     Returns:
         A list of configuration overrides.
     """
     return [
-        # Data overrides
         "data=split_lightning_dataset",
         "data/dataset=persevere_clinical",
         "data/dataset/target=vte_severity",
-        # Model overrides
-        "model=tabular_estimator",
+        # Specify the metrics here, since they depend on the data task
         "model/metrics=multi_classification",
     ]
 
 
 @pytest.fixture(scope="module")
 def persevere_regression_overrides() -> list[str]:
-    """A pytest fixture for the overrides to use in the tests for graph-level applications.
+    """A pytest fixture for the overrides to use for regression task tests on the PERSEVERE dataset.
 
     Returns:
         A list of configuration overrides.
     """
     return [
-        # Data overrides
         "data=split_lightning_dataset",
         "data/dataset=persevere_clinical",
         "data/dataset/target=bnp",
-        # Model overrides
-        "model=tabular_estimator",
+        # Specify the metrics here, since they depend on the data task
         "model/metrics=regression",
+    ]
+
+
+@pytest.fixture(scope="module", params=["tabpfn_overrides", "xgboost_overrides"])
+def model_overrides(request: FixtureRequest) -> list[str]:
+    """A pytest fixture for the overrides to use to specify the model for the tests.
+
+    Returns:
+        A list of configuration overrides.
+    """
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture(scope="module")
+def tabpfn_overrides() -> list[str]:
+    """A pytest fixture for the overrides to use for tests with the TabPFN model.
+
+    Returns:
+        A list of configuration overrides.
+    """
+    return [
+        "model=tabular_estimator",
+        "model/components@model.model=tabpfn",
+    ]
+
+
+@pytest.fixture(scope="module")
+def xgboost_overrides() -> list[str]:
+    """A pytest fixture for the overrides to use for tests with the XGBoost model.
+
+    Returns:
+        A list of configuration overrides.
+    """
+    return [
+        "model=tabular_estimator",
+        "model/components@model.model=xgboost",
     ]
 
 
