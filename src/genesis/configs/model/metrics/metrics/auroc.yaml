@@ -6,3 +6,5 @@ auroc:
   # Provide the number of classes as either `num_classes` or `num_labels` depending on the task
   num_classes: ${oc.select:hparams.data.num_classes}
   num_labels: ${oc.select:hparams.data.num_classes}
+  # Use weighted average for multiclass accuracy (accounts for class imbalance)
+  average: weighted
