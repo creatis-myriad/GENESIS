@@ -1,14 +1,58 @@
 import json
+import math
 from pathlib import Path
 
 import hydra
 import networkx as nx
 from omegaconf import DictConfig
 
-from genesis.data.utils import NumpyEncoder, networkx_add_attrs, networkx_remove_attrs, networkx_setdefault_attrs
+from genesis.data.utils import (
+    NumpyEncoder,
+    networkx_add_attrs,
+    networkx_remove_attrs,
+    networkx_setdefault_attrs,
+)
 from genesis.utils import RankedLogger, pre_hydra_routine
 
 log = RankedLogger(__name__, rank_zero_only=True)
+
+
+def _aggregate_list_attrs(
+    graph: nx.Graph,
+    specs: dict,
+    remove_orig: bool,
+    element: str,
+) -> None:
+    """Compute sum/max/min/mean over list-valued attributes for nodes or edges."""
+    if not specs:
+        return
+
+    for key, ops in specs.items():
+        # Recreate iterator per key to avoid exhausting it
+        items = graph.nodes(data=True) if element == "nodes" else graph.edges(data=True)
+        for *_, data in items:
+            raw = data.get(key, [])
+            vals = raw if isinstance(raw, list) else []
+            for op in ops:
+                new_key = f"{key}_{op}"
+                # Compute the aggregation
+                if op == "sum":
+                    v = sum(vals)
+                elif op == "max":
+                    v = max(vals, default=0)
+                elif op == "min":
+                    v = min(vals, default=0)
+                elif op == "mean":
+                    v = (sum(vals) / len(vals)) if vals else 0
+                else:
+                    raise ValueError(f"Unsupported aggregation op: {op}")
+                # Ensure no NaN values
+                if isinstance(v, float) and math.isnan(v):
+                    v = 0
+                data[new_key] = v
+            # Remove original list if configured
+            if remove_orig and key in data:
+                data.pop(key)
 
 
 @hydra.main(config_path="configs", config_name="parse_persevere", version_base=None)
@@ -32,6 +76,14 @@ def hydra_main(cfg: DictConfig) -> None:
     clinical_data = hydra.utils.instantiate(cfg.clinical_data)
     log.info(f"Extracted clinical attributes for {len(clinical_data)} patients")
 
+    agg = cfg.attrs_to_aggregate
+    log.info(
+        f"List-valued aggregation config: "
+        f"nodes={getattr(agg, 'nodes', {})}, "
+        f"links={getattr(agg, 'links', {})}, "
+        f"remove_original={agg.remove_original}"
+    )
+
     json_files = list(source_dir.glob("*.json"))
     log.info(f"Found {len(json_files)} JSON files to parse")
 
@@ -51,17 +103,24 @@ def hydra_main(cfg: DictConfig) -> None:
             patient_attrs = dict(zip(global_attrs, clinical_data.data.loc[patient_id], strict=False))
             graph = networkx_add_attrs(graph, "graph", patient_attrs)
 
+            # List-valued attributes aggregation
+            agg_cfg = cfg.attrs_to_aggregate
+            remove_orig = agg_cfg.remove_original
+            _aggregate_list_attrs(graph, getattr(agg_cfg, "nodes", {}), remove_orig, "nodes")
+            _aggregate_list_attrs(graph, getattr(agg_cfg, "links", {}), remove_orig, "links")
+
             # Remove unnecessary attributes
             for key, attrs_to_remove in cfg.attrs_to_remove.items():
                 graph = networkx_remove_attrs(graph, key, attrs_to_remove)
                 if key == "graph":
                     continue  # Skip setting default attributes for the graph
-                # Uniformize remaining attributes to be present in all nodes/edges, setting them to 0 if not present
                 graph = networkx_setdefault_attrs(graph, key, 0)
 
             # Override 'nodes' and 'edges' keys in the node-link data, and save the modified graph
             node_link_data = nx.node_link_data(
-                graph, nodes=cfg.node_link_data_nodes_key, edges=cfg.node_link_data_edges_key
+                graph,
+                nodes=cfg.node_link_data_nodes_key,
+                edges=cfg.node_link_data_edges_key,
             )
             with open(pyg_raw_dir / json_path.name, "w") as file:
                 json.dump(node_link_data, file, indent=2, cls=NumpyEncoder)
