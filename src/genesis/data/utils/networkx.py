@@ -1,3 +1,4 @@
+import math
 from typing import Any
 
 import networkx as nx
@@ -129,6 +130,65 @@ def networkx_setdefault_attrs(graph: nx.Graph, element: str, default: Any) -> nx
                     edge_attrs.setdefault(key, default)
         case _:
             raise ValueError("Element must be 'nodes' or 'edges'/'links'.")
+    return graph
+
+
+def networkx_aggregate_list_attrs(
+    graph: nx.Graph,
+    specs: dict[str, list[str]],
+    remove_orig: bool,
+    element: str,
+) -> nx.Graph:
+    """Aggregate list-valued attributes on nodes or edges.
+
+    Writes each result under a new key `<attr>_<op>`, and (optionally) pops
+    the original list-valued attribute.
+
+    Args:
+        graph: NetworkX graph whose nodes or edges hold list-valued attrs.
+        specs: Mapping from attribute name to a list of operations to apply.
+        remove_orig: If True, drop the original list attribute after aggregation.
+        element: Which elements to process: either `"nodes"` or `"links"`.
+
+    Returns:
+        The same graph, mutated in-place with new scalar attributes.
+
+    Raises:
+        ValueError: if `element` is not one of `"nodes"` or `"links"`, or
+                    if any op in `specs` is not in {"sum","max","min","mean"}.
+    """
+    if element not in ("nodes", "links"):
+        raise ValueError("`element` must be 'nodes' or 'links'")
+
+    # Supported operations
+    allowed = {"sum", "max", "min", "mean"}
+    for attr, ops in specs.items():
+        if not set(ops).issubset(allowed):
+            bad = set(ops) - allowed
+            raise ValueError(f"Unsupported ops for '{attr}': {bad}")
+
+        # Re-create iterator for each attribute
+        items = graph.nodes(data=True) if element == "nodes" else graph.edges(data=True)
+        for *_, data in items:
+            raw = data.get(attr, [])
+            vals = raw if isinstance(raw, list) else []
+            # Compute each requested op
+            for op in ops:
+                if op == "sum":
+                    v = sum(vals)
+                elif op == "max":
+                    v = max(vals, default=0)
+                elif op == "min":
+                    v = min(vals, default=0)
+                else:  # mean
+                    v = sum(vals) / len(vals) if vals else 0.0
+                # Guard against NaN
+                if isinstance(v, float) and math.isnan(v):
+                    v = 0.0
+                data[f"{attr}_{op}"] = v
+            # Optionally remove the original list
+            if remove_orig and attr in data:
+                data.pop(attr)
     return graph
 
 

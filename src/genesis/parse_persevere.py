@@ -1,5 +1,4 @@
 import json
-import math
 from pathlib import Path
 
 import hydra
@@ -9,50 +8,13 @@ from omegaconf import DictConfig
 from genesis.data.utils import (
     NumpyEncoder,
     networkx_add_attrs,
+    networkx_aggregate_list_attrs,
     networkx_remove_attrs,
     networkx_setdefault_attrs,
 )
 from genesis.utils import RankedLogger, pre_hydra_routine
 
 log = RankedLogger(__name__, rank_zero_only=True)
-
-
-def _aggregate_list_attrs(
-    graph: nx.Graph,
-    specs: dict,
-    remove_orig: bool,
-    element: str,
-) -> None:
-    """Compute sum/max/min/mean over list-valued attributes for nodes or edges."""
-    if not specs:
-        return
-
-    for key, ops in specs.items():
-        # Recreate iterator per key to avoid exhausting it
-        items = graph.nodes(data=True) if element == "nodes" else graph.edges(data=True)
-        for *_, data in items:
-            raw = data.get(key, [])
-            vals = raw if isinstance(raw, list) else []
-            for op in ops:
-                new_key = f"{key}_{op}"
-                # Compute the aggregation
-                if op == "sum":
-                    v = sum(vals)
-                elif op == "max":
-                    v = max(vals, default=0)
-                elif op == "min":
-                    v = min(vals, default=0)
-                elif op == "mean":
-                    v = (sum(vals) / len(vals)) if vals else 0
-                else:
-                    raise ValueError(f"Unsupported aggregation op: {op}")
-                # Ensure no NaN values
-                if isinstance(v, float) and math.isnan(v):
-                    v = 0
-                data[new_key] = v
-            # Remove original list if configured
-            if remove_orig and key in data:
-                data.pop(key)
 
 
 @hydra.main(config_path="configs", config_name="parse_persevere", version_base=None)
@@ -106,8 +68,8 @@ def hydra_main(cfg: DictConfig) -> None:
             # List-valued attributes aggregation
             agg_cfg = cfg.attrs_to_aggregate
             remove_orig = agg_cfg.remove_original
-            _aggregate_list_attrs(graph, getattr(agg_cfg, "nodes", {}), remove_orig, "nodes")
-            _aggregate_list_attrs(graph, getattr(agg_cfg, "links", {}), remove_orig, "links")
+            networkx_aggregate_list_attrs(graph, getattr(agg_cfg, "nodes", {}), remove_orig, "nodes")
+            networkx_aggregate_list_attrs(graph, getattr(agg_cfg, "links", {}), remove_orig, "links")
 
             # Remove unnecessary attributes
             for key, attrs_to_remove in cfg.attrs_to_remove.items():

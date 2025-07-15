@@ -48,3 +48,7 @@ src/**/configs/local/*
 /data/
 /logs/
 .env
+
+# Personal files
+scripts/*.csv
+scripts/*.bash
