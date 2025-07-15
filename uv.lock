@@ -643,7 +643,7 @@ wheels = [
 
 [[package]]
 name = "huggingface-hub"
-version = "0.33.2"
+version = "0.33.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "filelock" },
@@ -655,9 +655,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fa/42/8a95c5632080ae312c0498744b2b852195e10b05a20b1be11c5141092f4c/huggingface_hub-0.33.2.tar.gz", hash = "sha256:84221defaec8fa09c090390cd68c78b88e3c4c2b7befba68d3dc5aacbc3c2c5f", size = 426637, upload-time = "2025-07-02T06:26:05.156Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4b/9e/9366b7349fc125dd68b9d384a0fea84d67b7497753fe92c71b67e13f47c4/huggingface_hub-0.33.4.tar.gz", hash = "sha256:6af13478deae120e765bfd92adad0ae1aec1ad8c439b46f23058ad5956cbca0a", size = 426674, upload-time = "2025-07-11T12:32:48.694Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/44/f4/5f3f22e762ad1965f01122b42dae5bf0e009286e2dba601ce1d0dba72424/huggingface_hub-0.33.2-py3-none-any.whl", hash = "sha256:3749498bfa91e8cde2ddc2c1db92c79981f40e66434c20133b39e5928ac9bcc5", size = 515373, upload-time = "2025-07-02T06:26:03.072Z" },
+    { url = "https://files.pythonhosted.org/packages/46/7b/98daa50a2db034cab6cd23a3de04fa2358cb691593d28e9130203eb7a805/huggingface_hub-0.33.4-py3-none-any.whl", hash = "sha256:09f9f4e7ca62547c70f8b82767eefadd2667f4e116acba2e3e62a5a81815a7bb", size = 515339, upload-time = "2025-07-11T12:32:46.346Z" },
 ]
 
 [[package]]
@@ -2331,7 +2331,7 @@ wheels = [
 
 [[package]]
 name = "tabpfn"
-version = "2.0.9"
+version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "einops" },
@@ -2348,9 +2348,9 @@ dependencies = [
     { name = "torch", version = "2.7.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "(extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (extra != 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra != 'extra-7-genesis-cpu' and extra != 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128')" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cb/32/a705d6b426800e79338ed641cb7d96877e069289309455cb215df14126b6/tabpfn-2.0.9.tar.gz", hash = "sha256:7e6e006a61e8b08011c1a6761eef3c514c4ff16f5698ed655443c0704a3f93a6", size = 139991, upload-time = "2025-05-07T13:21:36.067Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/35/3a/a195dab09d94766b16837810ae8064079158193532923b96f22a95ed7024/tabpfn-2.1.0.tar.gz", hash = "sha256:bb74732d63a7cd419aaf71fbfeacd12c1a717b0a50342ae17f0736ddbad04dc5", size = 179399, upload-time = "2025-07-09T16:29:15.51Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/35/f8/b0e7ff83484acfbe670b2f56c28c6bcf09ae84284e624cd45755a8b7073c/tabpfn-2.0.9-py3-none-any.whl", hash = "sha256:04e3bb989e9328d510ea4fccb6c6a36c8269630685d460af4df5eb268206bf21", size = 128881, upload-time = "2025-05-07T13:21:34.227Z" },
+    { url = "https://files.pythonhosted.org/packages/47/d6/dcec05d0e7d9f41d8501167f15c6a046b38e1d90bb34e6c91863915e9fe1/tabpfn-2.1.0-py3-none-any.whl", hash = "sha256:db99d7573626fa47ab27b7f03ee6a7a24e505b1dd6bfab66634fff96c1b0d436", size = 155495, upload-time = "2025-07-09T16:29:13.914Z" },
 ]
 
 [[package]]
