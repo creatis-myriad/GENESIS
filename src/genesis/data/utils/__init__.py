@@ -6,6 +6,7 @@ from .networkx import (  # noqa: I001 # must be imported before io package to av
     networkx_setdefault_attrs,
     networkx_aggregate_list_attrs,
     networkx_add_obstruction_attribute,
+    networkx_find_root,
 )
 from .io import json_to_networkx, json_to_pyg, NumpyEncoder, load_nifti, networkx_to_json
 from .sklearn import impute
@@ -19,6 +20,7 @@ __all__ = [
     "networkx_add_attrs",
     "networkx_add_obstruction_attribute",
     "networkx_aggregate_list_attrs",
+    "networkx_find_root",
     "networkx_line_graph",
     "networkx_remove_attrs",
     "networkx_setdefault_attrs",
