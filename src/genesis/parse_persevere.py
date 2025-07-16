@@ -8,6 +8,7 @@ from omegaconf import DictConfig
 from genesis.data.utils import (
     NumpyEncoder,
     networkx_add_attrs,
+    networkx_add_obstruction_attribute,
     networkx_aggregate_list_attrs,
     networkx_remove_attrs,
     networkx_setdefault_attrs,
@@ -46,6 +47,15 @@ def hydra_main(cfg: DictConfig) -> None:
         f"remove_original={agg.remove_original}"
     )
 
+    ob = cfg.obstruction_attrs
+    log.info(
+        f"Obstruction attributes config: add={ob.add}, "
+        f"cumulated_input={ob.cumulated_attr.input}, "
+        f"cumulated_output={ob.cumulated_attr.output}, "
+        f"propagated_input={ob.propagated_attr.input}, "
+        f"propagated_output={ob.propagated_attr.output}"
+    )
+
     json_files = list(source_dir.glob("*.json"))
     log.info(f"Found {len(json_files)} JSON files to parse")
 
@@ -70,6 +80,14 @@ def hydra_main(cfg: DictConfig) -> None:
             remove_orig = agg_cfg.remove_original
             graph = networkx_aggregate_list_attrs(graph, getattr(agg_cfg, "nodes", {}), remove_orig, "nodes")
             graph = networkx_aggregate_list_attrs(graph, getattr(agg_cfg, "links", {}), remove_orig, "links")
+
+            # Add cumulated and propagated obstruction attributes
+            graph = networkx_add_obstruction_attribute(
+                graph,
+                input_attr=ob.propagated_attr.input,
+                propagated_attr=ob.propagated_attr.output,
+                cumulated_attr=ob.cumulated_attr.output,
+            )
 
             # Remove unnecessary attributes
             for key, attrs_to_remove in cfg.attrs_to_remove.items():
