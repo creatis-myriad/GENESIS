@@ -226,7 +226,7 @@ def networkx_add_obstruction_attribute(
     """
     new_graph = graph.copy()
     if root is None:
-        root = _find_root(graph)
+        root = networkx_find_root(graph)
 
     def propagate_fn(parent_deg: float, own_deg: float) -> float:
         """Return new propagated attribute value for the edge based on parent's and own values."""
@@ -249,7 +249,7 @@ def networkx_add_obstruction_attribute(
     return new_graph
 
 
-def _find_root(graph: nx.DiGraph) -> Any:
+def networkx_find_root(graph: nx.DiGraph) -> Any:
     """Find the unique root node (in-degree == 0) in a directed tree.
 
     Args:
