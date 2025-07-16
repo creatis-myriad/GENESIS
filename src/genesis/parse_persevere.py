@@ -68,8 +68,8 @@ def hydra_main(cfg: DictConfig) -> None:
             # List-valued attributes aggregation
             agg_cfg = cfg.attrs_to_aggregate
             remove_orig = agg_cfg.remove_original
-            networkx_aggregate_list_attrs(graph, getattr(agg_cfg, "nodes", {}), remove_orig, "nodes")
-            networkx_aggregate_list_attrs(graph, getattr(agg_cfg, "links", {}), remove_orig, "links")
+            graph = networkx_aggregate_list_attrs(graph, getattr(agg_cfg, "nodes", {}), remove_orig, "nodes")
+            graph = networkx_aggregate_list_attrs(graph, getattr(agg_cfg, "links", {}), remove_orig, "links")
 
             # Remove unnecessary attributes
             for key, attrs_to_remove in cfg.attrs_to_remove.items():
