@@ -55,12 +55,15 @@ def json_to_pyg(
     return networkx_to_pyg(nx_graph, target_attr, target_dtype, **nx_to_pyg_kwargs)
 
 
-def json_to_networkx(json_path: Path, line_graph: bool = False, **node_link_graph_kwargs) -> nx.Graph:
+def json_to_networkx(
+    json_path: Path, line_graph: bool = False, directed: bool = False, **node_link_graph_kwargs
+) -> nx.Graph:
     """Parses a JSON file as the node-link data describing a NetworkX `Graph`.
 
     Args:
         json_path: File path to read as NetworkX graph.
         line_graph: Whether to convert the parsed graph to its line graph.
+        directed: Whether the graph is directed.
         **node_link_graph_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`.
 
     Returns:
@@ -71,9 +74,7 @@ def json_to_networkx(json_path: Path, line_graph: bool = False, **node_link_grap
 
     # If no keys for serialized attribute names are provided,
     # use default keys + set edges key to avoid warning
-    if not node_link_graph_kwargs:
-        node_link_graph_kwargs = {"edges": "edges"}
-    graph = nx.node_link_graph(json_graph, **node_link_graph_kwargs)
+    graph = nx.node_link_graph(json_graph, directed=directed, **node_link_graph_kwargs or {"edges": "edges"})
     if line_graph:
         graph = networkx_line_graph(graph)
     return graph
