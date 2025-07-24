@@ -291,7 +291,7 @@ def correlate(
     Returns:
         None
     """
-    colmap: dict = {"spesi": "sPESI", "bnp": "bnp", "troponin": "Tropo PU", "risk": "vte_severity"}
+    colmap: dict = {"spesi": "spesi", "bnp": "bnp", "troponin": "troponin", "risk": "vte_severity"}
     attribute: str = colmap[attribute_name]
     script: str = os.path.basename(sys.argv[0])
     cli_cmd: str = f"{script} {' '.join(sys.argv[1:])}"

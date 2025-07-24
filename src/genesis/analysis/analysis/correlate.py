@@ -8,9 +8,9 @@ import plotly.io as pio
 from plotly.subplots import make_subplots
 from scipy.stats import pearsonr
 
+from genesis.analysis.scores.mastora import compute_mastora
+from genesis.analysis.scores.qanadli import compute_qanadli
 from genesis.data.utils import json_to_networkx
-from genesis.eval.scores.mastora import compute_mastora
-from genesis.eval.scores.qanadli import compute_qanadli
 
 from ..utils import find_graph_file  # noqa: TID252
 
@@ -74,8 +74,16 @@ def calculate_scores(
                 )
 
     df_scores = pd.DataFrame(records)
-    on = ["patient_id", "obstruction_attr"] if all_attributes else ["patient_id"]
-    return pd.merge(clinical_data, df_scores, on=on)
+    if all_attributes:
+        # For all_attributes, we need to create multiple rows per patient (one per obstruction_attr)
+        expanded_clinical = []
+        for attr in attrs:
+            temp_df = clinical_data.copy()
+            temp_df["obstruction_attr"] = attr
+            expanded_clinical.append(temp_df)
+        expanded_clinical_data = pd.concat(expanded_clinical, ignore_index=True)
+        return pd.merge(expanded_clinical_data, df_scores, on=["patient_id", "obstruction_attr"])
+    return pd.merge(clinical_data, df_scores, on=["patient_id"])
 
 
 def calculate_pearson_correlation(data: pd.DataFrame, score_col: str, attribute_col: str) -> tuple[float, float]:
@@ -117,6 +125,30 @@ def plot_correlation(
             horizontal_spacing=0.08,
         )
 
+        # Add scatter plots for each attribute
+        for i, attr in enumerate(unique_attrs):
+            attr_data = data[data["obstruction_attr"] == attr]
+            corr, p = calculate_pearson_correlation(attr_data, "score", attribute)
+
+            click.echo(
+                f"Pearson correlation for {attr}: "
+                + (f"r={corr:.3f}, p={p:.3f}" if not pd.isna(corr) else "insufficient data")
+            )
+
+            fig.add_scatter(
+                x=attr_data["score"],
+                y=attr_data[attribute],
+                mode="markers",
+                name=attr,
+                marker={"size": 8},
+                row=1,
+                col=i + 1,
+                customdata=attr_data["patient_id"],
+                hovertemplate="<b>Patient ID:</b> %{customdata}<br><b>Score:</b> %{x}<br><b>"
+                + attribute.capitalize()
+                + ":</b> %{y}<extra></extra>",
+            )
+
         title_text = (
             f"Correlation between {score_name.capitalize()} Score and {attribute.capitalize()}<br>"
             f"<sup>Clinical Data: <span style='color:blue;'>{clinical_data_path}</span> "
@@ -127,10 +159,9 @@ def plot_correlation(
             title=title_text,
             title_font_size=18,
             plot_bgcolor="white",
-            showlegend=True,
-            legend={"orientation": "v", "yanchor": "top", "y": 1, "xanchor": "left", "x": 1.02},
-            height=800,
-            margin={"t": 200},
+            showlegend=False,
+            height=600,
+            margin={"t": 150},
         )
 
         for i in range(n_attrs):

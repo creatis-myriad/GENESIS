@@ -88,10 +88,10 @@ test = [
 gnn-train = "genesis.train:main"
 gnn-eval = "genesis.eval:main"
 persevere-parse = "genesis.parse_persevere:main"
-eval-mastora = "genesis.eval.cli:mastora"
-eval-qanadli = "genesis.eval.cli:qanadli"
-eval-visualize = "genesis.eval.cli:visualize"
-eval-correlate = "genesis.eval.cli:correlate"
+eval-mastora = "genesis.analysis.cli:mastora"
+eval-qanadli = "genesis.analysis.cli:qanadli"
+eval-visualize = "genesis.analysis.cli:visualize"
+eval-correlate = "genesis.analysis.cli:correlate"
 
 [build-system]
 requires = ["uv_build>=0.8,<0.9"]
