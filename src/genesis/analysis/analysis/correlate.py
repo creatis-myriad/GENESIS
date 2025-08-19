@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import click
 import networkx as nx
 import pandas as pd
 import plotly.express as px
@@ -10,14 +9,17 @@ from plotly.subplots import make_subplots
 from genesis.analysis.scores.mastora import compute_mastora
 from genesis.analysis.scores.qanadli import compute_qanadli
 from genesis.data.utils import json_to_networkx
+from genesis.utils import RankedLogger
 
 from ..utils import find_graph_file  # noqa: TID252
+
+log = RankedLogger(__name__, rank_zero_only=True)
 
 
 def load_and_clean_clinical_data(file_path: Path, attribute: str) -> pd.DataFrame:
     """Load and clean clinical data from a CSV file."""
     df = pd.read_csv(file_path)
-    df[attribute] = df[attribute].astype(str).str.replace(r"<", "").str.strip().pipe(pd.to_numeric, errors="coerce")
+    df[attribute] = df[attribute].astype(str).str.replace("<", "").str.strip().pipe(pd.to_numeric, errors="coerce")
     df.dropna(subset=[attribute], inplace=True)
     return df
 
@@ -67,9 +69,9 @@ def calculate_scores(
                     rec["obstruction_attr"] = attr
                 records.append(rec)
             except Exception as e:
-                click.echo(
-                    f"Could not process graph for patient {pid} with attr {attr}: {e}",
-                    err=True,
+                log.exception(
+                    f"Error processing graph for patient {pid} with attr {attr}: {e}",
+                    exc_info=True,
                 )
 
     df_scores = pd.DataFrame(records)
@@ -121,7 +123,7 @@ def plot_correlation(
             attr_data = data[data["obstruction_attr"] == attr]
             corr = attr_data["score"].corr(attr_data[attribute])
 
-            click.echo(
+            log.info(
                 f"Pearson correlation for {attr}: " + (f"{corr:.3f}" if not pd.isna(corr) else "insufficient data")
             )
 
@@ -165,7 +167,7 @@ def plot_correlation(
 
     else:
         corr = data["score"].corr(data[attribute])
-        click.echo("Pearson correlation: " + (f"{corr:.3f}" if not pd.isna(corr) else "insufficient data"))
+        log.info("Pearson correlation: " + (f"{corr:.3f}" if not pd.isna(corr) else "insufficient data"))
 
         title_text = (
             f"Correlation between {score_name.capitalize()} Score and {attribute.capitalize()}<br>"
@@ -192,9 +194,9 @@ def plot_correlation(
 
     if show_visualization:
         fig.show(renderer="browser")
-        click.echo("Correlation plot displayed.")
+        log.info("Correlation plot displayed.")
     else:
-        click.echo("Correlation plot not displayed. Use --show-visualization to view plot.")
+        log.info("Correlation plot not displayed. Use --show-visualization to view plot.")
 
 
 def correlate_and_plot(
@@ -208,10 +210,10 @@ def correlate_and_plot(
     show_visualization: bool = False,
 ) -> None:
     """Load data, calculate scores, and plot the correlation."""
-    click.echo(f"Loading clinical data from {clinical_data_path}...")
+    log.info(f"Loading clinical data from {clinical_data_path}...")
     clinical_df = load_and_clean_clinical_data(clinical_data_path, attribute)
 
-    click.echo(
+    log.info(
         f"Calculating {score_name} scores "
         + ("for all obstruction attributes..." if all_attributes else "for patients...")
     )
@@ -225,11 +227,11 @@ def correlate_and_plot(
     )
 
     if data_with_scores.empty:
-        click.echo("No data to plot. Make sure graph files exist and patient IDs match.", err=True)
+        log.info("No data to plot. Make sure graph files exist and patient IDs match.", err=True)
         return
 
     if show_visualization:
-        click.echo("Generating correlation plot...")
+        log.info("Generating correlation plot...")
     plot_correlation(
         data_with_scores,
         score_name,
