@@ -123,17 +123,6 @@ def _configure_hierarchical_layout(net: Network) -> None:
     """)
 
 
-def _add_nodes(net: Network, graph: nx.DiGraph) -> None:
-    """Add nodes from a NetworkX graph to the PyVis Network.
-
-    Args:
-        net: The PyVis Network to which nodes will be added.
-        graph: A NetworkX directed graph.
-    """
-    for n in graph.nodes():
-        net.add_node(n, label=str(n))
-
-
 def _prepare_color_and_level_normalizers(
     graph: nx.DiGraph,
     obstruction_attr: str,
@@ -161,6 +150,17 @@ def _prepare_color_and_level_normalizers(
     return obs_norm, lvl_norm, cmap
 
 
+def _add_nodes(net: Network, graph: nx.DiGraph) -> None:
+    """Add nodes from a NetworkX graph to a PyVis Network.
+
+    Args:
+        net: The PyVis Network to which nodes will be added.
+        graph: A NetworkX directed graph.
+    """
+    for n in graph.nodes():
+        net.add_node(n, label=str(n))
+
+
 def _add_edges(
     net: Network,
     graph: nx.DiGraph,
@@ -173,7 +173,7 @@ def _add_edges(
     max_edge_width: float,
     debug_map: dict[tuple, str] | None = None,
 ) -> None:
-    """Add styled edges from a NetworkX graph to the PyVis Network.
+    """Add styled edges from a NetworkX graph to a PyVis Network.
 
     Edge colors are based on obstruction values and widths inversely on level values.
     Optional debug labels can be displayed on specified edges.
