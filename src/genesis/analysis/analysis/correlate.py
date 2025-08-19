@@ -6,8 +6,8 @@ import plotly.express as px
 import plotly.io as pio
 from plotly.subplots import make_subplots
 
-from genesis.analysis.scores.mastora import compute_mastora
-from genesis.analysis.scores.qanadli import compute_qanadli
+from genesis.analysis.scores.mastora import mastora
+from genesis.analysis.scores.qanadli import qanadli
 from genesis.data.utils import find_graph_file, json_to_networkx
 from genesis.utils import RankedLogger
 
@@ -33,8 +33,8 @@ def calculate_scores(
 
     def _compute(graph: nx.Graph, attr: str) -> float:
         if score_name == "mastora":
-            return compute_mastora(graph, obstruction_attr=attr)
-        return compute_qanadli(graph, obstruction_attr=attr)
+            return mastora(graph, obstruction_attr=attr)
+        return qanadli(graph, obstruction_attr=attr)
 
     records = []
     attrs = (

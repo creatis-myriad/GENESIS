@@ -8,7 +8,8 @@ import click
 from genesis.data.utils import find_graph_file, json_to_networkx
 
 from .analysis import correlate_and_plot, visualize_attribute_graph_pyvis
-from .scores import compute_mastora, compute_qanadli
+from .scores.mastora import mastora as mastora_score
+from .scores.qanadli import qanadli as qanadli_score
 
 
 def graph_command(func: Callable) -> Callable:
@@ -54,7 +55,7 @@ def _run_score(compute_fn: Callable, input_file: Path, pattern: str, obstruction
     Loads a graph file, computes the score, and optionally displays a debug visualization.
 
     Args:
-        compute_fn: The scoring function (compute_mastora or compute_qanadli).
+        compute_fn: The scoring function (mastora or qanadli).
         input_file: Path to JSON graph or patient ID.
         pattern: Glob pattern for locating the graph file.
         obstruction_attr: Edge attribute for obstruction values.
@@ -126,7 +127,7 @@ def mastora(
         None
     """
     _run_score(
-        compute_mastora,
+        mastora_score,
         input_file=input_file,
         pattern=pattern,
         obstruction_attr=obstruction_attr,
@@ -183,7 +184,7 @@ def qanadli(
         None
     """
     _run_score(
-        compute_qanadli,
+        qanadli_score,
         input_file=input_file,
         pattern=pattern,
         obstruction_attr=obstruction_attr,
