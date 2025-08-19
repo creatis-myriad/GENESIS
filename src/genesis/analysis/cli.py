@@ -5,11 +5,10 @@ from pathlib import Path
 
 import click
 
-from genesis.data.utils import json_to_networkx
+from genesis.data.utils import find_graph_file, json_to_networkx
 
 from .analysis import correlate_and_plot, visualize_attribute_graph_pyvis
 from .scores import compute_mastora, compute_qanadli
-from .utils import find_graph_file
 
 
 def graph_command(func: Callable) -> Callable:

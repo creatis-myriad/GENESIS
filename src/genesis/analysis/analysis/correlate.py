@@ -8,10 +8,8 @@ from plotly.subplots import make_subplots
 
 from genesis.analysis.scores.mastora import compute_mastora
 from genesis.analysis.scores.qanadli import compute_qanadli
-from genesis.data.utils import json_to_networkx
+from genesis.data.utils import find_graph_file, json_to_networkx
 from genesis.utils import RankedLogger
-
-from ..utils import find_graph_file  # noqa: TID252
 
 log = RankedLogger(__name__, rank_zero_only=True)
 

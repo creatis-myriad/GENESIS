@@ -8,11 +8,12 @@ from .networkx import (  # noqa: I001 # must be imported before io package to av
     networkx_add_obstruction_attribute,
     networkx_find_root,
 )
-from .io import json_to_networkx, json_to_pyg, NumpyEncoder, load_nifti, networkx_to_json
+from .io import json_to_networkx, json_to_pyg, NumpyEncoder, load_nifti, networkx_to_json, find_graph_file
 from .sklearn import impute
 
 __all__ = [
     "NumpyEncoder",
+    "find_graph_file",
     "impute",
     "json_to_networkx",
     "json_to_pyg",
