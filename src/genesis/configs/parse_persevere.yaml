@@ -39,17 +39,13 @@ attrs_to_remove:
 
 attrs_to_aggregate:
   links:
-    transversal_obstruction: [max] # list among max, min, mean and sum
+    transversal_obstruction: [max] # aggregation function among max, min, mean and sum
   remove_original: true # remove the original attributes after aggregation
 
-obstruction_attrs:
-  add: true # add embolism attributes to the graph
-  cumulated_attr:
-    input: max_transversal_obstruction # input attribute to cumulate
-    output: max_transversal_obstruction_cumulated # output attribute name
-  propagated_attr:
-    input: max_transversal_obstruction # input attribute to propagate
-    output: max_transversal_obstruction_propagated # output attribute name
+obstruction:
+  input_attr: max_transversal_obstruction # input attribute to use for obstruction
+  max_ancestor_attr: max_ancestor_obstruction # attribute where to save max ancestor obstruction
+  cumulated_ancestor_attr: cumulated_ancestor_obstruction # attribute where to save cumulated ancestor obstruction
 
 clinical_data:
   target_attr: null # Disable the default target attribute, since we do not want to treat it differently at this stage
