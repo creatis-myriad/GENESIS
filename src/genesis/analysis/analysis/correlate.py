@@ -6,7 +6,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.io as pio
 from plotly.subplots import make_subplots
-from scipy.stats import pearsonr
 
 from genesis.analysis.scores.mastora import compute_mastora
 from genesis.analysis.scores.qanadli import compute_qanadli
@@ -86,14 +85,6 @@ def calculate_scores(
     return pd.merge(clinical_data, df_scores, on=["patient_id"])
 
 
-def calculate_pearson_correlation(data: pd.DataFrame, score_col: str, attribute_col: str) -> tuple[float, float]:
-    """Calculate Pearson correlation coefficient and p-value."""
-    clean = data[[score_col, attribute_col]].dropna()
-    if len(clean) < 2:
-        return float("nan"), float("nan")
-    return pearsonr(clean[score_col], clean[attribute_col])
-
-
 def plot_correlation(
     data: pd.DataFrame,
     score_name: str,
@@ -128,11 +119,10 @@ def plot_correlation(
         # Add scatter plots for each attribute
         for i, attr in enumerate(unique_attrs):
             attr_data = data[data["obstruction_attr"] == attr]
-            corr, p = calculate_pearson_correlation(attr_data, "score", attribute)
+            corr = attr_data["score"].corr(attr_data[attribute])
 
             click.echo(
-                f"Pearson correlation for {attr}: "
-                + (f"r={corr:.3f}, p={p:.3f}" if not pd.isna(corr) else "insufficient data")
+                f"Pearson correlation for {attr}: " + (f"{corr:.3f}" if not pd.isna(corr) else "insufficient data")
             )
 
             fig.add_scatter(
@@ -174,8 +164,8 @@ def plot_correlation(
                 fig.update_yaxes(showgrid=True, gridcolor="lightgray", row=1, col=i + 1)
 
     else:
-        corr, p = calculate_pearson_correlation(data, "score", attribute)
-        click.echo("Pearson correlation: " + (f"r={corr:.3f}, p={p:.3f}" if not pd.isna(corr) else "insufficient data"))
+        corr = data["score"].corr(data[attribute])
+        click.echo("Pearson correlation: " + (f"{corr:.3f}" if not pd.isna(corr) else "insufficient data"))
 
         title_text = (
             f"Correlation between {score_name.capitalize()} Score and {attribute.capitalize()}<br>"
