@@ -586,7 +586,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "click", specifier = ">=8.1.8" },
+    { name = "click", specifier = ">=8.1.8,<9" },
     { name = "filelock", specifier = ">=3.16.1,<4" },
     { name = "genesis", extras = ["wandb", "tensorboard", "baselines"], marker = "extra == 'all'" },
     { name = "hydra-colorlog", specifier = ">=1.2.0,<2" },
@@ -594,12 +594,12 @@ requires-dist = [
     { name = "hydra-joblib-launcher", specifier = ">=1.2.0,<2" },
     { name = "hydra-optuna-sweeper", specifier = ">=1.2.0,<2" },
     { name = "lightning", specifier = ">=2.5.0.post0,<2.6" },
-    { name = "matplotlib", specifier = ">=3.10.3" },
+    { name = "matplotlib", specifier = ">=3.10.3,<4" },
     { name = "monai", extras = ["nibabel"], specifier = ">=1.4,<2" },
     { name = "networkx", specifier = ">=3.4.2,<4" },
     { name = "pandas", specifier = ">=2.2.3,<3" },
-    { name = "plotly", specifier = ">=6.2.0" },
-    { name = "pyvis", specifier = ">=0.3.2" },
+    { name = "plotly", specifier = ">=6.2.0,<7" },
+    { name = "pyvis", specifier = ">=0.3.2,<1" },
     { name = "rich", specifier = ">=14,<15" },
     { name = "rootutils", specifier = ">=1.0.7,<2" },
     { name = "scikit-learn", specifier = ">=1.6.1,<2" },
