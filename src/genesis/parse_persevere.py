@@ -69,9 +69,12 @@ def hydra_main(cfg: DictConfig) -> None:
             graph = networkx_add_attrs(graph, "graph", patient_attrs)
 
             # Aggregate list attributes to scalar values
-            remove_orig = agg_cfg.remove_original
-            graph = networkx_aggregate_list_attrs(graph, agg_cfg.get("nodes", {}), remove_orig, "nodes")
-            graph = networkx_aggregate_list_attrs(graph, agg_cfg.get("links", {}), remove_orig, "links")
+            graph = networkx_aggregate_list_attrs(
+                graph, agg_cfg.get("nodes", {}), "nodes", remove_original=agg_cfg.remove_original
+            )
+            graph = networkx_aggregate_list_attrs(
+                graph, agg_cfg.get("links", {}), "links", remove_original=agg_cfg.remove_original
+            )
 
             # Add cumulated and propagated obstruction attributes
             graph = max_ancestor_obstruction(

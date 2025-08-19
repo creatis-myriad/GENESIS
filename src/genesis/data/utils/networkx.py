@@ -1,7 +1,7 @@
-import math
-from typing import Any
+from typing import Any, Literal
 
 import networkx as nx
+import numpy as np
 import torch
 from torch_geometric.data import Data
 from torch_geometric.utils import from_networkx
@@ -135,60 +135,55 @@ def networkx_setdefault_attrs(graph: nx.Graph, element: str, default: Any) -> nx
 
 def networkx_aggregate_list_attrs(
     graph: nx.Graph,
-    specs: dict[str, list[str]],
-    remove_orig: bool,
-    element: str,
+    agg_func: dict[str, list[Literal["sum", "max", "min", "mean"]]],
+    element: Literal["nodes", "links"],
+    remove_original: bool = False,
 ) -> nx.Graph:
     """Aggregate list-valued attributes on nodes or edges.
 
-    Writes each result under a new key `<op>_<attr>`, and (optionally) pops
-    the original list-valued attribute.
+    Writes each result under a new key `<op>_<attr>`, and (optionally) deletes the original list-valued attribute.
 
     Args:
         graph: NetworkX graph whose nodes or edges hold list-valued attrs.
-        specs: Mapping from attribute name to a list of operations to apply.
-        remove_orig: If True, drop the original list attribute after aggregation.
+        agg_func: Mapping from attribute name to aggregation operators to apply.
         element: Which elements to process: either `"nodes"` or `"links"`.
+        remove_original: If True, drop the original list-valued attribute after aggregation.
 
     Returns:
         The same graph, mutated in-place with new scalar attributes.
 
     Raises:
-        ValueError: if `element` is not one of `"nodes"` or `"links"`, or
-                    if any op in `specs` is not in {"sum","max","min","mean"}.
+        ValueError: if `element` is not one of "nodes" or "links", or
+                    if any op in `agg_func` is not in {"sum", "max", "min", "mean"}.
     """
     if element not in ("nodes", "links"):
         raise ValueError("`element` must be 'nodes' or 'links'")
 
     # Supported operations
-    allowed = {"sum", "max", "min", "mean"}
-    for attr, ops in specs.items():
-        if not set(ops).issubset(allowed):
-            bad = set(ops) - allowed
-            raise ValueError(f"Unsupported ops for '{attr}': {bad}")
-
+    for attr, ops in agg_func.items():
         # Re-create iterator for each attribute
         items = graph.nodes(data=True) if element == "nodes" else graph.edges(data=True)
         for *_, data in items:
-            raw = data.get(attr, [])
-            vals = raw if isinstance(raw, list) else []
-            # Compute each requested op
+            attr_vals = data.get(attr, [])
+
             for op in ops:
-                if op == "sum":
-                    v = sum(vals)
-                elif op == "max":
-                    v = max(vals, default=0)
-                elif op == "min":
-                    v = min(vals, default=0)
-                else:  # mean
-                    v = sum(vals) / len(vals) if vals else 0.0
-                # Guard against NaN
-                if isinstance(v, float) and math.isnan(v):
-                    v = 0.0
+                match op:
+                    case "sum":
+                        v = np.nansum(attr_vals)
+                    case "max":
+                        v = np.nanmax(attr_vals)
+                    case "min":
+                        v = np.nanmin(attr_vals)
+                    case "mean":
+                        v = np.nanmean(attr_vals)
+                    case _:
+                        raise NotImplementedError(f"Unsupported aggregation operation on '{attr}': {op}")
+
                 data[f"{op}_{attr}"] = v
-            # Optionally remove the original list
-            if remove_orig and attr in data:
-                data.pop(attr)
+
+            if remove_original:
+                data.pop(attr, None)
+
     return graph
 
 
@@ -196,8 +191,8 @@ def networkx_find_root(graph: nx.DiGraph) -> Any:
     """Find the unique root node (in-degree == 0) in a directed tree.
 
     Args:
-        graph (nx.DiGraph): A directed acyclic graph representing an arborescence where each node
-            has in-degree ≤ 1 and the underlying undirected graph is connected.
+        graph: A directed acyclic graph representing an arborescence where each node has in-degree ≤ 1 and the
+            underlying undirected graph is connected.
 
     Returns:
         Any: The root node of the tree (the only node with in-degree 0).
