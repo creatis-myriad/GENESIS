@@ -2,14 +2,14 @@ import os
 import sys
 from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 
 import click
 
+from genesis.analysis.analysis import correlate_and_plot, visualize_attribute_graph_pyvis
+from genesis.analysis.scores.mastora import mastora as mastora_score
+from genesis.analysis.scores.qanadli import qanadli as qanadli_score
 from genesis.data.utils import find_graph_file, json_to_networkx
-
-from .analysis import correlate_and_plot, visualize_attribute_graph_pyvis
-from .scores.mastora import mastora as mastora_score
-from .scores.qanadli import qanadli as qanadli_score
 
 
 def graph_command(func: Callable) -> Callable:
@@ -27,7 +27,7 @@ def graph_command(func: Callable) -> Callable:
         The decorated function with additional click parameters.
     """
     func = click.argument(
-        "input_file",
+        "input-file",
         type=click.Path(exists=False, dir_okay=False, path_type=Path),
     )(func)
     func = click.option(
@@ -49,13 +49,13 @@ def graph_command(func: Callable) -> Callable:
     return func  # noqa: RET504
 
 
-def _run_score(compute_fn: Callable, input_file: Path, pattern: str, obstruction_attr: str, **compute_kwargs) -> None:
+def _run_score(score_fn: Callable, input_file: Path, pattern: str, obstruction_attr: str, **compute_kwargs) -> None:
     """Common runner for score-based CLI commands.
 
-    Loads a graph file, computes the score, and optionally displays a debug visualization.
+    Loads a graph file, computes the score, and optionally displays a visualization for debugging.
 
     Args:
-        compute_fn: The scoring function (mastora or qanadli).
+        score_fn: The scoring function (mastora or qanadli).
         input_file: Path to JSON graph or patient ID.
         pattern: Glob pattern for locating the graph file.
         obstruction_attr: Edge attribute for obstruction values.
@@ -67,11 +67,9 @@ def _run_score(compute_fn: Callable, input_file: Path, pattern: str, obstruction
     p: Path = find_graph_file(input_file, pattern=pattern)
     click.echo(f"Loading graph from {p}")
     graph = json_to_networkx(p)
-    click.echo(f"Computing {compute_fn.__name__} score…")
+    click.echo(f"Computing {score_fn.__name__} score…")
     if compute_kwargs.pop("debug", False):
-        score, dbg_edges, dbg_labels = compute_fn(
-            graph, obstruction_attr=obstruction_attr, debug=True, **compute_kwargs
-        )
+        score, dbg_edges, dbg_labels = score_fn(graph, obstruction_attr=obstruction_attr, debug=True, **compute_kwargs)
         click.echo(f"Score: {score}")
         click.echo("Creating interactive visualization with debug info…")
         visualize_attribute_graph_pyvis(
@@ -82,7 +80,7 @@ def _run_score(compute_fn: Callable, input_file: Path, pattern: str, obstruction
         )
         click.echo("Done. Open your browser to view it.")
     else:
-        score = compute_fn(graph, obstruction_attr=obstruction_attr, **compute_kwargs)
+        score = score_fn(graph, obstruction_attr=obstruction_attr, **compute_kwargs)
         click.echo(f"Score: {score}")
 
 
@@ -93,7 +91,7 @@ def _run_score(compute_fn: Callable, input_file: Path, pattern: str, obstruction
     "-p",
     is_flag=True,
     default=False,
-    help="If set, treat degrees as obstruction percentages (0 to 1). Otherwise, use degrees (0 to 5).",
+    help="If set, treat degrees as obstruction percentages [0, 1]. Otherwise, use degrees {1...5}.",
 )
 @click.option(
     "--mode",
@@ -111,7 +109,7 @@ def mastora(
 ) -> None:
     """Compute Mastora score from a graph JSON file.
 
-    Calculates the Mastora score for pulmonary embolism risk assessment,
+    Computes the Mastora score for pulmonary embolism risk assessment,
     evaluating the degree of vascular obstruction in mediastinal, lobar,
     and segmental arteries.
 
@@ -168,7 +166,7 @@ def qanadli(
 ) -> None:
     """Compute Qanadli score from a graph JSON file.
 
-    Calculates the Qanadli score for pulmonary embolism risk assessment,
+    Computes the Qanadli score for pulmonary embolism risk assessment,
     considering both embolus location and degree of obstruction,
     weighting each segment by its number of distal subsegments.
 
@@ -220,11 +218,11 @@ def visualize(input_file: Path, obstruction_attr: str, pattern: str) -> None:
 
 @click.command()
 @click.argument(
-    "score_name",
+    "score",
     type=click.Choice(["mastora", "qanadli"], case_sensitive=False),
 )
 @click.argument(
-    "attribute_name",
+    "target-attribute",
     type=click.Choice(["bnp", "troponin", "risk", "spesi"], case_sensitive=False),
 )
 @click.option(
@@ -247,19 +245,13 @@ def visualize(input_file: Path, obstruction_attr: str, pattern: str) -> None:
     help="Directory(ies) to search for graph JSON files.",
 )
 @click.option(
-    "--obstruction-attr",
+    "--obstruction-attrs",
     "-o",
     type=str,
-    default="max_transversal_obstruction",
+    multiple=True,
+    default=["max_transversal_obstruction", "max_ancestors_obstruction", "cumulated_ancestors_obstruction"],
     show_default=True,
-    help="Edge attribute for obstruction values.",
-)
-@click.option(
-    "--all-attributes",
-    "-a",
-    is_flag=True,
-    default=False,
-    help="Calculate and plot all obstruction attributes in subplots.",
+    help="Edge attribute(s) to use as obstruction values to compute global scores (i.e. Mastora, Qanadli).",
 )
 @click.option(
     "--show-visualization",
@@ -269,39 +261,33 @@ def visualize(input_file: Path, obstruction_attr: str, pattern: str) -> None:
     help="Immediately open the correlation plot in your browser.",
 )
 def correlate(
-    score_name: str,
-    attribute_name: str,
+    score: Literal["mastora", "qanadli"],
+    target_attribute: str,
     clinical_data_path: Path,
     graphs_dirs: list[Path],
-    obstruction_attr: str,
-    all_attributes: bool,
+    obstruction_attrs: list[str],
     show_visualization: bool,
 ) -> None:
-    """Correlate graph scores with clinical attributes and visualize the results.
+    """Correlate global vascular tree obstruction scores with clinical attributes and visualize the results.
 
     Args:
-        score_name: Which score to compute ('mastora' or 'qanadli').
-        attribute_name: Clinical attribute to correlate ('bnp', 'troponin', 'risk', 'spesi').
+        score: Which score to compute ('mastora' or 'qanadli').
+        target_attribute: Clinical attribute to correlate ('bnp', 'troponin', 'risk', 'spesi').
         clinical_data_path: Path to the clinical data CSV file.
         graphs_dirs: List of directories to search for graph JSON files.
-        obstruction_attr: Edge attribute for obstruction values.
-        all_attributes: If True, compute and plot all obstruction attributes.
+        obstruction_attrs: Edge attribute(s) to use as obstruction values to compute global scores.
         show_visualization: If True, open the correlation plot in the browser.
-
-    Returns:
-        None
     """
     colmap: dict = {"spesi": "spesi", "bnp": "bnp", "troponin": "troponin", "risk": "vte_severity"}
-    attribute: str = colmap[attribute_name]
+    target_attribute: str = colmap[target_attribute]
     script: str = os.path.basename(sys.argv[0])
     cli_cmd: str = f"{script} {' '.join(sys.argv[1:])}"
     correlate_and_plot(
-        score_name=score_name,
-        attribute=attribute,
+        score=score,
+        target_attribute=target_attribute,
         clinical_data_path=clinical_data_path,
         graphs_dirs=list(graphs_dirs),
-        obstruction_attr=obstruction_attr,
+        obstruction_attrs=obstruction_attrs,
         cli_command=cli_cmd,
-        all_attributes=all_attributes,
         show_visualization=show_visualization,
     )
