@@ -140,28 +140,28 @@ def mastora(
 @click.command()
 @graph_command
 @click.option(
-    "--min-obstruction-thresh",
-    "-n",
+    "--partial-obstruction-thresh",
+    "-po",
     type=float,
     default=0.25,
     show_default=True,
-    help="Minimum obstruction threshold for considering a segment.",
+    help="Transversal obstruction threshold to consider a segment partially obstructed.",
 )
 @click.option(
-    "--max-obstruction-thresh",
-    "-x",
+    "--total-obstruction-thresh",
+    "-to",
     type=float,
     default=0.75,
     show_default=True,
-    help="Maximum obstruction threshold for considering a segment.",
+    help="Transversal obstruction threshold to consider a segment totally obstructed.",
 )
 @click.option(
     "--debug", "-d", is_flag=True, default=False, help="If set, show a debug visualization of the Qanadli calculation."
 )
 def qanadli(
     input_file: Path,
-    min_obstruction_thresh: float,
-    max_obstruction_thresh: float,
+    partial_obstruction_thresh: float,
+    total_obstruction_thresh: float,
     obstruction_attr: str,
     debug: bool,
     pattern: str,
@@ -174,8 +174,8 @@ def qanadli(
 
     Args:
         input_file: JSON graph file path or patient ID (zero-padded to 4 digits).
-        min_obstruction_thresh: Minimum threshold for segment obstruction.
-        max_obstruction_thresh: Maximum threshold for segment obstruction.
+        partial_obstruction_thresh: Transversal obstruction threshold to consider a segment partially obstructed.
+        total_obstruction_thresh: Transversal obstruction threshold to consider a segment totally obstructed.
         obstruction_attr: Edge attribute for obstruction values.
         debug: Show debug visualization if True.
         pattern: Glob pattern for locating the graph file.
@@ -188,8 +188,8 @@ def qanadli(
         input_file=input_file,
         pattern=pattern,
         obstruction_attr=obstruction_attr,
-        min_obstruction_thresh=min_obstruction_thresh,
-        max_obstruction_thresh=max_obstruction_thresh,
+        partial_obstruction_thresh=partial_obstruction_thresh,
+        total_obstruction_thresh=total_obstruction_thresh,
         debug=debug,
     )
 

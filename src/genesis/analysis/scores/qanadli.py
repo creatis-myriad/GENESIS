@@ -8,8 +8,8 @@ from genesis.data.utils import networkx_find_root
 
 def qanadli(
     graph: nx.DiGraph,
-    min_obstruction_thresh: float = 0.25,
-    max_obstruction_thresh: float = 0.75,
+    partial_obstruction_thresh: float = 0.25,
+    total_obstruction_thresh: float = 0.75,
     obstruction_attr: str = "max_transversal_obstruction",
     debug: bool = False,
 ) -> float | tuple[float, list[tuple], list[str]]:
@@ -17,8 +17,8 @@ def qanadli(
 
     Args:
         graph: Directed graph representing the arterial tree.
-        min_obstruction_thresh: Minimum obstruction threshold for considering a segment.
-        max_obstruction_thresh: Maximum obstruction threshold for considering a segment.
+        partial_obstruction_thresh: Transversal obstruction threshold to consider a segment partially obstructed.
+        total_obstruction_thresh: Transversal obstruction threshold to consider a segment totally obstructed.
         obstruction_attr: The name of the edge attribute to use for obstruction values.
         debug: If True, return debug information for visualization.
 
@@ -39,19 +39,15 @@ def qanadli(
             artery_type = _get_artery_type(edge_attrs)
 
             if artery_type == "mediastinal" or artery_type == "lobar":
-                if artery_obstruction > min_obstruction_thresh:
+                if artery_obstruction > partial_obstruction_thresh:
                     weight = _count_segmental_descendants(edge_attrs)
                     weights.append(weight)
                     obstruction_vals.append(artery_obstruction)
 
                     if debug:
                         debug_edges.append((node, child))
-                        degree_value = (
-                            0
-                            if artery_obstruction < min_obstruction_thresh
-                            else 1
-                            if artery_obstruction < max_obstruction_thresh
-                            else 2
+                        degree_value = np.digitize(
+                            artery_obstruction, [partial_obstruction_thresh, total_obstruction_thresh]
                         )
                         debug_labels.append(
                             f"{artery_type[0].upper()}: {artery_obstruction:.2f} (w:{weight}, d:{degree_value})"
@@ -64,12 +60,8 @@ def qanadli(
 
                 if debug:
                     debug_edges.append((node, child))
-                    degree_value = (
-                        0
-                        if artery_obstruction < min_obstruction_thresh
-                        else 1
-                        if artery_obstruction < max_obstruction_thresh
-                        else 2
+                    degree_value = np.digitize(
+                        artery_obstruction, [partial_obstruction_thresh, total_obstruction_thresh]
                     )
                     debug_labels.append(f"S: {artery_obstruction:.2f} (w:1, d:{degree_value})")
             elif artery_type == "root":
@@ -77,7 +69,7 @@ def qanadli(
 
     _depth_first_search(root)
     score = (
-        _compute_qanadli_score(weights, obstruction_vals, min_obstruction_thresh, max_obstruction_thresh)
+        _compute_qanadli_score(weights, obstruction_vals, partial_obstruction_thresh, total_obstruction_thresh)
         if obstruction_vals
         else 0.0
     )
@@ -135,20 +127,23 @@ def _count_segmental_descendants(edge_attrs: dict[str, Any]) -> int:
 
 
 def _compute_qanadli_score(
-    weights: list[int], obstruction_vals: list[float], min_obstruction_thresh: float, max_obstruction_thresh: float
+    weights: list[int],
+    obstruction_vals: list[float],
+    partial_obstruction_thresh: float,
+    total_obstruction_thresh: float,
 ) -> float:
     """Compute the Qanadli score from a list of obstruction values.
 
     Args:
         weights: Weights of the segments, representing the number of segments below each artery.
         obstruction_vals: Obstruction value for each segment.
-        min_obstruction_thresh: Minimum obstruction threshold for considering a segment.
-        max_obstruction_thresh: Maximum obstruction threshold for considering a segment.
+        partial_obstruction_thresh: Transversal obstruction threshold to consider a segment partially obstructed.
+        total_obstruction_thresh: Transversal obstruction threshold to consider a segment totally obstructed.
 
     Returns:
         The Qanadli score, between 0 and 1.
     """
     # Discretize obstruction values into degrees
-    degrees = np.digitize(obstruction_vals, [min_obstruction_thresh, max_obstruction_thresh])
+    degrees = np.digitize(obstruction_vals, [partial_obstruction_thresh, total_obstruction_thresh])
     weighted_degrees = weights * degrees
     return sum(weighted_degrees) / (2 * sum(weights))
