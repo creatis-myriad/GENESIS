@@ -40,25 +40,17 @@ Score details in [formulas.md](scores/formulas.md#qanadli-score).
 | **Usage**       | `eval-correlate SCORE_NAME ATTRIBUTE_NAME [OPTIONS]`                                                                                                                                                                                                                                                                                                                         |
 | **Arguments**   | `SCORE_NAME` : `mastora` or `qanadli`<br>`ATTRIBUTE_NAME` : `bnp`, `troponin`, `risk`, `spesi`                                                                                                                                                                                                                                                                               |
 | **Options**     | `--clinical-data, -c TEXT` : path to clinical CSV, default `data/PERSEVERE/clinical_data.csv`<br>`--graphs-dir, -g TEXT…` : directories to search, default `data/PERSEVERE/raw`<br>`--obstruction-attr, -o TEXT` : default `max_transversal_obstruction`<br>`--all-attributes, -a` : include all obstruction attributes<br>`--show-visualization, -v` : open plot in browser |
-| **Examples**    | `eval-correlate mastora bnp -v`<br>`eval-correlate qanadli troponin -c custom/data.csv`<br>`eval-correlate mastora risk -g alt/graphs -o max_transversal_obstruction_propagated`                                                                                                                                                                                             |
-
-#### List of obstruction attributes
-
-| **Attribute**                            | **Description**                                  |
-| ---------------------------------------- | ------------------------------------------------ |
-| `max_transversal_obstruction`            | Maximum transversal obstruction value on an edge |
-| `max_transversal_obstruction_propagated` | Propagated: `own = max(parent, own)`             |
-| `max_transversal_obstruction_cumulated`  | Cumulated: `own = 1 - (1-parent)*(1-own)`        |
+| **Examples**    | `eval-correlate mastora bnp -v`<br>`eval-correlate qanadli troponin -c custom/data.csv`<br>`eval-correlate mastora risk -g alt/graphs -o max_ancestors_obstruction`                                                                                                                                                                                                          |
 
 &#160;
 
-### List of `--obstruction-attr`
+### List of obstruction attributes (`--obstruction-attr`)
 
-| **Attribute**                            | **Description**                                                    |
-| ---------------------------------------- | ------------------------------------------------------------------ |
-| `max_transversal_obstruction`            | Maximum transversal obstruction value across one edge of the graph |
-| `max_transversal_obstruction_propagated` | `own_mtop = max(parent_mto, own_mto)`                              |
-| `max_transversal_obstruction_cumulated`  | `own_mtoc = 1 - (1 - parent_mto) * (1 - own_mto)`                  |
+| **Attribute**                     | **Description**                                                                               |
+| --------------------------------- | --------------------------------------------------------------------------------------------- |
+| `max_transversal_obstruction`     | Maximum transversal obstruction (mto) value across one edge of the graph, i.e. a blood vessel |
+| `max_ancestors_obstruction`       | For an edge: `max(parent_mto, own_mto)`                                                       |
+| `cumulated_ancestors_obstruction` | For an edge: `1 - (1 - parent_mto) * (1 - own_mto)`                                           |
 
 ### Visualization Examples
 
@@ -66,35 +58,11 @@ Score details in [formulas.md](scores/formulas.md#qanadli-score).
   <table width="100%">
     <tr>
       <td width="50%" align="center"><b><code>visualize 55 -o max_transversal_obstruction</code></b></td>
-      <td width="50%" align="center"><b><code>visualize 55 -o max_transversal_obstruction_propagated</code></b></td>
+      <td width="50%" align="center"><b><code>visualize 55 -o max_ancestors_obstruction</code></b></td>
     </tr>
     <tr>
-      <td width="50%" align="center"><img src="../../../assets/original_graph.png" width="450"></td>
-      <td width="50%" align="center"><img src="../../../assets/propagated_graph.png" width="450"></td>
+      <td width="50%" align="center"><img src="../../../assets/max_transversal_obstruction_graph.png" width="450"></td>
+      <td width="50%" align="center"><img src="../../../assets/max_ancestors_obstruction_graph.png" width="450"></td>
     </tr>
   </table>
 </div>
-
-&#160;
-
-## NetworkX Graph Compatibility
-
-| Function             | Underlying acyclicity | Underlying connectivity | In-degree ≤ 1 | Type       | Morgane's graphs compatibility |
-| -------------------- | --------------------- | ----------------------- | ------------- | ---------- | ------------------------------ |
-| `is_forest(G)`       | Yes                   | Not required            | No            | Undirected | Yes                            |
-| `is_tree(G)`         | Yes                   | Yes                     | No            | Undirected | Yes                            |
-| `is_branching(G)`    | Yes                   | Not required            | Yes           | Directed   | Yes                            |
-| `is_arborescence(G)` | Yes                   | Yes                     | Yes           | Directed   | Yes                            |
-
-&#160;
-
-## Scores Comparison
-
-```bash
-eval-correlate mastora risk -a
-eval-correlate qanadli risk -a
-eval-correlate mastora bnp -a
-eval-correlate qanadli bnp -a
-eval-correlate mastora troponin -a
-eval-correlate qanadli troponin -a
-```
