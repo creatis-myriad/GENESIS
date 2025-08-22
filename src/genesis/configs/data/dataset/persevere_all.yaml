@@ -1,0 +1,35 @@
+# @package _global_
+
+defaults:
+  # To filter nodes/edges attributes to include in the dataset, use the following config group:
+  - /data/dataset/attrs_filter: null
+  # To add transforms (or pre-transforms) to the dataset, use the following config group:
+  - /data/dataset/transform: null
+  - /data/dataset/transform@data.dataset.pre_transform: null
+  - _self_
+  - /data/dataset/target: vte_severity
+
+data:
+  dataset:
+    _target_: genesis.data.persevere.PersevereDataset
+    root: ${paths.data_dir}/PERSEVERE_ALL
+    line_graph: True
+    target_attr: ??? # To be set by the target config
+    target_dtype:
+      # Workaround to have hydra import the torch dtype, suggested in the comment referenced below:
+      # https://github.com/facebookresearch/hydra/issues/2140#issuecomment-2334918114
+      _target_: torch.__dict__.get
+      _args_:
+        # Cast target to float for regression tasks, and long otherwise (binary/multiclass classification)
+        - ${op.ternary:${op:eq,${hparams.data.task},regression}, float, long}
+    edge_attrs_filter: null
+
+hparams:
+  data:
+    num_graphs: 356
+    # If no explicit filter of edge attributes is provided, the maximum number of edge features (8) is used
+    num_raw_edge_features: 11
+    num_filtered_edge_features: ${op:length_hint,${oc.select:data.dataset.edge_attrs_filter}, ${.num_raw_edge_features}}
+    num_edge_features: ${op.ternary:${data.dataset.line_graph}, 0, ${.num_filtered_edge_features}}
+    num_node_features: ${op.ternary:${data.dataset.line_graph}, ${.num_filtered_edge_features}, 0}
+    task: ??? # To be set by the target config

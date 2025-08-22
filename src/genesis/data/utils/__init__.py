@@ -4,17 +4,22 @@ from .networkx import (  # noqa: I001 # must be imported before io package to av
     networkx_add_attrs,
     networkx_remove_attrs,
     networkx_setdefault_attrs,
+    networkx_aggregate_list_attrs,
+    networkx_find_root,
 )
-from .io import json_to_networkx, json_to_pyg, NumpyEncoder, load_nifti, networkx_to_json
+from .io import json_to_networkx, json_to_pyg, NumpyEncoder, load_nifti, networkx_to_json, find_graph_file
 from .sklearn import impute
 
 __all__ = [
     "NumpyEncoder",
+    "find_graph_file",
     "impute",
     "json_to_networkx",
     "json_to_pyg",
     "load_nifti",
     "networkx_add_attrs",
+    "networkx_aggregate_list_attrs",
+    "networkx_find_root",
     "networkx_line_graph",
     "networkx_remove_attrs",
     "networkx_setdefault_attrs",

@@ -26,15 +26,26 @@ attrs_to_remove:
       ep_id,
       ep_coordinates,
       segments_below,
-      transversal_obstruction,
-      total_embolism_volume_cm3, # since total_embolism_volume_mm3 already exists
-      total_vessel_volume_cm3, # since total_vessel_volume_mm3 already exists
+      total_vessel_volume_mm3, # since total_vessel_voxels already exists
+      total_vessel_volume_cm3, # since total_vessel_voxels already exists
+      total_embolism_volume_mm3, # since total_embolism_voxels already exists
+      total_embolism_volume_cm3, # since total_embolism_voxels already exists
       embolisms_ids,
       embolisms_voxel_counts,
       embolisms_volumes_mm3,
       embolisms_volumes_cm3,
       has_embolism,
     ]
+
+attrs_to_aggregate:
+  links:
+    transversal_obstruction: [max] # aggregation function among max, min, mean and sum
+  remove_original: true # remove the original attributes after aggregation
+
+obstruction:
+  input_attr: max_transversal_obstruction # input attribute to use for obstruction
+  max_ancestor_attr: max_ancestor_obstruction # attribute where to save max ancestor obstruction
+  cumulated_ancestor_attr: cumulated_ancestor_obstruction # attribute where to save cumulated ancestor obstruction
 
 clinical_data:
   target_attr: null # Disable the default target attribute, since we do not want to treat it differently at this stage

@@ -1,6 +1,7 @@
-from typing import Any
+from typing import Any, Literal
 
 import networkx as nx
+import numpy as np
 import torch
 from torch_geometric.data import Data
 from torch_geometric.utils import from_networkx
@@ -130,6 +131,82 @@ def networkx_setdefault_attrs(graph: nx.Graph, element: str, default: Any) -> nx
         case _:
             raise ValueError("Element must be 'nodes' or 'edges'/'links'.")
     return graph
+
+
+def networkx_aggregate_list_attrs(
+    graph: nx.Graph,
+    agg_func: dict[str, list[Literal["sum", "max", "min", "mean"]]],
+    element: Literal["nodes", "links"],
+    remove_original: bool = False,
+) -> nx.Graph:
+    """Aggregate list-valued attributes on nodes or edges.
+
+    Writes each result under a new key `<op>_<attr>`, and (optionally) deletes the original list-valued attribute.
+
+    Args:
+        graph: NetworkX graph whose nodes or edges hold list-valued attrs.
+        agg_func: Mapping from attribute name to aggregation operators to apply.
+        element: Which elements to process: either `"nodes"` or `"links"`.
+        remove_original: If True, drop the original list-valued attribute after aggregation.
+
+    Returns:
+        The same graph, mutated in-place with new scalar attributes.
+
+    Raises:
+        ValueError: if `element` is not one of "nodes" or "links", or
+                    if any op in `agg_func` is not in {"sum", "max", "min", "mean"}.
+    """
+    if element not in ("nodes", "links"):
+        raise ValueError("`element` must be 'nodes' or 'links'")
+
+    # Supported operations
+    for attr, ops in agg_func.items():
+        # Re-create iterator for each attribute
+        items = graph.nodes(data=True) if element == "nodes" else graph.edges(data=True)
+        for *_, data in items:
+            attr_vals = data.get(attr, [])
+
+            for op in ops:
+                match op:
+                    case "sum":
+                        v = np.nansum(attr_vals)
+                    case "max":
+                        v = np.nanmax(attr_vals)
+                    case "min":
+                        v = np.nanmin(attr_vals)
+                    case "mean":
+                        v = np.nanmean(attr_vals)
+                    case _:
+                        raise NotImplementedError(f"Unsupported aggregation operation on '{attr}': {op}")
+
+                data[f"{op}_{attr}"] = v
+
+            if remove_original:
+                data.pop(attr, None)
+
+    return graph
+
+
+def networkx_find_root(graph: nx.DiGraph) -> Any:
+    """Find the unique root node (in-degree == 0) in a directed tree.
+
+    Args:
+        graph: A directed acyclic graph representing an arborescence where each node has in-degree ≤ 1 and the
+            underlying undirected graph is connected.
+
+    Returns:
+        Any: The root node of the tree (the only node with in-degree 0).
+
+    Raises:
+        ValueError: If no node with in-degree 0 is found.
+        ValueError: If more than one node with in-degree 0 is found.
+    """
+    roots = [node for node, deg in graph.in_degree() if deg == 0]
+    if not roots:
+        raise ValueError("No root found: graph has no node with in-degree 0.")
+    if len(roots) > 1:
+        raise ValueError(f"Multiple roots found: {roots}")
+    return roots[0]
 
 
 def _has_node_attributes(graph: nx.Graph) -> bool:

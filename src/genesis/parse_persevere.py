@@ -5,7 +5,14 @@ import hydra
 import networkx as nx
 from omegaconf import DictConfig
 
-from genesis.data.utils import NumpyEncoder, networkx_add_attrs, networkx_remove_attrs, networkx_setdefault_attrs
+from genesis.analysis.scores.vascular_tree import cumulated_ancestor_obstruction, max_ancestor_obstruction
+from genesis.data.utils import (
+    NumpyEncoder,
+    networkx_add_attrs,
+    networkx_aggregate_list_attrs,
+    networkx_remove_attrs,
+    networkx_setdefault_attrs,
+)
 from genesis.utils import RankedLogger, pre_hydra_routine
 
 log = RankedLogger(__name__, rank_zero_only=True)
@@ -19,21 +26,31 @@ def hydra_main(cfg: DictConfig) -> None:
     pyg_raw_dir.mkdir(parents=True, exist_ok=True)
 
     log.info(f"Parsing JSON graphs from '{source_dir}' to '{pyg_raw_dir}'")
-    global_attrs = list(cfg.clinical_data.usecols)
-    # Do not include the index column in the global attributes if it is specified
-    if index_col := cfg.clinical_data.get("index_col"):
-        global_attrs.remove(index_col)
-    log.info(f"Clinical attributes to add: {global_attrs}")
+    json_files = list(source_dir.glob("*.json"))
+    log.info(f"Found {len(json_files)} JSON files to parse")
+
     for key, attrs_to_remove in cfg.attrs_to_remove.items():
         log.info(f"{key.title()} attributes to remove: {attrs_to_remove}")
     log.info(f"Key to use for nodes data: '{cfg.node_link_data_nodes_key}'")
     log.info(f"Key to use for edges data: '{cfg.node_link_data_edges_key}'")
 
+    agg_cfg = cfg.attrs_to_aggregate
+    log.info(
+        f"List-valued attributes to aggregate: "
+        f"  nodes={agg_cfg.get('nodes', {})}, "
+        f"  links={agg_cfg.get('links', {})}, "
+        f"  Delete original list-valued attributes after aggregation: {agg_cfg.remove_original}"
+    )
+
+    log.info(f"Obstruction attributes config: {cfg.obstruction}")
+
+    global_attrs = list(cfg.clinical_data.usecols)
+    # Do not include the index column in the global attributes if it is specified
+    if index_col := cfg.clinical_data.get("index_col"):
+        global_attrs.remove(index_col)
+    log.info(f"Clinical attributes to add: {global_attrs}")
     clinical_data = hydra.utils.instantiate(cfg.clinical_data)
     log.info(f"Extracted clinical attributes for {len(clinical_data)} patients")
-
-    json_files = list(source_dir.glob("*.json"))
-    log.info(f"Found {len(json_files)} JSON files to parse")
 
     skipped_patient_ids = []
 
@@ -51,17 +68,34 @@ def hydra_main(cfg: DictConfig) -> None:
             patient_attrs = dict(zip(global_attrs, clinical_data.data.loc[patient_id], strict=False))
             graph = networkx_add_attrs(graph, "graph", patient_attrs)
 
+            # Aggregate list attributes to scalar values
+            graph = networkx_aggregate_list_attrs(
+                graph, agg_cfg.get("nodes", {}), "nodes", remove_original=agg_cfg.remove_original
+            )
+            graph = networkx_aggregate_list_attrs(
+                graph, agg_cfg.get("links", {}), "links", remove_original=agg_cfg.remove_original
+            )
+
+            # Add cumulated and propagated obstruction attributes
+            graph = max_ancestor_obstruction(
+                graph, input_attr=cfg.obstruction.input_attr, output_attr=cfg.obstruction.max_ancestor_attr
+            )
+            graph = cumulated_ancestor_obstruction(
+                graph, input_attr=cfg.obstruction.input_attr, output_attr=cfg.obstruction.cumulated_ancestor_attr
+            )
+
             # Remove unnecessary attributes
             for key, attrs_to_remove in cfg.attrs_to_remove.items():
                 graph = networkx_remove_attrs(graph, key, attrs_to_remove)
                 if key == "graph":
                     continue  # Skip setting default attributes for the graph
-                # Uniformize remaining attributes to be present in all nodes/edges, setting them to 0 if not present
                 graph = networkx_setdefault_attrs(graph, key, 0)
 
             # Override 'nodes' and 'edges' keys in the node-link data, and save the modified graph
             node_link_data = nx.node_link_data(
-                graph, nodes=cfg.node_link_data_nodes_key, edges=cfg.node_link_data_edges_key
+                graph,
+                nodes=cfg.node_link_data_nodes_key,
+                edges=cfg.node_link_data_edges_key,
             )
             with open(pyg_raw_dir / json_path.name, "w") as file:
                 json.dump(node_link_data, file, indent=2, cls=NumpyEncoder)
