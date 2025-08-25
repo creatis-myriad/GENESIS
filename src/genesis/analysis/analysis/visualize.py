@@ -1,28 +1,52 @@
-import webbrowser
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import tempfile
 
 import networkx as nx
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from pyvis.network import Network
 
+HIERARCHICAL_LAYOUT_OPTIONS = """
+{
+  "layout": { "hierarchical": {
+    "enabled": true,
+    "direction": "UD",
+    "levelSeparation": 200,
+    "nodeSpacing": 150,
+    "treeSpacing": 300
+  }},
+  "physics": { "enabled": false }
+}
+"""
 
-def visualize_attribute_graph_pyvis(
+
+def pyvis_show(net: Network, notebook: bool = False) -> None:
+    """Render a PyVis Network visualization.
+
+    Utility function to wrap the creation of a temporary HTML file to save the generated HTML visualization.
+
+    Args:
+        net: The PyVis Network instance to render.
+        notebook: Whether to render inline in a Jupyter notebook (True) or as a standalone HTML file (False).
+    """
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as fp:
+        net.show(fp.name, notebook=notebook)
+
+
+def networkx_to_pyvis(
     graph: nx.DiGraph,
-    obstruction_attr: str = "max_transversal_obstruction_cumulated",
+    attr: str = "max_transversal_obstruction_cumulated",
     level_attr: str = "level",
     use_hierarchical: bool = True,
     height: str = "1400px",
     width: str = "100%",
-    bgcolor: str = "#000000",
+    bg_color: str = "#000000",
     font_color: str = "#ffffff",
     min_edge_width: float = 0.4,
     max_edge_width: float = 30.0,
     debug_edges: list[tuple] | None = None,
     debug_labels: list[str] | None = None,
-) -> None:
-    """Visualizes a directed graph with attribute values using PyVis.
+) -> Network:
+    """Converts a directed NetworkX graph with attribute values to a PyVis Network, which can be visualized as HTML.
 
-    Creates a temporary HTTP server to render the graph visualization in a web browser.
     Graph edges are colored based on their attribute values using a yellow-to-red
     colormap and sized (inversely) based on their `level` attribute.
     Node layout can be hierarchical or force-directed.
@@ -30,12 +54,12 @@ def visualize_attribute_graph_pyvis(
 
     Args:
         graph: A NetworkX directed graph to visualize.
-        obstruction_attr: The edge attribute name containing attribute values.
-        level_attr: The edge attribute name containing level values (for width).
+        attr: The edge attribute to display.
+        level_attr: The edge attribute to display as level (for width).
         use_hierarchical: Whether to use hierarchical layout (True) or force-directed layout (False).
         height: Height of the visualization container.
         width: Width of the visualization container.
-        bgcolor: Background color in hex format.
+        bg_color: Background color in hex format.
         font_color: Font color in hex format.
         min_edge_width: Minimum edge width for highest levels.
         max_edge_width: Maximum edge width for lowest levels.
@@ -43,13 +67,23 @@ def visualize_attribute_graph_pyvis(
         debug_labels: List of debug label strings corresponding to `debug_edges`.
 
     Returns:
-        None. Opens the visualization in the default web browser.
+        A PyVis Network instance representing the visualization.
     """
-    net = _create_network(height, width, bgcolor, font_color)
+    # Initialize PyVis Network
+    net = Network(
+        height=height,
+        width=width,
+        bgcolor=bg_color,
+        font_color=font_color,
+        directed=True,
+        notebook=False,
+        cdn_resources="remote",
+    )
     if use_hierarchical:
-        _configure_hierarchical_layout(net)
+        net.set_options(HIERARCHICAL_LAYOUT_OPTIONS)
+
+    # Add nodes from the NetworkX graph to the PyVis Network
     _add_nodes(net, graph)
-    obs_norm, lvl_norm, cmap = _prepare_color_and_level_normalizers(graph, obstruction_attr, level_attr)
 
     # build debug map if annotations provided
     debug_map: dict[tuple, str] = {}
@@ -58,96 +92,50 @@ def visualize_attribute_graph_pyvis(
             raise ValueError("`debug_edges` and `debug_labels` must both be provided and of equal length.")
         debug_map = dict(zip(debug_edges, debug_labels, strict=False))
 
+    # Prepare normalizers and colormap for edge styling
+    attr_norm, level_norm, attr_cmap = _init_color_and_level_normalizers(graph, attr, level_attr)
+    # Add styled edges from the NetworkX graph to the PyVis Network
     _add_edges(
         net,
         graph,
-        obstruction_attr,
+        attr,
         level_attr,
-        obs_norm,
-        lvl_norm,
-        cmap,
+        attr_norm,
+        level_norm,
+        attr_cmap,
         min_edge_width,
         max_edge_width,
         debug_map,
     )
-    _serve_network(net)
 
-
-def _create_network(
-    height: str,
-    width: str,
-    bgcolor: str,
-    font_color: str,
-) -> Network:
-    """Create and configure a PyVis Network.
-
-    Args:
-        height: Height of the visualization container.
-        width: Width of the visualization container.
-        bgcolor: Background color in hex format.
-        font_color: Font color in hex format.
-
-    Returns:
-        A configured PyVis Network instance.
-    """
-    net = Network(
-        height=height,
-        width=width,
-        bgcolor=bgcolor,
-        font_color=font_color,
-        directed=True,
-        notebook=False,
-        cdn_resources="remote",
-    )
-    net.toggle_physics(False)
     return net
 
 
-def _configure_hierarchical_layout(net: Network) -> None:
-    """Enable hierarchical layout on the PyVis Network.
-
-    Args:
-        net: The PyVis Network to configure.
-    """
-    net.set_options("""
-    {
-      "layout": { "hierarchical": {
-        "enabled": true,
-        "direction": "UD",
-        "levelSeparation": 200,
-        "nodeSpacing": 150,
-        "treeSpacing": 300
-      }},
-      "physics": { "enabled": false }
-    }
-    """)
-
-
-def _prepare_color_and_level_normalizers(
+def _init_color_and_level_normalizers(
     graph: nx.DiGraph,
-    obstruction_attr: str,
+    attr: str,
     level_attr: str,
 ) -> tuple[Normalize, Normalize, LinearSegmentedColormap]:
     """Compute normalizers and colormap for edge coloring and sizing.
 
     Args:
         graph: A NetworkX directed graph.
-        obstruction_attr: The edge attribute name containing obstruction values.
-        level_attr: The edge attribute name containing level values.
+        attr: The edge attribute to display.
+        level_attr: The edge attribute to display as level.
 
     Returns:
-        A tuple (obs_norm, lvl_norm, cmap) where:
-            obs_norm: Normalize instance for obstruction values.
-            lvl_norm: Normalize instance for level values.
-            cmap: Colormap for obstruction-to-color mapping.
+        A tuple (attr_norm, level_norm, attr_cmap) where:
+            attr_norm: Normalize instance for attribute values.
+            level_norm: Normalize instance for level values.
+            attr_cmap: Colormap for attribute-to-color mapping.
     """
-    obs_vals = [data.get(obstruction_attr, 0.0) for _, _, data in graph.edges(data=True)]
-    obs_norm = Normalize(vmin=min(obs_vals, default=0.0), vmax=max(obs_vals, default=1.0) or 1.0)
-    cmap = LinearSegmentedColormap.from_list("bpr", ["#aaaaff", "#ff00ff", "#ff0000"])
+    attr_vals = [data.get(attr, 0.0) for _, _, data in graph.edges(data=True)]
+    attr_norm = Normalize(vmin=min(attr_vals, default=0.0), vmax=max(attr_vals, default=1.0) or 1.0)
+    attr_cmap = LinearSegmentedColormap.from_list("bpr", ["#aaaaff", "#ff00ff", "#ff0000"])
 
-    lvl_vals = [data.get(level_attr, 0.0) for _, _, data in graph.edges(data=True)]
-    lvl_norm = Normalize(vmin=min(lvl_vals, default=0.0), vmax=max(lvl_vals, default=1.0) or 1.0)
-    return obs_norm, lvl_norm, cmap
+    level_vals = [data.get(level_attr, 0.0) for _, _, data in graph.edges(data=True)]
+    level_norm = Normalize(vmin=min(level_vals, default=0.0), vmax=max(level_vals, default=1.0) or 1.0)
+    return attr_norm, level_norm, attr_cmap
 
 
 def _add_nodes(net: Network, graph: nx.DiGraph) -> None:
@@ -164,11 +152,11 @@ def _add_nodes(net: Network, graph: nx.DiGraph) -> None:
 def _add_edges(
     net: Network,
     graph: nx.DiGraph,
-    obstruction_attr: str,
+    attr: str,
     level_attr: str,
-    obs_norm: Normalize,
-    lvl_norm: Normalize,
-    cmap: LinearSegmentedColormap,
+    attr_norm: Normalize,
+    level_norm: Normalize,
+    attr_cmap: LinearSegmentedColormap,
     min_edge_width: float,
     max_edge_width: float,
     debug_map: dict[tuple, str] | None = None,
@@ -181,29 +169,29 @@ def _add_edges(
     Args:
         net: The PyVis Network to which edges will be added.
         graph: A NetworkX directed graph.
-        obstruction_attr: The edge attribute name containing obstruction values.
+        attr: The edge attribute name containing obstruction values.
         level_attr: The edge attribute name containing level values.
-        obs_norm: Normalizer for obstruction values.
-        lvl_norm: Normalizer for level values.
-        cmap: Colormap for mapping normalized obstruction to RGB.
+        attr_norm: Normalizer for obstruction values.
+        level_norm: Normalizer for level values.
+        attr_cmap: Colormap for mapping normalized obstruction to RGB.
         min_edge_width: Minimum edge width for highest levels.
         max_edge_width: Maximum edge width for lowest levels.
         debug_map: Optional mapping from edge (u, v) tuples to debug label strings.
     """
     debug_map = debug_map or {}
     for u, v, data in graph.edges(data=True):
-        obs = data.get(obstruction_attr, 0.0)
-        r, g, b, _ = cmap(obs_norm(obs))
+        obs = data.get(attr, 0.0)
+        r, g, b, _ = attr_cmap(attr_norm(obs))
         color = f"rgb({int(255 * r)},{int(255 * g)},{int(255 * b)})"
 
         lvl = data.get(level_attr, 0.0)
-        inv = 1.0 - lvl_norm(lvl)
+        inv = 1.0 - level_norm(lvl)
         width = min_edge_width + (max_edge_width - min_edge_width) * inv
 
         edge_kwargs = {
             "color": color,
             "width": width,
-            "title": f"{obstruction_attr}: {obs:.2f} | {level_attr}: {lvl}",
+            "title": f"{attr}: {obs:.2f} | {level_attr}: {lvl}",
             "arrows": "to",
         }
         if (u, v) in debug_map:
@@ -212,28 +200,3 @@ def _add_edges(
                 edge_kwargs["label"] = debug_map[(u, v)]
                 edge_kwargs["font"] = {"size": 33, "color": "#ffffff", "strokeWidth": 0, "align": "top", "vadjust": -50}
         net.add_edge(u, v, **edge_kwargs)
-
-
-def _serve_network(net: Network) -> None:
-    """Serve the generated PyVis HTML on a temporary local HTTP server and open it.
-
-    Args:
-        net: The PyVis Network to serve.
-    """
-    html_bytes = net.generate_html().encode("utf-8")
-
-    class _Handler(BaseHTTPRequestHandler):
-        def do_GET(self) -> None:  # noqa: N802
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(html_bytes)))
-            self.end_headers()
-            self.wfile.write(html_bytes)
-
-        def log_message(self, *args) -> None:
-            pass  # silence access logs
-
-    server = HTTPServer(("127.0.0.1", 0), _Handler)
-    host, port = server.server_address
-    webbrowser.open(f"http://{host}:{port}")
-    server.handle_request()

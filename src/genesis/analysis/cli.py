@@ -7,7 +7,7 @@ from typing import Literal
 import click
 import rootutils
 
-from genesis.analysis.analysis import correlate_and_plot, visualize_attribute_graph_pyvis
+from genesis.analysis.analysis import correlate_and_plot, networkx_to_pyvis, pyvis_show
 from genesis.analysis.scores.mastora import mastora as mastora_score
 from genesis.analysis.scores.qanadli import qanadli as qanadli_score
 from genesis.data.utils import find_graph_file, json_to_networkx
@@ -86,12 +86,13 @@ def _run_score(
         score, dbg_edges, dbg_labels = score_fn(graph, obstruction_attr=obstruction_attr, debug=True, **compute_kwargs)
         click.echo(f"Score: {score}")
         click.echo("Creating interactive visualization with debug info…")
-        visualize_attribute_graph_pyvis(
+        pyvis_net = networkx_to_pyvis(
             graph,
-            obstruction_attr=obstruction_attr,
+            attr=obstruction_attr,
             debug_edges=dbg_edges,
             debug_labels=dbg_labels,
         )
+        pyvis_show(pyvis_net)
         click.echo("Done. Open your browser to view it.")
     else:
         score = score_fn(graph, obstruction_attr=obstruction_attr, **compute_kwargs)
@@ -229,7 +230,7 @@ def visualize(input_file: Path, graphs_dirs: list[Path], pattern: str, obstructi
     click.echo(f"Loading graph from {p}")
     graph = json_to_networkx(p)
     click.echo("Creating interactive visualization…")
-    visualize_attribute_graph_pyvis(graph, obstruction_attr=obstruction_attr)
+    pyvis_show(networkx_to_pyvis(graph, attr=obstruction_attr))
     click.echo("Done. Open your browser to view it.")
 
 
