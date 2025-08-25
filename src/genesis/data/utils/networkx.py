@@ -55,7 +55,9 @@ def networkx_line_graph(graph: nx.Graph) -> nx.Graph:
     return dual_graph
 
 
-def networkx_add_attrs(graph: nx.Graph, element: str, attrs: dict[str, Any]) -> nx.Graph:
+def networkx_add_attrs(
+    graph: nx.Graph, element: Literal["graph", "nodes", "edges", "links"], attrs: dict[str, Any]
+) -> nx.Graph:
     """Add attributes to the graph, nodes, or edges.
 
     Args:
@@ -78,7 +80,9 @@ def networkx_add_attrs(graph: nx.Graph, element: str, attrs: dict[str, Any]) -> 
     return graph
 
 
-def networkx_remove_attrs(graph: nx.Graph, element: str, attrs: list[str]) -> nx.Graph:
+def networkx_remove_attrs(
+    graph: nx.Graph, element: Literal["graph", "nodes", "edges", "links"], attrs: list[str]
+) -> nx.Graph:
     """Remove attributes from the graph, nodes, or edges.
 
     Args:
@@ -106,7 +110,7 @@ def networkx_remove_attrs(graph: nx.Graph, element: str, attrs: list[str]) -> nx
     return graph
 
 
-def networkx_setdefault_attrs(graph: nx.Graph, element: str, default: Any) -> nx.Graph:
+def networkx_setdefault_attrs(graph: nx.Graph, element: Literal["nodes", "edges", "links"], default: Any) -> nx.Graph:
     """Set default attribute values if not present in all nodes or edges.
 
     Args:
@@ -136,7 +140,7 @@ def networkx_setdefault_attrs(graph: nx.Graph, element: str, default: Any) -> nx
 def networkx_aggregate_list_attrs(
     graph: nx.Graph,
     agg_func: dict[str, list[Literal["sum", "max", "min", "mean"]]],
-    element: Literal["nodes", "links"],
+    element: Literal["nodes", "edges", "links"],
     remove_original: bool = False,
 ) -> nx.Graph:
     """Aggregate list-valued attributes on nodes or edges.
@@ -146,18 +150,18 @@ def networkx_aggregate_list_attrs(
     Args:
         graph: NetworkX graph whose nodes or edges hold list-valued attrs.
         agg_func: Mapping from attribute name to aggregation operators to apply.
-        element: Which elements to process: either `"nodes"` or `"links"`.
+        element: Elements on which to aggregate attribute values: should be 'nodes' or 'edges'/'links'.
         remove_original: If True, drop the original list-valued attribute after aggregation.
 
     Returns:
         The same graph, mutated in-place with new scalar attributes.
 
     Raises:
-        ValueError: if `element` is not one of "nodes" or "links", or
-                    if any op in `agg_func` is not in {"sum", "max", "min", "mean"}.
+        ValueError: if `element` is not one of "nodes" or "edges"/"links".
+        NotImplementedError: if any op in `agg_func` is not in {"sum", "max", "min", "mean"}.
     """
-    if element not in ("nodes", "links"):
-        raise ValueError("`element` must be 'nodes' or 'links'")
+    if element not in ("nodes", "edges", "links"):
+        raise ValueError("`element` must be either 'nodes' or 'edges'/'links'.")
 
     # Supported operations
     for attr, ops in agg_func.items():

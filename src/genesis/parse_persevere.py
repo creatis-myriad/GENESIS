@@ -73,7 +73,7 @@ def hydra_main(cfg: DictConfig) -> None:
                 graph, agg_cfg.get("nodes", {}), "nodes", remove_original=agg_cfg.remove_original
             )
             graph = networkx_aggregate_list_attrs(
-                graph, agg_cfg.get("links", {}), "links", remove_original=agg_cfg.remove_original
+                graph, agg_cfg.get(edges_key, {}), edges_key, remove_original=agg_cfg.remove_original
             )
 
             # Add cumulated and propagated obstruction attributes
