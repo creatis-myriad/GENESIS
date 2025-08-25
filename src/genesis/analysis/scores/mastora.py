@@ -10,7 +10,7 @@ def mastora(
     graph: nx.DiGraph,
     use_percentage: bool = False,
     mode: str = "mls",
-    obstruction_attr: str = "max_transversal_obstruction",
+    obstruction_attr: str = "transversal_obstruction_max",
     debug: bool = False,
 ) -> float | tuple[float, list[tuple], list[str]]:
     """Compute the Mastora score for a directed graph.

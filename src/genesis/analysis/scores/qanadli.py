@@ -10,7 +10,7 @@ def qanadli(
     graph: nx.DiGraph,
     partial_obstruction_thresh: float = 0.25,
     total_obstruction_thresh: float = 0.75,
-    obstruction_attr: str = "max_transversal_obstruction",
+    obstruction_attr: str = "transversal_obstruction_max",
     debug: bool = False,
 ) -> float | tuple[float, list[tuple], list[str]]:
     """Compute the Qanadli score for a directed graph.

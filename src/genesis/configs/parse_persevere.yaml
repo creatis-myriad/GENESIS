@@ -43,7 +43,7 @@ attrs_to_aggregate:
   remove_original: true # remove the original attributes after aggregation
 
 obstruction:
-  input_attr: max_transversal_obstruction # input attribute to use for obstruction
+  input_attr: transversal_obstruction_max # input attribute to use for obstruction
   max_ancestor_attr: max_ancestor_obstruction # attribute where to save max ancestor obstruction
   cumulated_ancestor_attr: cumulated_ancestor_obstruction # attribute where to save cumulated ancestor obstruction
 

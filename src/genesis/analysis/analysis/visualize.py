@@ -33,7 +33,7 @@ def pyvis_show(net: Network, notebook: bool = False) -> None:
 
 def networkx_to_pyvis(
     graph: nx.DiGraph,
-    attr: str = "max_transversal_obstruction_cumulated",
+    attr: str = "transversal_obstruction_max",
     level_attr: str = "level",
     use_hierarchical: bool = True,
     height: str = "1400px",
