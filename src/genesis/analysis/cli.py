@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 from collections.abc import Callable
@@ -11,6 +12,9 @@ from genesis.analysis.analysis import correlate_and_plot, networkx_to_pyvis, pyv
 from genesis.analysis.scores.mastora import mastora as mastora_score
 from genesis.analysis.scores.qanadli import qanadli as qanadli_score
 from genesis.data.utils import find_graph_file, json_to_networkx
+
+log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def add_graph_loading_args(func: Callable) -> Callable:
@@ -79,13 +83,13 @@ def _run_score(
         None
     """
     p: Path = find_graph_file(input_file, search_dirs=graphs_dirs, pattern=pattern)
-    click.echo(f"Loading graph from {p}")
+    log.info(f"Loading graph from {p}")
     graph = json_to_networkx(p)
-    click.echo(f"Computing {score_fn.__name__} score…")
+    log.info(f"Computing {score_fn.__name__} score...")
     if compute_kwargs.pop("debug", False):
         score, dbg_edges, dbg_labels = score_fn(graph, obstruction_attr=obstruction_attr, debug=True, **compute_kwargs)
-        click.echo(f"Score: {score}")
-        click.echo("Creating interactive visualization with debug info…")
+        log.info(f"Score: {score}")
+        log.info("Creating interactive visualization with debug info...")
         pyvis_net = networkx_to_pyvis(
             graph,
             attr=obstruction_attr,
@@ -93,10 +97,10 @@ def _run_score(
             debug_labels=dbg_labels,
         )
         pyvis_show(pyvis_net)
-        click.echo("Done. Open your browser to view it.")
+        log.info("Done. Open your browser to view it.")
     else:
         score = score_fn(graph, obstruction_attr=obstruction_attr, **compute_kwargs)
-        click.echo(f"Score: {score}")
+        log.info(f"Score: {score}")
 
 
 @click.command()
@@ -227,11 +231,11 @@ def visualize(input_file: Path, graphs_dirs: list[Path], pattern: str, obstructi
         obstruction_attr: Edge attribute for obstruction values.
     """
     p: Path = find_graph_file(input_file, search_dirs=graphs_dirs, pattern=pattern)
-    click.echo(f"Loading graph from {p}")
+    log.info(f"Loading graph from {p}")
     graph = json_to_networkx(p)
-    click.echo("Creating interactive visualization…")
+    log.info("Creating interactive visualization...")
     pyvis_show(networkx_to_pyvis(graph, attr=obstruction_attr))
-    click.echo("Done. Open your browser to view it.")
+    log.info("Done. Open your browser to view it.")
 
 
 @click.command()

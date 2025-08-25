@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Literal
 
@@ -9,9 +10,8 @@ from plotly.subplots import make_subplots
 from genesis.analysis.scores.mastora import mastora
 from genesis.analysis.scores.qanadli import qanadli
 from genesis.data.utils import find_graph_file, json_to_networkx
-from genesis.utils import RankedLogger
 
-log = RankedLogger(__name__, rank_zero_only=True)
+log = logging.getLogger(__name__)
 
 
 def compute_global_obstruction_scores(
