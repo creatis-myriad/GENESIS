@@ -36,7 +36,7 @@ def compute_global_obstruction_scores(
     for attr in obstruction_attrs:
         for patient_id in clinical_data["patient_id"]:
             try:
-                graph_file = find_graph_file(Path(patient_id), search_dirs=graphs_dirs, pattern=f"*{patient_id}*.json")
+                graph_file = find_graph_file(patient_id, search_dirs=graphs_dirs)
             except FileNotFoundError:
                 # Skip patient if no associated vascular tree graph is found
                 continue

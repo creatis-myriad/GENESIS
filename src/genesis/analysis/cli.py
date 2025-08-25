@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Literal
 
 import click
+import rootutils
 
 from genesis.analysis.analysis import correlate_and_plot, visualize_attribute_graph_pyvis
 from genesis.analysis.scores.mastora import mastora as mastora_score
@@ -12,13 +13,14 @@ from genesis.analysis.scores.qanadli import qanadli as qanadli_score
 from genesis.data.utils import find_graph_file, json_to_networkx
 
 
-def graph_command(func: Callable) -> Callable:
-    """Decorator to add common graph-related CLI arguments to a command.
+def add_graph_loading_args(func: Callable) -> Callable:
+    """Decorator to add common graph-related CLI arguments to commands meant to process a single graph.
 
     This decorator injects the following parameters into the click command:
     - input_file: Path or patient ID for the graph JSON.
-    - obstruction_attr: Edge attribute for obstruction values.
+    - graphs_dirs: Directories to search for graph files.
     - pattern: Glob pattern for locating the graph file.
+    - obstruction_attr: Edge attribute to use as obstruction values.
 
     Args:
         func: The click command function to decorate.
@@ -31,12 +33,13 @@ def graph_command(func: Callable) -> Callable:
         type=click.Path(exists=False, dir_okay=False, path_type=Path),
     )(func)
     func = click.option(
-        "--obstruction-attr",
-        "-o",
-        type=str,
-        default="max_transversal_obstruction",
+        "--graphs-dirs",
+        "-g",
+        type=click.Path(exists=True, file_okay=False, path_type=Path),
+        multiple=True,
+        default=[rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/raw"],
         show_default=True,
-        help="The edge attribute to use for obstruction values.",
+        help="Directory(ies) to search for graph files.",
     )(func)
     func = click.option(
         "--pattern",
@@ -46,10 +49,20 @@ def graph_command(func: Callable) -> Callable:
         show_default=False,
         help="(internal) glob pattern, e.g. '*{id}_enriched.json'.",
     )(func)
+    func = click.option(
+        "--obstruction-attr",
+        "-o",
+        type=str,
+        default="max_transversal_obstruction",
+        show_default=True,
+        help="The edge attribute to use for obstruction values.",
+    )(func)
     return func  # noqa: RET504
 
 
-def _run_score(score_fn: Callable, input_file: Path, pattern: str, obstruction_attr: str, **compute_kwargs) -> None:
+def _run_score(
+    score_fn: Callable, input_file: Path, graphs_dirs: list[Path], pattern: str, obstruction_attr: str, **compute_kwargs
+) -> None:
     """Common runner for score-based CLI commands.
 
     Loads a graph file, computes the score, and optionally displays a visualization for debugging.
@@ -57,6 +70,7 @@ def _run_score(score_fn: Callable, input_file: Path, pattern: str, obstruction_a
     Args:
         score_fn: The scoring function (mastora or qanadli).
         input_file: Path to JSON graph or patient ID.
+        graphs_dirs: Directories to search for graph files.
         pattern: Glob pattern for locating the graph file.
         obstruction_attr: Edge attribute for obstruction values.
         **compute_kwargs: Additional parameters for the scoring function (e.g., thresholds, debug flag).
@@ -64,7 +78,7 @@ def _run_score(score_fn: Callable, input_file: Path, pattern: str, obstruction_a
     Returns:
         None
     """
-    p: Path = find_graph_file(input_file, pattern=pattern)
+    p: Path = find_graph_file(input_file, search_dirs=graphs_dirs, pattern=pattern)
     click.echo(f"Loading graph from {p}")
     graph = json_to_networkx(p)
     click.echo(f"Computing {score_fn.__name__} score…")
@@ -85,7 +99,7 @@ def _run_score(score_fn: Callable, input_file: Path, pattern: str, obstruction_a
 
 
 @click.command()
-@graph_command
+@add_graph_loading_args
 @click.option(
     "--use-percentage",
     "-p",
@@ -105,28 +119,33 @@ def _run_score(score_fn: Callable, input_file: Path, pattern: str, obstruction_a
     "--debug", "-d", is_flag=True, default=False, help="If set, show a debug visualization of the Mastora calculation."
 )
 def mastora(
-    input_file: Path, use_percentage: bool, mode: str, obstruction_attr: str, debug: bool, pattern: str
+    input_file: Path,
+    graphs_dirs: list[Path],
+    pattern: str,
+    use_percentage: bool,
+    mode: str,
+    obstruction_attr: str,
+    debug: bool,
 ) -> None:
-    """Compute Mastora score from a graph JSON file.
+    """Compute Mastora score from a serialized graph file.
 
     Computes the Mastora score for pulmonary embolism risk assessment,
     evaluating the degree of vascular obstruction in mediastinal, lobar,
     and segmental arteries.
 
     Args:
-        input_file: JSON graph file path or patient ID (zero-padded to 4 digits).
+        input_file: Graph file path or patient ID (zero-padded to 4 digits).
+        graphs_dirs: Directories to search for graph files.
+        pattern: Glob pattern for locating the graph file.
         use_percentage: Treat obstruction values as percentages if True.
         mode: Levels to include: combination of 'm', 'l', 's'.
         obstruction_attr: Edge attribute for obstruction values.
         debug: Show debug visualization if True.
-        pattern: Glob pattern for locating the graph file.
-
-    Returns:
-        None
     """
     _run_score(
         mastora_score,
         input_file=input_file,
+        graphs_dirs=graphs_dirs,
         pattern=pattern,
         obstruction_attr=obstruction_attr,
         use_percentage=use_percentage,
@@ -136,7 +155,7 @@ def mastora(
 
 
 @click.command()
-@graph_command
+@add_graph_loading_args
 @click.option(
     "--partial-obstruction-thresh",
     "-po",
@@ -158,13 +177,14 @@ def mastora(
 )
 def qanadli(
     input_file: Path,
+    graphs_dirs: list[Path],
+    pattern: str,
     partial_obstruction_thresh: float,
     total_obstruction_thresh: float,
     obstruction_attr: str,
     debug: bool,
-    pattern: str,
 ) -> None:
-    """Compute Qanadli score from a graph JSON file.
+    """Compute Qanadli score from a serialized graph file.
 
     Computes the Qanadli score for pulmonary embolism risk assessment,
     considering both embolus location and degree of obstruction,
@@ -172,18 +192,17 @@ def qanadli(
 
     Args:
         input_file: JSON graph file path or patient ID (zero-padded to 4 digits).
+        graphs_dirs: Directories to search for graph files.
+        pattern: Glob pattern for locating the graph file.
         partial_obstruction_thresh: Transversal obstruction threshold to consider a segment partially obstructed.
         total_obstruction_thresh: Transversal obstruction threshold to consider a segment totally obstructed.
         obstruction_attr: Edge attribute for obstruction values.
         debug: Show debug visualization if True.
-        pattern: Glob pattern for locating the graph file.
-
-    Returns:
-        None
     """
     _run_score(
         qanadli_score,
         input_file=input_file,
+        graphs_dirs=graphs_dirs,
         pattern=pattern,
         obstruction_attr=obstruction_attr,
         partial_obstruction_thresh=partial_obstruction_thresh,
@@ -193,22 +212,20 @@ def qanadli(
 
 
 @click.command()
-@graph_command
-def visualize(input_file: Path, obstruction_attr: str, pattern: str) -> None:
-    """Visualize attribute values from a graph JSON file using PyVis.
+@add_graph_loading_args
+def visualize(input_file: Path, graphs_dirs: list[Path], pattern: str, obstruction_attr: str) -> None:
+    """Visualize attribute values from a serialized graph file using PyVis.
 
     Creates an interactive network visualization of the arterial tree,
     coloring edges by the specified obstruction attribute.
 
     Args:
         input_file: JSON graph file path or patient ID (zero-padded to 4 digits).
-        obstruction_attr: Edge attribute for obstruction values.
+        graphs_dirs: Directories to search for graph files.
         pattern: Glob pattern for locating the graph file.
-
-    Returns:
-        None
+        obstruction_attr: Edge attribute for obstruction values.
     """
-    p: Path = find_graph_file(input_file, pattern=pattern)
+    p: Path = find_graph_file(input_file, search_dirs=graphs_dirs, pattern=pattern)
     click.echo(f"Loading graph from {p}")
     graph = json_to_networkx(p)
     click.echo("Creating interactive visualization…")
@@ -230,19 +247,18 @@ def visualize(input_file: Path, obstruction_attr: str, pattern: str) -> None:
     "-c",
     "clinical_data_path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    default="data/PERSEVERE/clinical_data.csv",
+    default=rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/clinical_data.csv",
     show_default=True,
     help="Path to the clinical data CSV file.",
 )
 @click.option(
-    "--graphs-dir",
+    "--graphs-dirs",
     "-g",
-    "graphs_dirs",
     type=click.Path(exists=True, file_okay=False, path_type=Path),
     multiple=True,
-    default=["data/PERSEVERE/raw"],
+    default=[rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/raw"],
     show_default=True,
-    help="Directory(ies) to search for graph JSON files.",
+    help="Directory(ies) to search for graph files.",
 )
 @click.option(
     "--obstruction-attrs",
@@ -274,7 +290,7 @@ def correlate(
         score: Which score to compute ('mastora' or 'qanadli').
         target_attribute: Clinical attribute to correlate ('bnp', 'troponin', 'risk', 'spesi').
         clinical_data_path: Path to the clinical data CSV file.
-        graphs_dirs: List of directories to search for graph JSON files.
+        graphs_dirs: List of directories to search for graph files.
         obstruction_attrs: Edge attribute(s) to use as obstruction values to compute global scores.
         show_visualization: If True, open the correlation plot in the browser.
     """

@@ -1,5 +1,4 @@
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -109,12 +108,12 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 def find_graph_file(
-    input_file: Path,
+    input_file: Path | str,
     *,
     search_dirs: list[Path] | None = None,
     pattern: str = "*{id}*.json",
 ) -> Path:
-    """Find a unique graph JSON file based on the input file.
+    """Find a unique serialized graph file based on the input file.
 
     Resolve either:
         - a direct file path (if input_file.exists()), or
@@ -124,7 +123,7 @@ def find_graph_file(
         input_file: either a Path to an existing file or a Path whose stem is a patient ID.
         search_dirs: list of directories to search under; defaults to standard PERSEVERE/raw locations.
         pattern: a glob pattern containing '{id}' which will be replaced by the zero-padded ID.
-                 e.g. "*{id}*_enriched_graph.json" or the default "*{id}*.json"
+            e.g. "*{id}*_enriched_graph.json" or the default "*{id}*.json"
 
     Returns:
         The unique matching JSON Path.
@@ -133,19 +132,17 @@ def find_graph_file(
         FileNotFoundError if no match, or
         FileNotFoundError if more than one unique match is found.
     """
+    input_file = Path(input_file)
+
     # 1) If they've passed a real file, just use it
     if input_file.is_file():
         return input_file.resolve()
+    if search_dirs is None:
+        raise ValueError("If `input_file` is not a path to an existing file, `search_dirs` must be provided.")
 
     # 2) Otherwise interpret the stem as an ID
     patient_id = input_file.stem.zfill(4)
     pattern = pattern.format(id=patient_id)
-
-    # default search locations
-    if search_dirs is None:
-        search_dirs = [
-            Path(f"{os.environ['PROJECT_ROOT']}/data/PERSEVERE/raw"),
-        ]
 
     found = []
     for d in search_dirs:
