@@ -3,9 +3,11 @@ from typing import Any
 import networkx as nx
 import numpy as np
 
+from genesis.analysis.scores.utils import aggregate_score_input
 from genesis.data.utils import networkx_find_root
 
 
+@aggregate_score_input
 def mastora(
     graph: nx.DiGraph,
     use_percentage: bool = False,
