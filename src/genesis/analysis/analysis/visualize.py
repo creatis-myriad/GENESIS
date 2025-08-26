@@ -1,3 +1,4 @@
+import os
 import tempfile
 
 import networkx as nx
@@ -18,17 +19,18 @@ HIERARCHICAL_LAYOUT_OPTIONS = """
 """
 
 
-def pyvis_show(net: Network, notebook: bool = False) -> None:
+def pyvis_show(net: Network, name: str = "graph.html", notebook: bool = False) -> None:
     """Render a PyVis Network visualization.
 
     Utility function to wrap the creation of a temporary HTML file to save the generated HTML visualization.
 
     Args:
         net: The PyVis Network instance to render.
+        name: Name of the temporary HTML file, customizable for easier identification of debug graph visualizations.
         notebook: Whether to render inline in a Jupyter notebook (True) or as a standalone HTML file (False).
     """
-    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as fp:
-        net.show(fp.name, notebook=notebook)
+    with tempfile.TemporaryDirectory(delete=False) as tmpdirname:
+        net.show(os.path.join(tmpdirname, name), notebook=notebook)
 
 
 def networkx_to_pyvis(

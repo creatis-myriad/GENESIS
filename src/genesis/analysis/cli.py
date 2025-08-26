@@ -91,7 +91,7 @@ def _run_score(
         log.info(f"Score: {score}")
         log.info("Creating interactive visualization with debug info...")
         pyvis_net = networkx_to_pyvis(graph, attr=obstruction_attr, debug_info=dbg_info)
-        pyvis_show(pyvis_net)
+        pyvis_show(pyvis_net, name=f"{p.stem}_{score_fn.__name__}.html")
         log.info("Done. Open your browser to view it.")
     else:
         score = score_fn(graph, obstruction_attr=obstruction_attr, **compute_kwargs)
@@ -230,7 +230,7 @@ def visualize(input_file: Path, graphs_dirs: list[Path], pattern: str, obstructi
     log.info(f"Loading graph from {p}")
     graph = json_to_networkx(p)
     log.info("Creating interactive visualization...")
-    pyvis_show(networkx_to_pyvis(graph, attr=obstruction_attr))
+    pyvis_show(networkx_to_pyvis(graph, attr=obstruction_attr), name=f"{p.stem}.html")
     log.info("Done. Open your browser to view it.")
 
 
