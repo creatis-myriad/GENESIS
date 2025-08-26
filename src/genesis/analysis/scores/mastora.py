@@ -34,7 +34,7 @@ def mastora(
         "l": [3],  # lobar
         "s": [4],  # segmental
     }
-    levels = [lvl for key in mode for lvl in level_map.get(key, [])]
+    levels = [lvl for key in mode for lvl in level_map[key]]
 
     debug_edges = []
     debug_labels = []
@@ -43,13 +43,13 @@ def mastora(
         obstruction_vals = []
         for succ in graph.successors(node):
             attrs = graph.edges[node, succ]
-            if attrs.get("level", 0) in levels:
-                artery_obstruction = attrs.get(obstruction_attr, 0.0)
+            if attrs["level"] in levels:
+                artery_obstruction = attrs[obstruction_attr]
                 obstruction_vals.append(artery_obstruction)
 
                 if debug:
                     debug_edges.append((node, succ))
-                    artery_level = attrs.get("level", 0)
+                    artery_level = attrs["level"]
                     level_type = (
                         "M" if artery_level in level_map["m"] else "L" if artery_level in level_map["l"] else "S"
                     )

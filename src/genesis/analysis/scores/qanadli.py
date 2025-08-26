@@ -37,7 +37,7 @@ def qanadli(
     def _depth_first_search(node: Any) -> None:
         for child in graph.successors(node):
             edge_attrs = graph.edges[node, child]
-            artery_obstruction = edge_attrs.get(obstruction_attr, 0.0)
+            artery_obstruction = edge_attrs[obstruction_attr]
             artery_type = _get_artery_type(edge_attrs)
 
             if artery_type == "mediastinal" or artery_type == "lobar":
@@ -87,8 +87,7 @@ def _get_artery_type(edge: dict[str, Any]) -> str:
     Returns:
         Type of artery ('root', 'mediastinal', 'lobar' or 'segmental').
     """
-    level = edge.get("level", 0)
-    match level:
+    match edge["level"]:
         case 1:
             artery_type = "root"
         case 2:

@@ -168,7 +168,7 @@ def networkx_aggregate_list_attrs(
         # Re-create iterator for each attribute
         items = graph.nodes(data=True) if element == "nodes" else graph.edges(data=True)
         for *_, data in items:
-            attr_vals = data.get(attr, [])
+            attr_vals = data[attr]
 
             for op in ops:
                 match op:

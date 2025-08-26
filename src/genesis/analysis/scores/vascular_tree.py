@@ -91,10 +91,10 @@ def update_edge_attr_top_down(
 
     def _depth_first_traversal(node: Any, parent_attr_val: float) -> None:
         for child in graph.successors(node):
-            own = graph.edges[node, child].get(input_attr, 0.0)
+            own = graph.edges[node, child][input_attr]
             updated_val = update_fn(parent_attr_val, own)
             graph.edges[node, child][output_attr] = updated_val
             _depth_first_traversal(child, updated_val)
 
-    _depth_first_traversal(root, 0.0)
+    _depth_first_traversal(root, 0)
     return graph

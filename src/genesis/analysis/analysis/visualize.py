@@ -129,12 +129,12 @@ def _init_color_and_level_normalizers(
             level_norm: Normalize instance for level values.
             attr_cmap: Colormap for attribute-to-color mapping.
     """
-    attr_vals = [data.get(attr, 0.0) for _, _, data in graph.edges(data=True)]
-    attr_norm = Normalize(vmin=min(attr_vals, default=0.0), vmax=max(attr_vals, default=1.0) or 1.0)
+    attr_vals = [data[attr] for _, _, data in graph.edges(data=True)]
+    attr_norm = Normalize(vmin=min(attr_vals), vmax=max(attr_vals) or 1.0)
     attr_cmap = LinearSegmentedColormap.from_list("bpr", ["#aaaaff", "#ff00ff", "#ff0000"])
 
-    level_vals = [data.get(level_attr, 0.0) for _, _, data in graph.edges(data=True)]
-    level_norm = Normalize(vmin=min(level_vals, default=0.0), vmax=max(level_vals, default=1.0) or 1.0)
+    level_vals = [data[level_attr] for _, _, data in graph.edges(data=True)]
+    level_norm = Normalize(vmin=min(level_vals), vmax=max(level_vals) or 1.0)
     return attr_norm, level_norm, attr_cmap
 
 
@@ -180,11 +180,11 @@ def _add_edges(
     """
     debug_map = debug_map or {}
     for u, v, data in graph.edges(data=True):
-        obs = data.get(attr, 0.0)
+        obs = data[attr]
         r, g, b, _ = attr_cmap(attr_norm(obs))
         color = f"rgb({int(255 * r)},{int(255 * g)},{int(255 * b)})"
 
-        lvl = data.get(level_attr, 0.0)
+        lvl = data[level_attr]
         inv = 1.0 - level_norm(lvl)
         width = min_edge_width + (max_edge_width - min_edge_width) * inv
 
