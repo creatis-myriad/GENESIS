@@ -42,7 +42,7 @@ def qanadli(
 
             if artery_type == "mediastinal" or artery_type == "lobar":
                 if artery_obstruction > partial_obstruction_thresh:
-                    weight = _count_segmental_descendants(edge_attrs)
+                    weight = edge_attrs["segments_below"]
                     weights.append(weight)
                     obstruction_vals.append(artery_obstruction)
 
@@ -106,26 +106,6 @@ def _get_artery_type(edge: dict[str, Any]) -> str:
             artery_type = ""
 
     return artery_type
-
-
-def _count_segmental_descendants(edge_attrs: dict[str, Any]) -> int:
-    """Count the number of descendants of an artery that are at the segmental level or lower.
-
-    Args:
-        edge_attrs: Edge attributes, which must contain the 'segments_below' key.
-
-    Returns:
-        Number of descendants of an artery that are at the segmental level or lower.
-    """
-
-    def _inner_count_subsegmental_descendants(edge: dict[str, Any]) -> int:
-        """Recursive function to count subsegmental descendants."""
-        if edge.get("level", 0) <= 4:
-            return edge.get("segments_below", 0)
-        count_by_child = [_inner_count_subsegmental_descendants(succ) for succ in edge.get("successors", [])]
-        return sum(count_by_child)
-
-    return _inner_count_subsegmental_descendants(edge_attrs)
 
 
 def _compute_qanadli_score(
