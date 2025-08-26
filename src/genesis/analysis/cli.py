@@ -64,37 +64,34 @@ def add_graph_loading_args(func: Callable) -> Callable:
     return func  # noqa: RET504
 
 
-def _run_score(
-    score_fn: Callable, input_file: Path, graphs_dirs: list[Path], pattern: str, obstruction_attr: str, **compute_kwargs
+def run_score(
+    score_fn: Callable, input_file: Path, graphs_dirs: list[Path], pattern: str, obstruction_attr: str, **score_kwargs
 ) -> None:
     """Common runner for score-based CLI commands.
 
     Loads a graph file, computes the score, and optionally displays a visualization for debugging.
 
     Args:
-        score_fn: The scoring function (mastora or qanadli).
+        score_fn: The global obstruction score function.
         input_file: Path to JSON graph or patient ID.
         graphs_dirs: Directories to search for graph files.
         pattern: Glob pattern for locating the graph file.
         obstruction_attr: Edge attribute for obstruction values.
-        **compute_kwargs: Additional parameters for the scoring function (e.g., thresholds, debug flag).
-
-    Returns:
-        None
+        **score_kwargs: Additional parameters to pass along to `score_fn`.
     """
-    p: Path = find_graph_file(input_file, search_dirs=graphs_dirs, pattern=pattern)
-    log.info(f"Loading graph from {p}")
-    graph = json_to_networkx(p)
+    filepath = find_graph_file(input_file, search_dirs=graphs_dirs, pattern=pattern)
+    log.info(f"Loading graph from {filepath}")
+    graph = json_to_networkx(filepath)
     log.info(f"Computing {score_fn.__name__} score...")
-    if compute_kwargs.pop("debug", False):
-        score, dbg_info = score_fn(graph, obstruction_attr=obstruction_attr, debug=True, **compute_kwargs)
+    if score_kwargs.pop("debug", False):
+        score, dbg_info = score_fn(graph, obstruction_attr=obstruction_attr, debug=True, **score_kwargs)
         log.info(f"Score: {score}")
         log.info("Creating interactive visualization with debug info...")
         pyvis_net = networkx_to_pyvis(graph, attr=obstruction_attr, debug_info=dbg_info)
-        pyvis_show(pyvis_net, name=f"{p.stem}_{score_fn.__name__}.html")
+        pyvis_show(pyvis_net, name=f"{filepath.stem}_{score_fn.__name__}.html")
         log.info("Done. Open your browser to view it.")
     else:
-        score = score_fn(graph, obstruction_attr=obstruction_attr, **compute_kwargs)
+        score = score_fn(graph, obstruction_attr=obstruction_attr, **score_kwargs)
         log.info(f"Score: {score}")
 
 
@@ -120,38 +117,22 @@ def _run_score(
     "--debug", "-d", is_flag=True, default=False, help="If set, show a debug visualization of the Mastora calculation."
 )
 def mastora(
-    input_file: Path,
-    graphs_dirs: list[Path],
-    pattern: str,
     use_percentage: bool,
     mode: str,
-    obstruction_attr: str,
     debug: bool,
+    **kwargs,
 ) -> None:
     """Compute Mastora score from a serialized graph file.
 
-    Computes the Mastora score for pulmonary embolism risk assessment,
-    evaluating the degree of vascular obstruction in mediastinal, lobar,
-    and segmental arteries.
-
-    Args:
-        input_file: Graph file path or patient ID (zero-padded to 4 digits).
-        graphs_dirs: Directories to search for graph files.
-        pattern: Glob pattern for locating the graph file.
-        use_percentage: Treat obstruction values as percentages if True.
-        mode: Levels to include: combination of 'r', 'm', 'l', 's'.
-        obstruction_attr: Edge attribute for obstruction values.
-        debug: Show debug visualization if True.
+    Computes the Mastora score for pulmonary embolism risk assessment, evaluating the degree of vascular obstruction in
+    mediastinal, lobar, and segmental arteries.
     """
-    _run_score(
+    run_score(
         mastora_score,
-        input_file=input_file,
-        graphs_dirs=graphs_dirs,
-        pattern=pattern,
-        obstruction_attr=obstruction_attr,
         use_percentage=use_percentage,
         mode=mode,
         debug=debug,
+        **kwargs,
     )
 
 
@@ -177,38 +158,22 @@ def mastora(
     "--debug", "-d", is_flag=True, default=False, help="If set, show a debug visualization of the Qanadli calculation."
 )
 def qanadli(
-    input_file: Path,
-    graphs_dirs: list[Path],
-    pattern: str,
     partial_obstruction_thresh: float,
     total_obstruction_thresh: float,
-    obstruction_attr: str,
     debug: bool,
+    **kwargs,
 ) -> None:
     """Compute Qanadli score from a serialized graph file.
 
-    Computes the Qanadli score for pulmonary embolism risk assessment,
-    considering both embolus location and degree of obstruction,
-    weighting each segment by its number of distal subsegments.
-
-    Args:
-        input_file: JSON graph file path or patient ID (zero-padded to 4 digits).
-        graphs_dirs: Directories to search for graph files.
-        pattern: Glob pattern for locating the graph file.
-        partial_obstruction_thresh: Transversal obstruction threshold to consider a segment partially obstructed.
-        total_obstruction_thresh: Transversal obstruction threshold to consider a segment totally obstructed.
-        obstruction_attr: Edge attribute for obstruction values.
-        debug: Show debug visualization if True.
+    Computes the Qanadli score for pulmonary embolism risk assessment, considering both embolus location and degree of
+    obstruction, weighting each segment by its number of distal subsegments.
     """
-    _run_score(
+    run_score(
         qanadli_score,
-        input_file=input_file,
-        graphs_dirs=graphs_dirs,
-        pattern=pattern,
-        obstruction_attr=obstruction_attr,
         partial_obstruction_thresh=partial_obstruction_thresh,
         total_obstruction_thresh=total_obstruction_thresh,
         debug=debug,
+        **kwargs,
     )
 
 
@@ -217,20 +182,14 @@ def qanadli(
 def visualize(input_file: Path, graphs_dirs: list[Path], pattern: str, obstruction_attr: str) -> None:
     """Visualize attribute values from a serialized graph file using PyVis.
 
-    Creates an interactive network visualization of the arterial tree,
-    coloring edges by the specified obstruction attribute.
-
-    Args:
-        input_file: JSON graph file path or patient ID (zero-padded to 4 digits).
-        graphs_dirs: Directories to search for graph files.
-        pattern: Glob pattern for locating the graph file.
-        obstruction_attr: Edge attribute for obstruction values.
+    Creates an interactive network visualization of the arterial tree, coloring edges by the specified obstruction
+    attribute.
     """
-    p: Path = find_graph_file(input_file, search_dirs=graphs_dirs, pattern=pattern)
-    log.info(f"Loading graph from {p}")
-    graph = json_to_networkx(p)
+    filepath = find_graph_file(input_file, search_dirs=graphs_dirs, pattern=pattern)
+    log.info(f"Loading graph from {filepath}")
+    graph = json_to_networkx(filepath)
     log.info("Creating interactive visualization...")
-    pyvis_show(networkx_to_pyvis(graph, attr=obstruction_attr), name=f"{p.stem}.html")
+    pyvis_show(networkx_to_pyvis(graph, attr=obstruction_attr), name=f"{filepath.stem}.html")
     log.info("Done. Open your browser to view it.")
 
 
@@ -275,11 +234,11 @@ def visualize(input_file: Path, graphs_dirs: list[Path], pattern: str, obstructi
     "-v",
     is_flag=True,
     default=False,
-    help="Immediately open the correlation plot in your browser.",
+    help="Open the correlation plot in a web browser.",
 )
-def correlate(
+def correlate(  # noqa: D417
     score: Literal["mastora", "qanadli"],
-    target_attribute: str,
+    target_attribute: Literal["bnp", "troponin", "risk", "spesi"],
     clinical_data_path: Path,
     graphs_dirs: list[Path],
     obstruction_attrs: list[str],
@@ -288,17 +247,17 @@ def correlate(
     """Correlate global vascular tree obstruction scores with clinical attributes and visualize the results.
 
     Args:
-        score: Which score to compute ('mastora' or 'qanadli').
-        target_attribute: Clinical attribute to correlate ('bnp', 'troponin', 'risk', 'spesi').
-        clinical_data_path: Path to the clinical data CSV file.
-        graphs_dirs: List of directories to search for graph files.
-        obstruction_attrs: Edge attribute(s) to use as obstruction values to compute global scores.
-        show_visualization: If True, open the correlation plot in the browser.
+        score: The global obstruction score to compute and correlate with `target_attribute`.
+        target_attribute: The clinical attribute to correlate with the computed `score`.
     """
-    colmap: dict = {"spesi": "spesi", "bnp": "bnp", "troponin": "troponin", "risk": "vte_severity"}
-    target_attribute: str = colmap[target_attribute]
-    script: str = os.path.basename(sys.argv[0])
-    cli_cmd: str = f"{script} {' '.join(sys.argv[1:])}"
+    target_attribute = {
+        "spesi": "spesi",
+        "bnp": "bnp",
+        "troponin": "troponin",
+        "risk": "vte_severity",
+    }[target_attribute]
+    script = os.path.basename(sys.argv[0])
+    cli_cmd = f"{script} {' '.join(sys.argv[1:])}"
     correlate_and_plot(
         score=score,
         target_attribute=target_attribute,
