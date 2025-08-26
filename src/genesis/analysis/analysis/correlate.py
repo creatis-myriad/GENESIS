@@ -19,6 +19,7 @@ def compute_global_obstruction_scores(
     clinical_data: pd.DataFrame,
     graphs_dirs: list[Path],
     obstruction_attrs: list[str],
+    legacy_networkx_format: bool = False,
 ) -> pd.DataFrame:
     """Compute scores for each patient in the clinical data."""
 
@@ -42,7 +43,7 @@ def compute_global_obstruction_scores(
                 continue
 
             try:
-                graph = json_to_networkx(graph_file)
+                graph = json_to_networkx(graph_file, edges="links" if legacy_networkx_format else "edges")
                 obstruction_score = _compute(graph, attr)
                 rec = {"patient_id": patient_id, "score": obstruction_score, "obstruction_attr": attr}
                 obstruction_records.append(rec)
@@ -137,6 +138,7 @@ def correlate_and_plot(
     target_attribute: str,
     clinical_data_path: Path,
     graphs_dirs: list[Path],
+    legacy_networkx_format: bool,
     obstruction_attrs: list[str],
     cli_command: str,
     show_visualization: bool = False,
@@ -146,7 +148,9 @@ def correlate_and_plot(
     clinical_df = _load_and_clean_clinical_data(clinical_data_path, target_attribute)
 
     log.info(f"Compute {score} scores from {obstruction_attrs} attributes...")
-    data_with_scores = compute_global_obstruction_scores(score, clinical_df, graphs_dirs, obstruction_attrs)
+    data_with_scores = compute_global_obstruction_scores(
+        score, clinical_df, graphs_dirs, obstruction_attrs, legacy_networkx_format=legacy_networkx_format
+    )
 
     if data_with_scores.empty:
         log.info("No data to plot. Make sure graph files exist and patient IDs match.", err=True)

@@ -24,6 +24,7 @@ def add_graph_loading_args(func: Callable) -> Callable:
     - input_file: Path or patient ID for the graph JSON.
     - graphs_dirs: Directories to search for graph files.
     - pattern: Glob pattern for locating the graph file.
+    - legacy_networkx_format: If set, use legacy attribute names for NetworkX-internal graph data.
     - obstruction_attr: Edge attribute to use as obstruction values.
 
     Args:
@@ -54,6 +55,14 @@ def add_graph_loading_args(func: Callable) -> Callable:
         help="(internal) glob pattern, e.g. '*{id}_enriched.json'.",
     )(func)
     func = click.option(
+        "--legacy-networkx-format",
+        "-l",
+        is_flag=True,
+        default=False,
+        help="If set, use legacy attribute name to parse NetworkX-internal graph data "
+        "(i.e. 'links' instead of 'edges').",
+    )(func)
+    func = click.option(
         "--obstruction-attr",
         "-o",
         type=str,
@@ -65,7 +74,13 @@ def add_graph_loading_args(func: Callable) -> Callable:
 
 
 def run_score(
-    score_fn: Callable, input_file: Path, graphs_dirs: list[Path], pattern: str, obstruction_attr: str, **score_kwargs
+    score_fn: Callable,
+    input_file: Path,
+    graphs_dirs: list[Path],
+    pattern: str,
+    legacy_networkx_format: bool,
+    obstruction_attr: str,
+    **score_kwargs,
 ) -> None:
     """Common runner for score-based CLI commands.
 
@@ -76,12 +91,13 @@ def run_score(
         input_file: Path to JSON graph or patient ID.
         graphs_dirs: Directories to search for graph files.
         pattern: Glob pattern for locating the graph file.
+        legacy_networkx_format: If set, use legacy attribute names for NetworkX-internal graph data.
         obstruction_attr: Edge attribute for obstruction values.
         **score_kwargs: Additional parameters to pass along to `score_fn`.
     """
     filepath = find_graph_file(input_file, search_dirs=graphs_dirs, pattern=pattern)
     log.info(f"Loading graph from {filepath}")
-    graph = json_to_networkx(filepath)
+    graph = json_to_networkx(filepath, edges="links" if legacy_networkx_format else "edges")
     log.info(f"Computing {score_fn.__name__} score...")
     if score_kwargs.pop("debug", False):
         score, dbg_info = score_fn(graph, obstruction_attr=obstruction_attr, debug=True, **score_kwargs)
@@ -179,7 +195,9 @@ def qanadli(
 
 @click.command()
 @add_graph_loading_args
-def visualize(input_file: Path, graphs_dirs: list[Path], pattern: str, obstruction_attr: str) -> None:
+def visualize(
+    input_file: Path, graphs_dirs: list[Path], pattern: str, legacy_networkx_format: bool, obstruction_attr: str
+) -> None:
     """Visualize attribute values from a serialized graph file using PyVis.
 
     Creates an interactive network visualization of the arterial tree, coloring edges by the specified obstruction
@@ -187,7 +205,7 @@ def visualize(input_file: Path, graphs_dirs: list[Path], pattern: str, obstructi
     """
     filepath = find_graph_file(input_file, search_dirs=graphs_dirs, pattern=pattern)
     log.info(f"Loading graph from {filepath}")
-    graph = json_to_networkx(filepath)
+    graph = json_to_networkx(filepath, edges="links" if legacy_networkx_format else "edges")
     log.info("Creating interactive visualization...")
     pyvis_show(networkx_to_pyvis(graph, attr=obstruction_attr), name=f"{filepath.stem}.html")
     log.info("Done. Open your browser to view it.")
@@ -221,6 +239,13 @@ def visualize(input_file: Path, graphs_dirs: list[Path], pattern: str, obstructi
     help="Directory(ies) to search for graph files.",
 )
 @click.option(
+    "--legacy-networkx-format",
+    "-l",
+    is_flag=True,
+    default=False,
+    help="If set, use legacy attribute name to parse NetworkX-internal graph data (i.e. 'links' instead of 'edges').",
+)
+@click.option(
     "--obstruction-attrs",
     "-o",
     type=str,
@@ -241,6 +266,7 @@ def correlate(  # noqa: D417
     target_attribute: Literal["bnp", "troponin", "risk", "spesi"],
     clinical_data_path: Path,
     graphs_dirs: list[Path],
+    legacy_networkx_format: bool,
     obstruction_attrs: list[str],
     show_visualization: bool,
 ) -> None:
@@ -263,6 +289,7 @@ def correlate(  # noqa: D417
         target_attribute=target_attribute,
         clinical_data_path=clinical_data_path,
         graphs_dirs=list(graphs_dirs),
+        legacy_networkx_format=legacy_networkx_format,
         obstruction_attrs=obstruction_attrs,
         cli_command=cli_cmd,
         show_visualization=show_visualization,
