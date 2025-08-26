@@ -19,12 +19,12 @@ def networkx_to_pyg(graph: nx.Graph, target_attr: str, target_dtype: torch.dtype
     Returns:
         PyG `Data` representation of the NetworkX `Graph`.
     """
-    if not _has_node_attributes(graph):
+    if not networkx_has_node_attributes(graph):
         from_networkx_kwargs["group_node_attrs"] = None
     elif from_networkx_kwargs.get("group_node_attrs") is None:
         from_networkx_kwargs["group_node_attrs"] = "all"
 
-    if not _has_edge_attributes(graph):
+    if not networkx_has_edge_attributes(graph):
         from_networkx_kwargs["group_edge_attrs"] = None
     elif from_networkx_kwargs.get("group_edge_attrs") is None:
         from_networkx_kwargs["group_edge_attrs"] = "all"
@@ -213,14 +213,20 @@ def networkx_find_root(graph: nx.DiGraph) -> Any:
     return roots[0]
 
 
-def _has_node_attributes(graph: nx.Graph) -> bool:
-    """Check if a NetworkX graph has node attributes."""
-    return any(feats for _, feats in graph.nodes(data=True))
+def networkx_has_node_attributes(graph: nx.Graph, attrs: list[str] | None = None) -> bool:
+    """Check if a NetworkX graph has any node attributes, or the requested ones if specified."""
+    node_attrs = {attr for _, attrs in graph.nodes(data=True) for attr in attrs}
+    if attrs is not None:
+        return set(attrs) <= node_attrs
+    return bool(node_attrs)
 
 
-def _has_edge_attributes(graph: nx.Graph) -> bool:
-    """Check if the NetworkX Graph has edge attributes."""
-    return any(feats for _, _, feats in graph.edges(data=True))
+def networkx_has_edge_attributes(graph: nx.Graph, attrs: list[str] | None = None) -> bool:
+    """Check if the NetworkX Graph has any edge attributes, or the requested ones if specified."""
+    edge_attrs = {attr for _, _, attrs in graph.edges(data=True) for attr in attrs}
+    if attrs is not None:
+        return set(attrs) <= edge_attrs
+    return bool(edge_attrs)
 
 
 def _clean_data_attributes(data: Data) -> Data:
