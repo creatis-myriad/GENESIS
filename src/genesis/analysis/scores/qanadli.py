@@ -33,6 +33,16 @@ def qanadli(
     obstructions: dict[tuple[int, int], float] = {}
     debug_info: dict[tuple[int, int], str] = {}
 
+    def _save_edge_data(edge_key: tuple[int, int], level: int, weight: int, obstruction: float) -> None:
+        """Save data for a given edge to the data structures used to compute/debug the score."""
+        weights[edge_key] = weight
+        obstructions[edge_key] = obstruction
+
+        if debug:
+            degree_value = np.digitize(obstruction, [partial_obstruction_thresh, total_obstruction_thresh])
+            artery_type = ArteryLevel(level).name
+            debug_info[edge_key] = f"{artery_type[0]}: {obstruction:.2f} (w:{weight}, d:{degree_value})"
+
     def _depth_first_search(node: Any) -> None:
         for child in graph.successors(node):
             edge_attrs = graph.edges[node, child]
@@ -44,34 +54,12 @@ def qanadli(
                     _depth_first_search(child)
                 case ArteryLevel.MEDIASTINAL | ArteryLevel.LOBAR:
                     if artery_obstruction > partial_obstruction_thresh:
-                        weight = edge_attrs["segments_below"]
-                        weights[(node, child)] = weight
-                        obstructions[(node, child)] = artery_obstruction
-
-                        if debug:
-                            degree_value = np.digitize(
-                                artery_obstruction, [partial_obstruction_thresh, total_obstruction_thresh]
-                            )
-                            artery_type = ArteryLevel(artery_level).name
-                            debug_info[(node, child)] = (
-                                f"{artery_type[0]}: {artery_obstruction:.2f} (w:{weight}, d:{degree_value})"
-                            )
+                        _save_edge_data((node, child), artery_level, edge_attrs["segments_below"], artery_obstruction)
                     else:
                         # Recursively visit children if artery is not obstructed enough
                         _depth_first_search(child)
                 case ArteryLevel.SEGMENTAL:
-                    weight = 1
-                    weights[(node, child)] = weight
-                    obstructions[(node, child)] = artery_obstruction
-
-                    if debug:
-                        degree_value = np.digitize(
-                            artery_obstruction, [partial_obstruction_thresh, total_obstruction_thresh]
-                        )
-                        artery_type = ArteryLevel(artery_level).name
-                        debug_info[(node, child)] = (
-                            f"{artery_type[0]}: {artery_obstruction:.2f} (w:{weight}, d:{degree_value})"
-                        )
+                    _save_edge_data((node, child), artery_level, 1, artery_obstruction)
                 case _:
                     artery_type = ArteryLevel(artery_level).name.lower()
                     raise ValueError(
