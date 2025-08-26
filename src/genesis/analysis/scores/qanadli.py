@@ -15,7 +15,7 @@ def qanadli(
     total_obstruction_thresh: float = 0.75,
     obstruction_attr: str = "transversal_obstruction_max",
     debug: bool = False,
-) -> float | tuple[float, list[tuple], list[str]]:
+) -> float | tuple[float, dict[tuple[int, int], str]]:
     """Compute the Qanadli score for a directed graph.
 
     Args:
@@ -27,12 +27,11 @@ def qanadli(
 
     Returns:
         float or tuple: If debug is False, returns the Qanadli score (float between 0 and 1).
-            If debug is True, returns a tuple (score, debug_edges, debug_labels).
+            If debug is True, returns a tuple (score, debug_info).
     """
     weights: dict[tuple[int, int], int] = {}
     obstructions: dict[tuple[int, int], float] = {}
-    debug_edges = []
-    debug_labels = []
+    debug_info: dict[tuple[int, int], str] = {}
 
     def _depth_first_search(node: Any) -> None:
         for child in graph.successors(node):
@@ -50,12 +49,11 @@ def qanadli(
                         obstructions[(node, child)] = artery_obstruction
 
                         if debug:
-                            debug_edges.append((node, child))
                             degree_value = np.digitize(
                                 artery_obstruction, [partial_obstruction_thresh, total_obstruction_thresh]
                             )
                             artery_type = ArteryLevel(artery_level).name
-                            debug_labels.append(
+                            debug_info[(node, child)] = (
                                 f"{artery_type[0]}: {artery_obstruction:.2f} (w:{weight}, d:{degree_value})"
                             )
                     else:
@@ -67,12 +65,11 @@ def qanadli(
                     obstructions[(node, child)] = artery_obstruction
 
                     if debug:
-                        debug_edges.append((node, child))
                         degree_value = np.digitize(
                             artery_obstruction, [partial_obstruction_thresh, total_obstruction_thresh]
                         )
                         artery_type = ArteryLevel(artery_level).name
-                        debug_labels.append(
+                        debug_info[(node, child)] = (
                             f"{artery_type[0]}: {artery_obstruction:.2f} (w:{weight}, d:{degree_value})"
                         )
                 case _:
@@ -86,7 +83,7 @@ def qanadli(
         list(weights.values()), list(obstructions.values()), partial_obstruction_thresh, total_obstruction_thresh
     )
     if debug:
-        return score, debug_edges, debug_labels
+        return score, debug_info
     return score
 
 

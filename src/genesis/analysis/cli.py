@@ -87,15 +87,10 @@ def _run_score(
     graph = json_to_networkx(p)
     log.info(f"Computing {score_fn.__name__} score...")
     if compute_kwargs.pop("debug", False):
-        score, dbg_edges, dbg_labels = score_fn(graph, obstruction_attr=obstruction_attr, debug=True, **compute_kwargs)
+        score, dbg_info = score_fn(graph, obstruction_attr=obstruction_attr, debug=True, **compute_kwargs)
         log.info(f"Score: {score}")
         log.info("Creating interactive visualization with debug info...")
-        pyvis_net = networkx_to_pyvis(
-            graph,
-            attr=obstruction_attr,
-            debug_edges=dbg_edges,
-            debug_labels=dbg_labels,
-        )
+        pyvis_net = networkx_to_pyvis(graph, attr=obstruction_attr, debug_info=dbg_info)
         pyvis_show(pyvis_net)
         log.info("Done. Open your browser to view it.")
     else:

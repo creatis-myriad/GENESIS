@@ -42,15 +42,14 @@ def networkx_to_pyvis(
     font_color: str = "#ffffff",
     min_edge_width: float = 0.4,
     max_edge_width: float = 30.0,
-    debug_edges: list[tuple] | None = None,
-    debug_labels: list[str] | None = None,
+    debug_info: dict[tuple[int, int], str] | None = None,
 ) -> Network:
     """Converts a directed NetworkX graph with attribute values to a PyVis Network, which can be visualized as HTML.
 
     Graph edges are colored based on their attribute values using a yellow-to-red
     colormap and sized (inversely) based on their `level` attribute.
     Node layout can be hierarchical or force-directed.
-    Optionally, display debug labels near specified edges for algorithm tracing.
+    Optionally, display debug info on specified edges to trace the algorithm's behavior.
 
     Args:
         graph: A NetworkX directed graph to visualize.
@@ -63,8 +62,7 @@ def networkx_to_pyvis(
         font_color: Font color in hex format.
         min_edge_width: Minimum edge width for highest levels.
         max_edge_width: Maximum edge width for lowest levels.
-        debug_edges: List of edge tuples (u, v) to annotate with labels.
-        debug_labels: List of debug label strings corresponding to `debug_edges`.
+        debug_info: Mapping between edge tuples (u, v) and their debug annotations.
 
     Returns:
         A PyVis Network instance representing the visualization.
@@ -85,13 +83,6 @@ def networkx_to_pyvis(
     # Add nodes from the NetworkX graph to the PyVis Network
     _add_nodes(net, graph)
 
-    # build debug map if annotations provided
-    debug_map: dict[tuple, str] = {}
-    if debug_edges is not None or debug_labels is not None:
-        if not debug_edges or not debug_labels or len(debug_edges) != len(debug_labels):
-            raise ValueError("`debug_edges` and `debug_labels` must both be provided and of equal length.")
-        debug_map = dict(zip(debug_edges, debug_labels, strict=False))
-
     # Prepare normalizers and colormap for edge styling
     attr_norm, level_norm, attr_cmap = _init_color_and_level_normalizers(graph, attr, level_attr)
     # Add styled edges from the NetworkX graph to the PyVis Network
@@ -105,7 +96,7 @@ def networkx_to_pyvis(
         attr_cmap,
         min_edge_width,
         max_edge_width,
-        debug_map,
+        debug_info=debug_info,
     )
 
     return net
@@ -159,7 +150,7 @@ def _add_edges(
     attr_cmap: LinearSegmentedColormap,
     min_edge_width: float,
     max_edge_width: float,
-    debug_map: dict[tuple, str] | None = None,
+    debug_info: dict[tuple, str] | None = None,
 ) -> None:
     """Add styled edges from a NetworkX graph to a PyVis Network.
 
@@ -176,9 +167,9 @@ def _add_edges(
         attr_cmap: Colormap for mapping normalized obstruction to RGB.
         min_edge_width: Minimum edge width for highest levels.
         max_edge_width: Maximum edge width for lowest levels.
-        debug_map: Optional mapping from edge (u, v) tuples to debug label strings.
+        debug_info: Mapping between edge tuples (u, v) and their debug annotations.
     """
-    debug_map = debug_map or {}
+    debug_info = debug_info or {}
     for u, v, data in graph.edges(data=True):
         obs = data[attr]
         r, g, b, _ = attr_cmap(attr_norm(obs))
@@ -194,9 +185,9 @@ def _add_edges(
             "title": f"{attr}: {obs:.2f} | {level_attr}: {lvl}",
             "arrows": "to",
         }
-        if (u, v) in debug_map:
-            edge_kwargs["label"] = debug_map[(u, v)]
-            if (u, v) in debug_map:
-                edge_kwargs["label"] = debug_map[(u, v)]
-                edge_kwargs["font"] = {"size": 33, "color": "#ffffff", "strokeWidth": 0, "align": "top", "vadjust": -50}
+
+        if (edge_debug_info := debug_info.get((u, v))) is not None:
+            edge_kwargs["label"] = edge_debug_info
+            edge_kwargs["font"] = {"size": 33, "color": "#ffffff", "strokeWidth": 0, "align": "top", "vadjust": -50}
+
         net.add_edge(u, v, **edge_kwargs)

@@ -15,7 +15,7 @@ def mastora(
     mode: str = "rmls",
     obstruction_attr: str = "transversal_obstruction_max",
     debug: bool = False,
-) -> float | tuple[float, list[tuple], list[str]]:
+) -> float | tuple[float, dict[tuple[int, int], str]]:
     """Compute the Mastora score for a directed graph.
 
     Args:
@@ -28,7 +28,7 @@ def mastora(
 
     Returns:
         float or tuple: If debug is False, returns the Mastora score (float between 0 and 1).
-            If debug is True, returns a tuple (score, debug_edges, debug_labels).
+            If debug is True, returns a tuple (score, debug_info).
     """
     map_lvl_shorthands_to_enum = {level.name.lower()[0]: level for level in ArteryLevel}
     if not set(mode) <= set(map_lvl_shorthands_to_enum.keys()):
@@ -40,8 +40,7 @@ def mastora(
     levels_to_search = {map_lvl_shorthands_to_enum[level_shorthand] for level_shorthand in mode}
 
     obstructions: dict[tuple[int, int], float] = {}
-    debug_edges = []
-    debug_labels = []
+    debug_info: dict[tuple[int, int], str] = {}
 
     def _depth_first_search(node: Any) -> None:
         for child in graph.successors(node):
@@ -52,9 +51,8 @@ def mastora(
                 obstructions[(node, child)] = artery_obstruction
 
                 if debug:
-                    debug_edges.append((node, child))
                     artery_type = ArteryLevel(artery_level).name
-                    debug_labels.append(f"{artery_type[0]}: {artery_obstruction:.2f}")
+                    debug_info[(node, child)] = f"{artery_type[0]}: {artery_obstruction:.2f}"
 
                 # Recursively visit children, only if artery is in a level to be inspected
                 _depth_first_search(child)
@@ -63,7 +61,7 @@ def mastora(
     score = _compute_mastora_score(list(obstructions.values()), use_percentage=use_percentage)
 
     if debug:
-        return score, debug_edges, debug_labels
+        return score, debug_info
     return score
 
 
