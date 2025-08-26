@@ -6,13 +6,13 @@ import networkx as nx
 from genesis.data.utils import networkx_find_root
 
 
-def max_ancestor_obstruction(
+def ancestors_obstruction_max(
     graph: nx.DiGraph,
     input_attr: str = "transversal_obstruction_max",
-    output_attr: str = "max_ancestor_obstruction",
+    output_attr: str = "ancestors_obstruction_max",
     **kwargs,
 ) -> nx.DiGraph:
-    """For each edge in the directed tree, add the maximum obstruction of its ancestors as a new attribute.
+    """For each edge in the directed tree, add the maximum obstruction from its ancestors as a new attribute.
 
     This function propagates new obstruction values in the vascular tree that are assumed to be more representative of
     the impact of upstream obstructions than local vessel obstruction values.
@@ -20,22 +20,22 @@ def max_ancestor_obstruction(
     Args:
         graph: Directed acyclic graph representing a tree.
         input_attr: Name of the edge attribute with the local obstruction values.
-        output_attr: Name of a new edge attribute where to store the maximum ancestor obstruction values.
+        output_attr: Name of a new edge attribute where to store the value derived from ancestor obstructions.
         **kwargs: Additional parameters to pass along to `update_edge_attr_top_down`.
 
     Returns:
-        A copy of `graph` where each edge has a new attribute with its maximum ancestor obstruction.
+        A copy of `graph` where each edge has as new attribute the maximum obstruction from its ancestors.
     """
     return update_edge_attr_top_down(graph, update_fn=max, input_attr=input_attr, output_attr=output_attr, **kwargs)
 
 
-def cumulated_ancestor_obstruction(
+def ancestors_obstruction_cumulated(
     graph: nx.DiGraph,
     input_attr: str = "transversal_obstruction_max",
-    output_attr: str = "cumulated_ancestor_obstruction",
+    output_attr: str = "ancestors_obstruction_cumulated",
     **kwargs,
 ) -> nx.DiGraph:
-    """For each edge in the directed tree, add a weighted function of its ancestors obstruction as a new attribute.
+    """For each edge in the directed tree, add a weighted function of its ancestors' obstructions as a new attribute.
 
     This function propagates new obstruction values in the vascular tree that are assumed to be more representative of
     the impact of upstream obstructions on vessel hemodynamic than local vessel obstruction values.
@@ -43,11 +43,11 @@ def cumulated_ancestor_obstruction(
     Args:
         graph: Directed acyclic graph representing a tree.
         input_attr: Name of the edge attribute with the local obstruction values.
-        output_attr: Name of a new edge attribute where to store the cumulated ancestor obstruction values.
+        output_attr: Name of a new edge attribute where to store the value derived from ancestor obstructions.
         **kwargs: Additional parameters to pass along to `update_edge_attr_top_down`.
 
     Returns:
-        A copy of `graph` where each edge has a new attribute with its cumulated ancestor obstruction
+        A copy of `graph` where each edge has as new attribute the weighted function of its ancestors' obstructions.
     """
 
     def cumulate_fn(parent_obstruction: float, own_obstruction: float) -> float:

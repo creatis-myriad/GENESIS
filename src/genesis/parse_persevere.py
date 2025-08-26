@@ -5,7 +5,7 @@ import hydra
 import networkx as nx
 from omegaconf import DictConfig
 
-from genesis.analysis.scores.vascular_tree import cumulated_ancestor_obstruction, max_ancestor_obstruction
+from genesis.analysis.scores.vascular_tree import ancestors_obstruction_cumulated, ancestors_obstruction_max
 from genesis.data.utils import (
     NumpyEncoder,
     networkx_add_attrs,
@@ -77,11 +77,11 @@ def hydra_main(cfg: DictConfig) -> None:
             )
 
             # Add cumulated and propagated obstruction attributes
-            graph = max_ancestor_obstruction(
-                graph, input_attr=cfg.obstruction.input_attr, output_attr=cfg.obstruction.max_ancestor_attr
+            graph = ancestors_obstruction_max(
+                graph, input_attr=cfg.obstruction.input_attr, output_attr=cfg.obstruction.ancestors_max_attr
             )
-            graph = cumulated_ancestor_obstruction(
-                graph, input_attr=cfg.obstruction.input_attr, output_attr=cfg.obstruction.cumulated_ancestor_attr
+            graph = ancestors_obstruction_cumulated(
+                graph, input_attr=cfg.obstruction.input_attr, output_attr=cfg.obstruction.ancestors_cumulated_attr
             )
 
             # Remove unnecessary attributes

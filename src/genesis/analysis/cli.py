@@ -270,7 +270,7 @@ def visualize(input_file: Path, graphs_dirs: list[Path], pattern: str, obstructi
     "-o",
     type=str,
     multiple=True,
-    default=["transversal_obstruction_max", "max_ancestors_obstruction", "cumulated_ancestors_obstruction"],
+    default=["transversal_obstruction_max", "ancestors_obstruction_max", "ancestors_obstruction_cumulated"],
     show_default=True,
     help="Edge attribute(s) to use as obstruction values to compute global scores (i.e. Mastora, Qanadli).",
 )

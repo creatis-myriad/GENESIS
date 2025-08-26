@@ -44,8 +44,8 @@ attrs_to_aggregate:
 
 obstruction:
   input_attr: transversal_obstruction_max # input attribute to use for obstruction
-  max_ancestor_attr: max_ancestor_obstruction # attribute where to save max ancestor obstruction
-  cumulated_ancestor_attr: cumulated_ancestor_obstruction # attribute where to save cumulated ancestor obstruction
+  ancestors_max_attr: ancestors_obstruction_max # attribute where to save max ancestor obstruction
+  ancestors_cumulated_attr: ancestors_obstruction_cumulated # attribute where to save cumulated ancestor obstruction
 
 clinical_data:
   target_attr: null # Disable the default target attribute, since we do not want to treat it differently at this stage

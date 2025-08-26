@@ -183,7 +183,7 @@ def networkx_aggregate_list_attrs(
                     case _:
                         raise NotImplementedError(f"Unsupported aggregation operation on '{attr}': {op}")
 
-                data[f"{op}_{attr}"] = v
+                data[f"{attr}_{op}"] = v
 
             if remove_original:
                 data.pop(attr, None)
