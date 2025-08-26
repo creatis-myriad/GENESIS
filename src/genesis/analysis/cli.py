@@ -116,9 +116,10 @@ def _run_score(
     "--mode",
     "-m",
     type=str,
-    default="mls",
+    default="rmls",
     show_default=True,
-    help="Artery levels to include: 'm' (mediastinal), 'l' (lobar), 's' (segmental). Any combination (e.g., 'mls').",
+    help="Artery levels to include: 'r' (root), 'm' (mediastinal), 'l' (lobar), 's' (segmental). "
+    "Any combination (e.g., 'rmls').",
 )
 @click.option(
     "--debug", "-d", is_flag=True, default=False, help="If set, show a debug visualization of the Mastora calculation."
@@ -143,7 +144,7 @@ def mastora(
         graphs_dirs: Directories to search for graph files.
         pattern: Glob pattern for locating the graph file.
         use_percentage: Treat obstruction values as percentages if True.
-        mode: Levels to include: combination of 'm', 'l', 's'.
+        mode: Levels to include: combination of 'r', 'm', 'l', 's'.
         obstruction_attr: Edge attribute for obstruction values.
         debug: Show debug visualization if True.
     """

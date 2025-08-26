@@ -6,12 +6,12 @@
 
 Score details in [formulas.md](scores/formulas.md#mastora-score).
 
-| **Description** | Compute Mastora score for pulmonary embolism risk assessment.                                                                                                                                                                                                          |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Usage**       | `eval-mastora INPUT_FILE [OPTIONS]`                                                                                                                                                                                                                                    |
-| **Input**       | JSON graph or patient ID (e.g. `0055`)                                                                                                                                                                                                                                 |
-| **Options**     | `--use-percentage, -p` : treat degrees as percentages (0–1)<br>`--mode, -m TEXT` : artery levels (‘m’, ‘l’, ‘s’), default: `mls`<br>`--obstruction-attr, -o TEXT` : edge attribute, default: `transversal_obstruction_max`<br>`--debug, -d` : show debug visualization |
-| **Examples**    | `eval-mastora 55`<br>`eval-mastora 0055 -p -m ml`<br>`eval-mastora 0055 -d`                                                                                                                                                                                            |
+| **Description** | Compute Mastora score for pulmonary embolism risk assessment.                                                                                                                                                                                                                |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Usage**       | `eval-mastora INPUT_FILE [OPTIONS]`                                                                                                                                                                                                                                          |
+| **Input**       | JSON graph or patient ID (e.g. `0055`)                                                                                                                                                                                                                                       |
+| **Options**     | `--use-percentage, -p` : treat degrees as percentages (0–1)<br>`--mode, -m TEXT` : artery levels ('r', ‘m’, ‘l’, ‘s’), default: `rmls`<br>`--obstruction-attr, -o TEXT` : edge attribute, default: `transversal_obstruction_max`<br>`--debug, -d` : show debug visualization |
+| **Examples**    | `eval-mastora 55`<br>`eval-mastora 0055 -p -m ml`<br>`eval-mastora 0055 -d`                                                                                                                                                                                                  |
 
 ### ▶️ `eval-qanadli`
 

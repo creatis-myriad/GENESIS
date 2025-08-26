@@ -1,9 +1,19 @@
 from collections.abc import Callable
+from enum import IntEnum
 from typing import Any
 
 import networkx as nx
 
 from genesis.data.utils import networkx_find_root
+
+
+class ArteryLevel(IntEnum):
+    """Enum of hierarchical levels of arteries considered by pulmonary embolism obstruction scores."""
+
+    ROOT = 1
+    MEDIASTINAL = 2
+    LOBAR = 3
+    SEGMENTAL = 4
 
 
 def ancestors_obstruction_max(

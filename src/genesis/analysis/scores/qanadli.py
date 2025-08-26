@@ -4,6 +4,7 @@ import networkx as nx
 import numpy as np
 
 from genesis.analysis.scores.utils import aggregate_score_input
+from genesis.analysis.scores.vascular_tree import ArteryLevel
 from genesis.data.utils import networkx_find_root
 
 
@@ -28,83 +29,65 @@ def qanadli(
         float or tuple: If debug is False, returns the Qanadli score (float between 0 and 1).
             If debug is True, returns a tuple (score, debug_edges, debug_labels).
     """
-    root = networkx_find_root(graph)
-    weights: list[int] = []
-    obstruction_vals: list[float] = []
-    debug_edges: list[tuple] = []
-    debug_labels: list[str] = []
+    weights: dict[tuple[int, int], int] = {}
+    obstructions: dict[tuple[int, int], float] = {}
+    debug_edges = []
+    debug_labels = []
 
     def _depth_first_search(node: Any) -> None:
         for child in graph.successors(node):
             edge_attrs = graph.edges[node, child]
             artery_obstruction = edge_attrs[obstruction_attr]
-            artery_type = _get_artery_type(edge_attrs)
 
-            if artery_type == "mediastinal" or artery_type == "lobar":
-                if artery_obstruction > partial_obstruction_thresh:
-                    weight = edge_attrs["segments_below"]
-                    weights.append(weight)
-                    obstruction_vals.append(artery_obstruction)
+            match artery_level := edge_attrs["level"]:
+                case ArteryLevel.ROOT:
+                    # Recursively visit children, but do not add root arteries to the score
+                    _depth_first_search(child)
+                case ArteryLevel.MEDIASTINAL | ArteryLevel.LOBAR:
+                    if artery_obstruction > partial_obstruction_thresh:
+                        weight = edge_attrs["segments_below"]
+                        weights[(node, child)] = weight
+                        obstructions[(node, child)] = artery_obstruction
+
+                        if debug:
+                            debug_edges.append((node, child))
+                            degree_value = np.digitize(
+                                artery_obstruction, [partial_obstruction_thresh, total_obstruction_thresh]
+                            )
+                            artery_type = ArteryLevel(artery_level).name
+                            debug_labels.append(
+                                f"{artery_type[0]}: {artery_obstruction:.2f} (w:{weight}, d:{degree_value})"
+                            )
+                    else:
+                        # Recursively visit children if artery is not obstructed enough
+                        _depth_first_search(child)
+                case ArteryLevel.SEGMENTAL:
+                    weight = 1
+                    weights[(node, child)] = weight
+                    obstructions[(node, child)] = artery_obstruction
 
                     if debug:
                         debug_edges.append((node, child))
                         degree_value = np.digitize(
                             artery_obstruction, [partial_obstruction_thresh, total_obstruction_thresh]
                         )
+                        artery_type = ArteryLevel(artery_level).name
                         debug_labels.append(
-                            f"{artery_type[0].upper()}: {artery_obstruction:.2f} (w:{weight}, d:{degree_value})"
+                            f"{artery_type[0]}: {artery_obstruction:.2f} (w:{weight}, d:{degree_value})"
                         )
-                else:
-                    _depth_first_search(child)
-            elif artery_type == "segmental":
-                weights.append(1)
-                obstruction_vals.append(artery_obstruction)
-
-                if debug:
-                    debug_edges.append((node, child))
-                    degree_value = np.digitize(
-                        artery_obstruction, [partial_obstruction_thresh, total_obstruction_thresh]
+                case _:
+                    artery_type = ArteryLevel(artery_level).name.lower()
+                    raise ValueError(
+                        f"Unexpected artery level '{artery_level} ({artery_type})' for edge ({node}, {child})"
                     )
-                    debug_labels.append(f"S: {artery_obstruction:.2f} (w:1, d:{degree_value})")
-            elif artery_type == "root":
-                _depth_first_search(child)
 
-    _depth_first_search(root)
-    score = (
-        _compute_qanadli_score(weights, obstruction_vals, partial_obstruction_thresh, total_obstruction_thresh)
-        if obstruction_vals
-        else 0.0
+    _depth_first_search(networkx_find_root(graph))
+    score = _compute_qanadli_score(
+        list(weights.values()), list(obstructions.values()), partial_obstruction_thresh, total_obstruction_thresh
     )
-    return score, debug_edges, debug_labels if debug_edges else score
-
-
-def _get_artery_type(edge: dict[str, Any]) -> str:
-    """Get the type of artery based on the edge attributes.
-
-    Args:
-        edge: Edge attributes containing 'level'.
-
-    Returns:
-        Type of artery ('root', 'mediastinal', 'lobar' or 'segmental').
-    """
-    match edge["level"]:
-        case 1:
-            artery_type = "root"
-        case 2:
-            artery_type = "mediastinal"
-        case 3:
-            # Previous implementation is commented below for reference, although it does not seem to be able to return
-            # anything other than "lobar"
-            # if all(succ.get("level", 0) == 4 for succ in edge.get("successors", [])):
-            #     return "lobar"  # return "segmental" in normal cases
-            # return "lobar"
-            artery_type = "lobar"
-        case 4:
-            artery_type = "segmental"
-        case _:
-            artery_type = ""
-
-    return artery_type
+    if debug:
+        return score, debug_edges, debug_labels
+    return score
 
 
 def _compute_qanadli_score(

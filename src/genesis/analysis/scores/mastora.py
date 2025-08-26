@@ -4,6 +4,7 @@ import networkx as nx
 import numpy as np
 
 from genesis.analysis.scores.utils import aggregate_score_input
+from genesis.analysis.scores.vascular_tree import ArteryLevel
 from genesis.data.utils import networkx_find_root
 
 
@@ -11,7 +12,7 @@ from genesis.data.utils import networkx_find_root
 def mastora(
     graph: nx.DiGraph,
     use_percentage: bool = False,
-    mode: str = "mls",
+    mode: str = "rmls",
     obstruction_attr: str = "transversal_obstruction_max",
     debug: bool = False,
 ) -> float | tuple[float, list[tuple], list[str]]:
@@ -20,8 +21,8 @@ def mastora(
     Args:
         graph: Directed graph representing the arterial tree.
         use_percentage: If set, use obstruction ratio directly. Otherwise, convert to discrete {1...5} point scale.
-        mode: Artery levels to include: 'm' (mediastinal), 'l' (lobar), 's' (segmental).
-            Combinations of multiple levels (e.g., 'mls') are also accepted.
+        mode: Artery levels to include: 'r' (root), 'm' (mediastinal), 'l' (lobar), 's' (segmental).
+            Combinations of multiple levels (e.g., 'rmls') are also accepted.
         obstruction_attr: The name of the edge attribute to use for obstruction values.
         debug: If True, return debug information for visualization.
 
@@ -29,38 +30,37 @@ def mastora(
         float or tuple: If debug is False, returns the Mastora score (float between 0 and 1).
             If debug is True, returns a tuple (score, debug_edges, debug_labels).
     """
-    level_map = {
-        "m": [1, 2],  # mediastinal
-        "l": [3],  # lobar
-        "s": [4],  # segmental
-    }
-    levels = [lvl for key in mode for lvl in level_map[key]]
+    map_lvl_shorthands_to_enum = {level.name.lower()[0]: level for level in ArteryLevel}
+    if not set(mode) <= set(map_lvl_shorthands_to_enum.keys()):
+        raise ValueError(
+            f"Invalid mode '{mode}'. Allowed levels are {list(map_lvl_shorthands_to_enum.keys())}, "
+            f"or any combination of them (e.g. '{''.join(map_lvl_shorthands_to_enum.keys())}')."
+        )
+    # Determine numerical levels for which to look for obstructions, based on requested artery levels
+    levels_to_search = {map_lvl_shorthands_to_enum[level_shorthand] for level_shorthand in mode}
 
+    obstructions: dict[tuple[int, int], float] = {}
     debug_edges = []
     debug_labels = []
 
-    def _depth_first_search(node: Any) -> list:
-        obstruction_vals = []
-        for succ in graph.successors(node):
-            attrs = graph.edges[node, succ]
-            if attrs["level"] in levels:
-                artery_obstruction = attrs[obstruction_attr]
-                obstruction_vals.append(artery_obstruction)
+    def _depth_first_search(node: Any) -> None:
+        for child in graph.successors(node):
+            edge_attrs = graph.edges[node, child]
+            artery_obstruction = edge_attrs[obstruction_attr]
+
+            if (artery_level := edge_attrs["level"]) in levels_to_search:
+                obstructions[(node, child)] = artery_obstruction
 
                 if debug:
-                    debug_edges.append((node, succ))
-                    artery_level = attrs["level"]
-                    level_type = (
-                        "M" if artery_level in level_map["m"] else "L" if artery_level in level_map["l"] else "S"
-                    )
-                    debug_labels.append(f"{level_type}: {artery_obstruction:.2f}")
+                    debug_edges.append((node, child))
+                    artery_type = ArteryLevel(artery_level).name
+                    debug_labels.append(f"{artery_type[0]}: {artery_obstruction:.2f}")
 
-            obstruction_vals.extend(_depth_first_search(succ))
-        return obstruction_vals
+                # Recursively visit children, only if artery is in a level to be inspected
+                _depth_first_search(child)
 
-    root = networkx_find_root(graph)
-    obstruction_vals = _depth_first_search(root)
-    score = _compute_mastora_score(obstruction_vals, use_percentage) if obstruction_vals else 0.0
+    _depth_first_search(networkx_find_root(graph))
+    score = _compute_mastora_score(list(obstructions.values()), use_percentage=use_percentage)
 
     if debug:
         return score, debug_edges, debug_labels
