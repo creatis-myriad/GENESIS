@@ -25,7 +25,9 @@ def aggregate_score_input(score_fn: Callable) -> Callable:
         # Only aggregate if we don't detect the aggregated attribute already exists
         if not networkx_has_edge_attributes(graph, attrs=[obstruction_attr]):
             base_obstr_attr, agg = obstruction_attr.rsplit("_", 1)
-            graph = networkx_aggregate_list_attrs(graph, {base_obstr_attr: [agg]}, element="edges")
+            # If debugging, modify graph in place to retain aggregated attributes for visualization
+            in_place = kwargs.get("debug", False)
+            graph = networkx_aggregate_list_attrs(graph, {base_obstr_attr: [agg]}, element="edges", in_place=in_place)
         return score_fn(graph, *args, obstruction_attr=obstruction_attr, **kwargs)
 
     return _aggregate_and_score
