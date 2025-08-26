@@ -65,6 +65,7 @@ def update_edge_attr_top_down(
     input_attr: str,
     output_attr: str | None = None,
     root: Any = None,
+    in_place: bool = False,
 ) -> nx.DiGraph:
     """In a directed tree, update edge attributes based on their own value and their parent's, starting from a root.
 
@@ -75,9 +76,10 @@ def update_edge_attr_top_down(
         output_attr: Name of a new edge attribute where to store the updated values. If not provided, "input_attr" will
             be updated.
         root: The root node (in-degree == 0). If None, it is auto-detected. Defaults to None.
+        in_place: If True, modify the input graph in place. Otherwise, return a modified copy of the graph.
 
     Returns:
-        A copy of `graph` where each edge has a new/updated attribute.
+        Graph where each edge has a new/updated attribute.
 
     Raises:
         ValueError: If `graph` is not a valid arborescence.
@@ -85,9 +87,11 @@ def update_edge_attr_top_down(
     if output_attr is None:
         output_attr = input_attr
 
-    graph = graph.copy()
     if root is None:
         root = networkx_find_root(graph)
+
+    if not in_place:
+        graph = graph.copy()
 
     def _depth_first_traversal(node: Any, parent_attr_val: float) -> None:
         for child in graph.successors(node):

@@ -56,7 +56,7 @@ def networkx_line_graph(graph: nx.Graph) -> nx.Graph:
 
 
 def networkx_add_attrs(
-    graph: nx.Graph, element: Literal["graph", "nodes", "edges", "links"], attrs: dict[str, Any]
+    graph: nx.Graph, element: Literal["graph", "nodes", "edges", "links"], attrs: dict[str, Any], in_place: bool = False
 ) -> nx.Graph:
     """Add attributes to the graph, nodes, or edges.
 
@@ -64,10 +64,14 @@ def networkx_add_attrs(
         graph: NetworkX graph.
         element: Element to add attributes to; should be 'graph', 'nodes', or 'edges'/'links'.
         attrs: Attributes to add.
+        in_place: If True, modify the input graph in place. Otherwise, return a modified copy of the graph.
 
     Returns:
         Graph with added attributes.
     """
+    if not in_place:
+        graph = graph.copy()
+
     match element:
         case "graph":
             graph.graph.update(attrs)
@@ -77,11 +81,12 @@ def networkx_add_attrs(
             nx.set_edge_attributes(graph, attrs)
         case _:
             raise ValueError("Element must be 'graph', 'nodes', or 'edges'/'links'.")
+
     return graph
 
 
 def networkx_remove_attrs(
-    graph: nx.Graph, element: Literal["graph", "nodes", "edges", "links"], attrs: list[str]
+    graph: nx.Graph, element: Literal["graph", "nodes", "edges", "links"], attrs: list[str], in_place: bool = False
 ) -> nx.Graph:
     """Remove attributes from the graph, nodes, or edges.
 
@@ -89,10 +94,14 @@ def networkx_remove_attrs(
         graph: NetworkX graph.
         element: Element to remove attributes from; should be 'graph', 'nodes', or 'edges'/'links'.
         attrs: Attributes to remove.
+        in_place: If True, modify the input graph in place. Otherwise, return a modified copy of the graph.
 
     Returns:
         Graph with removed attributes.
     """
+    if not in_place:
+        graph = graph.copy()
+
     match element:
         case "graph":
             for attr in attrs:
@@ -107,20 +116,27 @@ def networkx_remove_attrs(
                     edge_attrs.pop(attr, None)
         case _:
             raise ValueError("Element must be 'graph', 'nodes', or 'edges'/'links'.")
+
     return graph
 
 
-def networkx_setdefault_attrs(graph: nx.Graph, element: Literal["nodes", "edges", "links"], default: Any) -> nx.Graph:
+def networkx_setdefault_attrs(
+    graph: nx.Graph, element: Literal["nodes", "edges", "links"], default: Any, in_place: bool = False
+) -> nx.Graph:
     """Set default attribute values if not present in all nodes or edges.
 
     Args:
         graph: NetworkX graph.
         element: Element to set default attribute values; should be 'nodes' or 'edges'/'links'.
         default: Default value to set for missing attributes.
+        in_place: If True, modify the input graph in place. Otherwise, return a modified copy of the graph.
 
     Returns:
-        Graph with zero-covered attributes.
+        Graph with missing attributes set to the default value.
     """
+    if not in_place:
+        graph = graph.copy()
+
     match element:
         case "nodes":
             all_node_attrs = {node_attr for _, node_attrs in graph.nodes(data=True) for node_attr in node_attrs}
@@ -134,6 +150,7 @@ def networkx_setdefault_attrs(graph: nx.Graph, element: Literal["nodes", "edges"
                     edge_attrs.setdefault(key, default)
         case _:
             raise ValueError("Element must be 'nodes' or 'edges'/'links'.")
+
     return graph
 
 
@@ -142,6 +159,7 @@ def networkx_aggregate_list_attrs(
     agg_func: dict[str, list[Literal["sum", "max", "min", "mean"]]],
     element: Literal["nodes", "edges", "links"],
     remove_original: bool = False,
+    in_place: bool = False,
 ) -> nx.Graph:
     """Aggregate list-valued attributes on nodes or edges.
 
@@ -152,9 +170,10 @@ def networkx_aggregate_list_attrs(
         agg_func: Mapping from attribute name to aggregation operators to apply.
         element: Elements on which to aggregate attribute values: should be 'nodes' or 'edges'/'links'.
         remove_original: If True, drop the original list-valued attribute after aggregation.
+        in_place: If True, modify the input graph in place. Otherwise, return a modified copy of the graph.
 
     Returns:
-        The same graph, mutated in-place with new scalar attributes.
+        Graph with new scalar attributes, aggregated from list-valued ones.
 
     Raises:
         ValueError: if `element` is not one of "nodes" or "edges"/"links".
@@ -162,6 +181,9 @@ def networkx_aggregate_list_attrs(
     """
     if element not in ("nodes", "edges", "links"):
         raise ValueError("`element` must be either 'nodes' or 'edges'/'links'.")
+
+    if not in_place:
+        graph = graph.copy()
 
     # Supported operations
     for attr, ops in agg_func.items():
