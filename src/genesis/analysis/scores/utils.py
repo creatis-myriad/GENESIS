@@ -1,3 +1,4 @@
+import inspect
 from collections.abc import Callable
 from functools import wraps
 from typing import Any
@@ -5,29 +6,96 @@ from typing import Any
 import networkx as nx
 
 from genesis.data.utils import networkx_aggregate_attrs, networkx_has_edge_attributes
+from genesis.utils.builtin import is_identical_function
 
 
-def aggregate_score_input(score_fn: Callable) -> Callable:
-    """Decorator to aggregate list-valued edge attributes used as input by global obstruction scores.
+def derive_missing_obstruction_attrs(graph_arg: int | str, attrs_args: list[int | str]) -> Callable:
+    """Decorator to derive graph obstruction attributes on-the-fly from other attributes.
 
-    The decorator ensures that the requested edge-wise aggregation of the base obstruction score is available
-    for the global obstruction score computation.
+    The decorator ensures that the requested obstruction attributes are available for the decorated function.
+    If the obstruction attributes are already present in the graph, they are not recomputed.
 
     Args:
-        score_fn: Base scoring function that takes aggregated inputs and produces a global score.
+        graph_arg: Arg pos or kwarg name in the decorated function that contains the NetworkX graph.
+        attrs_args: Arg pos or kwarg names in the decorated function that contain obstruction attribute(s) to make sure
+            are present in the graph.
+
+    Notes:
+        - The decorated function must support an `in_place` kwarg to specify whether to modify the input graph in place
+          or return a modified copy.
 
     Returns:
-        A function that computes the global score after aggregating the required edge attributes.
+        Decorated function where the requested obstruction attributes are ensured to be present in the graph.
     """
 
-    @wraps(score_fn)
-    def _aggregate_and_score(graph: nx.DiGraph, *args, obstruction_attr: str, **kwargs) -> Any:
-        # Only aggregate if we don't detect the aggregated attribute already exists
-        if not networkx_has_edge_attributes(graph, attrs=[obstruction_attr]):
-            base_obstr_attr, agg = obstruction_attr.rsplit("_", 1)
-            # If debugging, modify graph in place to retain aggregated attributes for visualization
-            in_place = kwargs.get("debug", False)
-            graph = networkx_aggregate_attrs(graph, {base_obstr_attr: agg}, element="edges", in_place=in_place)
-        return score_fn(graph, *args, obstruction_attr=obstruction_attr, **kwargs)
+    def _derive_missing_obstruction_attrs_decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def _derive_and_call(*args, **kwargs) -> Any:
+            # Import locally to avoid circular imports
+            from genesis.analysis.scores.mastora import mastora  # noqa: PLC0415
+            from genesis.analysis.scores.qanadli import qanadli  # noqa: PLC0415
+            from genesis.analysis.scores.vascular_tree import (  # noqa: PLC0415
+                ancestors_obstruction_cumulated,
+                ancestors_obstruction_max,
+            )
 
-    return _aggregate_and_score
+            def _get_arg_val(pos_or_name: int | str) -> Any:
+                if isinstance(pos_or_name, int):
+                    if pos_or_name < len(args):
+                        return args[pos_or_name]
+                    raise IndexError(f"Argument position {pos_or_name} out of range for function '{func.__name__}'")
+                if isinstance(pos_or_name, str):
+                    if kwarg := kwargs.get(pos_or_name):  # First check in supplied kwargs
+                        return kwarg
+                    # If not in kwargs, check in function signature parameters not overridden by supplied args
+                    if parameter := inspect.signature(func).parameters.get(pos_or_name):
+                        return parameter.default
+                    raise KeyError(f"Keyword argument '{pos_or_name}' not found for function '{func.__name__}'")
+                raise TypeError(
+                    f"Argument specifier {pos_or_name} in `derive_missing_obstruction_attrs` decorator must be an "
+                    f"int (positional arg) or str (keyword arg)."
+                )
+
+            graph: nx.DiGraph = _get_arg_val(graph_arg)
+            attrs: list[str] = []
+            for attrs_arg in attrs_args:  # For each argument that may contain one or more attributes
+                arg_val = _get_arg_val(attrs_arg)
+                if isinstance(arg_val, str):  # If single attribute, append it
+                    attrs.append(arg_val)
+                else:  # If list of attributes, extend the list
+                    attrs.extend(arg_val)
+
+            # Forward the `in_place` kwarg if present, to make sure attributes derived recursively follow the same
+            # graph update logic
+            in_place = kwargs.get("in_place", False)
+            # For Mastora and Qanadli score functions, if debugging, force in place graph update to keep derived
+            # attributes for visualization
+            if is_identical_function(func, mastora) or is_identical_function(func, qanadli):
+                in_place = in_place or kwargs.get("debug")
+
+            for attr in attrs:
+                # Only compute attribute if it is not available
+                if not networkx_has_edge_attributes(graph, attrs=[attr]):
+                    match attr:
+                        case "ancestors_obstruction_max":
+                            graph = ancestors_obstruction_max(graph, in_place=in_place)
+                        case "ancestors_obstruction_cumulated":
+                            graph = ancestors_obstruction_cumulated(graph, in_place=in_place)
+                        case _:  # If not a special case, aggregate existing attributes based on name and suffix
+                            # Determine base attribute and aggregation function from the attribute's name
+                            base_attr, agg = attr.rsplit("_", 1)
+                            graph = networkx_aggregate_attrs(
+                                graph, {base_attr: agg}, element="edges", in_place=in_place
+                            )
+
+                if isinstance(graph_arg, int):
+                    args = list(args)
+                    args[graph_arg] = graph
+                else:
+                    kwargs[graph_arg] = graph
+
+            return func(*args, **kwargs)
+
+        return _derive_and_call
+
+    return _derive_missing_obstruction_attrs_decorator

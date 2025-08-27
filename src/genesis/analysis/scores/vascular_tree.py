@@ -4,6 +4,7 @@ from typing import Any
 
 import networkx as nx
 
+from genesis.analysis.scores.utils import derive_missing_obstruction_attrs
 from genesis.data.utils import networkx_find_root
 
 
@@ -16,6 +17,7 @@ class ArteryLevel(IntEnum):
     SEGMENTAL = 4
 
 
+@derive_missing_obstruction_attrs(graph_arg=0, attrs_args=["input_attr"])
 def ancestors_obstruction_max(
     graph: nx.DiGraph,
     input_attr: str = "transversal_obstruction_max",
@@ -39,6 +41,7 @@ def ancestors_obstruction_max(
     return update_edge_attr_top_down(graph, update_fn=max, input_attr=input_attr, output_attr=output_attr, **kwargs)
 
 
+@derive_missing_obstruction_attrs(graph_arg=0, attrs_args=["input_attr"])
 def ancestors_obstruction_cumulated(
     graph: nx.DiGraph,
     input_attr: str = "transversal_obstruction_max",
