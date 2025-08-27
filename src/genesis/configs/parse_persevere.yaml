@@ -39,7 +39,7 @@ attrs_to_remove:
 
 attrs_to_aggregate:
   links:
-    transversal_obstruction: [max] # aggregation function among max, min, mean and sum
+    transversal_obstruction: max # aggregation function among max, min, mean and sum
   remove_original: true # remove the original attributes after aggregation
 
 obstruction:

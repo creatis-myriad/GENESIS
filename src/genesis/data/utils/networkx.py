@@ -154,9 +154,9 @@ def networkx_setdefault_attrs(
     return graph
 
 
-def networkx_aggregate_list_attrs(
+def networkx_aggregate_attrs(
     graph: nx.Graph,
-    agg_func: dict[str, list[Literal["sum", "max", "min", "mean"]]],
+    agg_func: dict[str, Literal["sum", "max", "min", "mean"] | list[Literal["sum", "max", "min", "mean"]]],
     element: Literal["nodes", "edges", "links"],
     remove_original: bool = False,
     in_place: bool = False,
@@ -167,7 +167,7 @@ def networkx_aggregate_list_attrs(
 
     Args:
         graph: NetworkX graph whose nodes or edges hold list-valued attrs.
-        agg_func: Mapping from attribute name to aggregation operators to apply.
+        agg_func: Mapping from attribute name to aggregation operator(s) to apply.
         element: Elements on which to aggregate attribute values: should be 'nodes' or 'edges'/'links'.
         remove_original: If True, drop the original list-valued attribute after aggregation.
         in_place: If True, modify the input graph in place. Otherwise, return a modified copy of the graph.
@@ -187,6 +187,9 @@ def networkx_aggregate_list_attrs(
 
     # Supported operations
     for attr, ops in agg_func.items():
+        if isinstance(ops, str):  # If a single op is provided for the attribute, wrap it in a list
+            ops = [ops]  # noqa: PLW2901
+
         # Re-create iterator for each attribute
         items = graph.nodes(data=True) if element == "nodes" else graph.edges(data=True)
         for *_, data in items:

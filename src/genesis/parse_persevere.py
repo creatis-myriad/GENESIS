@@ -9,7 +9,7 @@ from genesis.analysis.scores.vascular_tree import ancestors_obstruction_cumulate
 from genesis.data.utils import (
     NumpyEncoder,
     networkx_add_attrs,
-    networkx_aggregate_list_attrs,
+    networkx_aggregate_attrs,
     networkx_remove_attrs,
     networkx_setdefault_attrs,
 )
@@ -69,10 +69,10 @@ def hydra_main(cfg: DictConfig) -> None:
             graph = networkx_add_attrs(graph, "graph", patient_attrs)
 
             # Aggregate list attributes to scalar values
-            graph = networkx_aggregate_list_attrs(
+            graph = networkx_aggregate_attrs(
                 graph, agg_cfg.get("nodes", {}), "nodes", remove_original=agg_cfg.remove_original
             )
-            graph = networkx_aggregate_list_attrs(
+            graph = networkx_aggregate_attrs(
                 graph, agg_cfg.get(edges_key, {}), edges_key, remove_original=agg_cfg.remove_original
             )
 

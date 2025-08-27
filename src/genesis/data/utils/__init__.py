@@ -1,6 +1,6 @@
 from .networkx import (  # noqa: I001 # must be imported before io package to avoid circular import
     networkx_add_attrs,
-    networkx_aggregate_list_attrs,
+    networkx_aggregate_attrs,
     networkx_find_root,
     networkx_line_graph,
     networkx_has_edge_attributes,
@@ -20,7 +20,7 @@ __all__ = [
     "json_to_pyg",
     "load_nifti",
     "networkx_add_attrs",
-    "networkx_aggregate_list_attrs",
+    "networkx_aggregate_attrs",
     "networkx_find_root",
     "networkx_has_edge_attributes",
     "networkx_has_node_attributes",

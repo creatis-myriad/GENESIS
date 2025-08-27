@@ -4,7 +4,7 @@ from typing import Any
 
 import networkx as nx
 
-from genesis.data.utils import networkx_aggregate_list_attrs, networkx_has_edge_attributes
+from genesis.data.utils import networkx_aggregate_attrs, networkx_has_edge_attributes
 
 
 def aggregate_score_input(score_fn: Callable) -> Callable:
@@ -27,7 +27,7 @@ def aggregate_score_input(score_fn: Callable) -> Callable:
             base_obstr_attr, agg = obstruction_attr.rsplit("_", 1)
             # If debugging, modify graph in place to retain aggregated attributes for visualization
             in_place = kwargs.get("debug", False)
-            graph = networkx_aggregate_list_attrs(graph, {base_obstr_attr: [agg]}, element="edges", in_place=in_place)
+            graph = networkx_aggregate_attrs(graph, {base_obstr_attr: agg}, element="edges", in_place=in_place)
         return score_fn(graph, *args, obstruction_attr=obstruction_attr, **kwargs)
 
     return _aggregate_and_score
