@@ -88,9 +88,7 @@ test = [
 gnn-train = "genesis.train:main"
 gnn-eval = "genesis.eval:main"
 persevere-parse = "genesis.parse_persevere:main"
-eval-mastora = "genesis.analysis.cli.mastora:mastora"
-eval-qanadli = "genesis.analysis.cli.qanadli:qanadli"
-eval-visualize = "genesis.analysis.cli.visualize:visualize"
+eval-graph = "genesis.analysis.cli.graph:eval_graph"
 eval-correlate = "genesis.analysis.cli.correlate:correlate"
 
 [build-system]

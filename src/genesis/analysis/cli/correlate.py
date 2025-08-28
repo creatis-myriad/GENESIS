@@ -7,7 +7,7 @@ import click
 import rootutils
 
 from genesis.analysis.analysis import correlate_and_plot
-from genesis.analysis.cli.common import graph_loading_params
+from genesis.analysis.cli.parameters import graph_loading_params
 
 
 @click.command()
