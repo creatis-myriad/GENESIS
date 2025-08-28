@@ -39,7 +39,10 @@ def compute_global_obstruction_scores(
             try:
                 graph_file = find_graph_file(patient_id, search_dirs=graphs_dirs)
             except FileNotFoundError:
-                # Skip patient if no associated vascular tree graph is found
+                continue  # Skip patient if no associated vascular tree graph is found
+            except RuntimeError:
+                # Log and skip if multiple files are found
+                log.exception("", exc_info=True)
                 continue
 
             try:
@@ -52,6 +55,9 @@ def compute_global_obstruction_scores(
                     f"Error processing graph for patient {patient_id} with attr {attr}: {e}",
                     exc_info=True,
                 )
+
+    if not obstruction_records:
+        raise AssertionError(f"No graphs could be processed from directories: {graphs_dirs}.")
 
     return pd.merge(clinical_data, pd.DataFrame(obstruction_records), on=["patient_id"])
 

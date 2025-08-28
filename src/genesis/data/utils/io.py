@@ -129,8 +129,8 @@ def find_graph_file(
         The unique matching JSON Path.
 
     Raises:
-        FileNotFoundError if no match, or
-        FileNotFoundError if more than one unique match is found.
+        FileNotFoundError: if no match, or
+        RuntimeError: if more than one unique match is found.
     """
     input_file = Path(input_file)
 
@@ -153,5 +153,5 @@ def find_graph_file(
     if not unique:
         raise FileNotFoundError(f"No graph JSON found for ID='{patient_id}' (pattern='{pattern}').")
     if len(unique) > 1:
-        raise FileNotFoundError(f"Multiple matches for ID='{patient_id}' (pattern='{pattern}'): {list(unique)}")
+        raise RuntimeError(f"Multiple matches for ID='{patient_id}' (pattern='{pattern}'): {list(unique)}")
     return unique.pop()
