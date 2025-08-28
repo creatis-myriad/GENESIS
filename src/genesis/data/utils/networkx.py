@@ -55,9 +55,9 @@ def networkx_line_graph(graph: nx.Graph) -> nx.Graph:
     return dual_graph
 
 
-def networkx_add_attrs(
-    graph: nx.Graph, element: Literal["graph", "nodes", "edges", "links"], attrs: dict[str, Any], in_place: bool = False
-) -> nx.Graph:
+def networkx_add_attrs[G: nx.Graph](
+    graph: G, element: Literal["graph", "nodes", "edges", "links"], attrs: dict[str, Any], in_place: bool = False
+) -> G:
     """Add attributes to the graph, nodes, or edges.
 
     Args:
@@ -85,9 +85,9 @@ def networkx_add_attrs(
     return graph
 
 
-def networkx_remove_attrs(
-    graph: nx.Graph, element: Literal["graph", "nodes", "edges", "links"], attrs: list[str], in_place: bool = False
-) -> nx.Graph:
+def networkx_remove_attrs[G: nx.Graph](
+    graph: G, element: Literal["graph", "nodes", "edges", "links"], attrs: list[str], in_place: bool = False
+) -> G:
     """Remove attributes from the graph, nodes, or edges.
 
     Args:
@@ -120,9 +120,9 @@ def networkx_remove_attrs(
     return graph
 
 
-def networkx_setdefault_attrs(
-    graph: nx.Graph, element: Literal["nodes", "edges", "links"], default: Any, in_place: bool = False
-) -> nx.Graph:
+def networkx_setdefault_attrs[G: nx.Graph](
+    graph: G, element: Literal["nodes", "edges", "links"], default: Any, in_place: bool = False
+) -> G:
     """Set default attribute values if not present in all nodes or edges.
 
     Args:
@@ -154,13 +154,13 @@ def networkx_setdefault_attrs(
     return graph
 
 
-def networkx_aggregate_attrs(
-    graph: nx.Graph,
+def networkx_aggregate_attrs[G: nx.Graph](
+    graph: G,
     agg_func: dict[str, Literal["sum", "max", "min", "mean"] | list[Literal["sum", "max", "min", "mean"]]],
     element: Literal["nodes", "edges", "links"],
     remove_original: bool = False,
     in_place: bool = False,
-) -> nx.Graph:
+) -> G:
     """Aggregate list-valued attributes on nodes or edges.
 
     Writes each result under a new key `<op>_<attr>`, and (optionally) deletes the original list-valued attribute.
