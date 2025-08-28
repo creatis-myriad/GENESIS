@@ -1,39 +1,19 @@
 ## CLI Commands
 
-**Input Format**: Patient IDs are auto-padded to 4 digits and resolved to `data/graphs/{id}_any_pattern.json`.
+### ▶️ `eval-graph` group to analyze individual patient graphs
 
-### ▶️ `eval-mastora`
+| **Description** | Group to chain together loading a graph with downstream tasks (e.g. scoring, visualization)                                                                                                                                                                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Usage**       | `eval-graph [OPTIONS] INPUT_FILE COMMAND1 [ARGS]... [COMMAND2 [ARGS]...]...`                                                                                                                                                                                                                                                          |
+| **Help**        | `eval-graph --help`: Show help message and exit.                                                                                                                                                                                                                                                                                      |
+| **Arguments**   | `INPUT_FILE`: Path to JSON graph, or patient ID (e.g. `0055`).                                                                                                                                                                                                                                                                        |
+| **Options**     | `-g, --graphs-dirs DIRECTORY`: Directory(ies) to search for graph files. <br>`-p, --pattern TEXT`: Glob pattern to search for files within `graphs-dirs` (e.g. '\*{id}\_enriched_graph.json'). <br>`-l, --legacy-networkx-format`: Use legacy attribute names to parse NetworkX-internal graph data (i.e. 'links' instead of 'edges') |
+| **Commands**    | `mastora`: Compute Mastora score on the graph. <br>`qanadli`: Compute Qanadli score on the graph.<br>`visualize`: Visualize attribute values in the graph an interactive PyVis-generated HTML.                                                                                                                                        |
+| **Examples**    | `eval-graph -g data/PERSEVERE/graphs -p '*{id}*.json' -l 0055`                                                                                                                                                                                                                                                                        |
 
-Score details in [formulas.md](scores/formulas.md#mastora-score).
+&#160;
 
-| **Description** | Compute Mastora score for pulmonary embolism risk assessment.                                                                                                                                                                                                                |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Usage**       | `eval-mastora INPUT_FILE [OPTIONS]`                                                                                                                                                                                                                                          |
-| **Input**       | JSON graph or patient ID (e.g. `0055`)                                                                                                                                                                                                                                       |
-| **Options**     | `--use-percentage, -p` : treat degrees as percentages (0–1)<br>`--mode, -m TEXT` : artery levels ('r', ‘m’, ‘l’, ‘s’), default: `rmls`<br>`--obstruction-attr, -o TEXT` : edge attribute, default: `transversal_obstruction_max`<br>`--debug, -d` : show debug visualization |
-| **Examples**    | `eval-mastora 55`<br>`eval-mastora 0055 -p -m ml`<br>`eval-mastora 0055 -d`                                                                                                                                                                                                  |
-
-### ▶️ `eval-qanadli`
-
-Score details in [formulas.md](scores/formulas.md#qanadli-score).
-
-| **Description** | Compute Qanadli score for pulmonary embolism risk assessment.                                                                                                                                                                       |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Usage**       | `eval-qanadli INPUT_FILE [OPTIONS]`                                                                                                                                                                                                 |
-| **Input**       | JSON graph or patient ID (e.g. `0055`)                                                                                                                                                                                              |
-| **Options**     | `--min-obstruction-thresh, -n FLOAT` : default `0.25`<br>`--max-obstruction-thresh, -x FLOAT` : default `0.75`<br>`--obstruction-attr, -o TEXT` : default `transversal_obstruction_max`<br>`--debug, -d` : show debug visualization |
-| **Examples**    | `eval-qanadli 55`<br>`eval-qanadli 0055 -n 0.3 -x 0.8`<br>`eval-qanadli 0055 -d`                                                                                                                                                    |
-
-### ▶️ `visualize`
-
-| **Description** | Interactive PyVis network visualization of obstruction values.              |
-| --------------- | --------------------------------------------------------------------------- |
-| **Usage**       | `eval-visualize INPUT_FILE [OPTIONS]`                                       |
-| **Input**       | JSON graph or patient ID (e.g. `0055`)                                      |
-| **Options**     | `--obstruction-attr, -o TEXT` : default `transversal_obstruction_max`       |
-| **Examples**    | `eval-visualize 0055`<br>`eval-visualize 55 -o transversal_obstruction_max` |
-
-### ▶️ `correlate`
+### ▶️ `correlate` command to correlate scores across multiple patients with clinical attributes
 
 | **Description** | Correlate computed scores with clinical attributes and plot.                                                                                                                                                                                                                                                      |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -44,21 +24,49 @@ Score details in [formulas.md](scores/formulas.md#qanadli-score).
 
 &#160;
 
-### List of obstruction attributes (`--obstruction-attr`)
+### Chainable subcommands
 
-| **Attribute**                     | **Description**                                                                               |
-| --------------------------------- | --------------------------------------------------------------------------------------------- |
-| `transversal_obstruction_max`     | Maximum transversal obstruction (mto) value across one edge of the graph, i.e. a blood vessel |
-| `ancestors_obstruction_max`       | For an edge: `max(parent_mto, own_mto)`                                                       |
-| `ancestors_obstruction_cumulated` | For an edge: `1 - (1 - parent_mto) * (1 - own_mto)`                                           |
+#### ▶ `qanadli`
 
-### Visualization Examples
+Details of how the Qanadli score is computed are provided [here](scores/formulas.md#qanadli-score).
+
+| **Description** | Command to compute the Qanadli obstruction score on the graph(s)                                                                                                                                                                                                                                                                  |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Usage**       | `GROUP_COMMAND qanadli [OPTIONS]`                                                                                                                                                                                                                                                                                                 |
+| **Input**       | For how to specify input, see the [help above on the `eval-graph` command](#-eval-graph).                                                                                                                                                                                                                                         |
+| **Help**        | `GROUP_COMMAND qanadli --help`: Show help message and exit.                                                                                                                                                                                                                                                                       |
+| **Options**     | `-o, --obstruction-attr TEXT`: Edge attribute to use as obstruction values. <br>`-po, --partial-obstruction-thresh FLOAT`: Transversal obstruction threshold to consider a segment partially obstructed. <br>`-to, --total-obstruction-thresh FLOAT`: Transversal obstruction threshold to consider a segment totally obstructed. |
+| **Examples**    | Compute Qanadli score for one patient: `eval-graph -g data/PERSEVERE/graphs -p '*{id}*.json' -l 0055 qanadli`                                                                                                                                                                                                                     |
+
+#### ▶️ `mastora`
+
+Details of how the Qanadli score is computed are provided [here](scores/formulas.md#mastora-score).
+
+| **Description** | Command to compute the Mastora obstruction score on the graph(s)                                                                                                                                                                                                                                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Usage**       | `GROUP_COMMAND mastora [OPTIONS]`                                                                                                                                                                                                                                                                                                                                       |
+| **Input**       | For how to specify input, see the [help above on the `eval-graph` command](#-eval-graph).                                                                                                                                                                                                                                                                               |
+| **Help**        | `GROUP_COMMAND mastora --help`: Show help message and exit.                                                                                                                                                                                                                                                                                                             |
+| **Options**     | `-o, --obstruction-attr TEXT`: Edge attribute to use as obstruction values. <br>`-pct, --use-percentage`: Treat degrees as obstruction percentages [0,1]. Otherwise, use degrees {1...5}<br>`-m, --mode TEXT`: Artery levels to include: 'r' (root), 'm' (mediastinal), 'l' (lobar), 's' (segmental). Also support any combination of individual levels (e.g., 'rmls'). |
+| **Examples**    | Compute Mastora score for one patient: `eval-graph -g data/PERSEVERE/graphs -p '*{id}*.json' -l 0055 mastora`                                                                                                                                                                                                                                                           |
+
+#### ▶️ `visualize`
+
+| **Description** | Command to visualize attribute values in the graph(s) using an interactive PyVis-generated HTML                                                                                                                                                                                                                               |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Usage**       | `GROUP_COMMAND visualize [OPTIONS]`                                                                                                                                                                                                                                                                                           |
+| **Input**       | For how to specify input, see the [help above on the `eval-graph` command](#-eval-graph).                                                                                                                                                                                                                                     |
+| **Help**        | `GROUP_COMMAND visualize --help`: Show help message and exit.                                                                                                                                                                                                                                                                 |
+| **Options**     | `-o, --obstruction-attr TEXT`: Edge obstruction attribute to display in the visualization. Ignored in favor of obstruction attribute used by score if `--debug-score` is also specified. <br> `-d, --debug-score [qanadli\|mastora]`: Score for which to display intermediate values in the visualization, to help debugging. |
+| **Examples**    | Visualize intermediate results of Qanadli score for one patient: `eval-graph -g data/PERSEVERE/graphs -p '*{id}*.json' -l 0055 qanadli visualize --score-debug qanadli`                                                                                                                                                       |
+
+#### (Debug) Visualization Examples
 
 <div align="center">
   <table width="100%">
     <tr>
-      <td width="50%" align="center"><b><code>visualize 55 -o transversal_obstruction_max</code></b></td>
-      <td width="50%" align="center"><b><code>visualize 55 -o ancestors_obstruction_max</code></b></td>
+      <td width="50%" align="center"><b><code>eval-graph 0055 visualize -o transversal_obstruction_max</code></b></td>
+      <td width="50%" align="center"><b><code>eval-graph 0055 visualize -o ancestors_obstruction_max</code></b></td>
     </tr>
     <tr>
       <td width="50%" align="center"><img src="../../../assets/transversal_obstruction_max_graph.png" width="450"></td>
@@ -66,3 +74,11 @@ Score details in [formulas.md](scores/formulas.md#qanadli-score).
     </tr>
   </table>
 </div>
+
+#### Obstruction attributes choices (`--obstruction-attr`)
+
+| **Attribute**                     | **Description**                                                                                                                                          |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `transversal_obstruction_max`     | Maximum transversal obstruction (mto) value across one edge of the graph, i.e. a blood vessel                                                            |
+| `ancestors_obstruction_max`       | Maximum obstruction across the ancestors of the current edge. <br>Defined on an edge as: `max(parent_mto, own_mto)`                                      |
+| `ancestors_obstruction_cumulated` | Weighted sum to cumulate the obstruction on the current edge with that of its parent. <br> Defined on an edge as: `1 - (1 - parent_mto) * (1 - own_mto)` |
