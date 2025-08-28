@@ -15,15 +15,16 @@ log = logging.getLogger(__name__)
 
 
 def compute_global_obstruction_scores(
+    patient_ids: list[str],
     score: Literal["qanadli", "mastora"],
-    clinical_data: pd.DataFrame,
     graphs_dirs: list[Path],
+    pattern: str,
+    legacy_networkx_format: bool,
     obstruction_attrs: list[str],
-    legacy_networkx_format: bool = False,
 ) -> pd.DataFrame:
     """Compute scores for each patient in the clinical data."""
 
-    def _compute(graph: nx.Graph, attr: str) -> float:
+    def _compute(graph: nx.DiGraph, attr: str) -> float:
         match score:
             case "qanadli":
                 return qanadli(graph, obstruction_attr=attr)
@@ -35,9 +36,9 @@ def compute_global_obstruction_scores(
     obstruction_records = []
 
     for attr in obstruction_attrs:
-        for patient_id in clinical_data["patient_id"]:
+        for patient_id in patient_ids:
             try:
-                graph_file = find_graph_file(patient_id, search_dirs=graphs_dirs)
+                graph_file = find_graph_file(patient_id, search_dirs=graphs_dirs, pattern=pattern)
             except FileNotFoundError:
                 continue  # Skip patient if no associated vascular tree graph is found
             except RuntimeError:
@@ -46,10 +47,11 @@ def compute_global_obstruction_scores(
                 continue
 
             try:
-                graph = json_to_networkx(graph_file, edges="links" if legacy_networkx_format else "edges")
+                graph: nx.DiGraph = json_to_networkx(graph_file, edges="links" if legacy_networkx_format else "edges")
                 obstruction_score = _compute(graph, attr)
-                rec = {"patient_id": patient_id, "score": obstruction_score, "obstruction_attr": attr}
-                obstruction_records.append(rec)
+                obstruction_records.append(
+                    {"patient_id": patient_id, "score": obstruction_score, "obstruction_attr": attr}
+                )
             except Exception as e:
                 log.exception(
                     f"Error processing graph for patient {patient_id} with attr {attr}: {e}",
@@ -59,7 +61,7 @@ def compute_global_obstruction_scores(
     if not obstruction_records:
         raise AssertionError(f"No graphs could be processed from directories: {graphs_dirs}.")
 
-    return pd.merge(clinical_data, pd.DataFrame(obstruction_records), on=["patient_id"])
+    return pd.DataFrame(obstruction_records)
 
 
 def plot_correlation(
@@ -144,6 +146,7 @@ def correlate_and_plot(
     target_attribute: str,
     clinical_data_path: Path,
     graphs_dirs: list[Path],
+    pattern: str,
     legacy_networkx_format: bool,
     obstruction_attrs: list[str],
     cli_command: str,
@@ -151,21 +154,21 @@ def correlate_and_plot(
 ) -> None:
     """Load data, compute scores, and plot the correlation."""
     log.info(f"Loading clinical data from {clinical_data_path}...")
-    clinical_df = _load_and_clean_clinical_data(clinical_data_path, target_attribute)
+    data = _load_and_clean_clinical_data(clinical_data_path, target_attribute)
 
     log.info(f"Compute {score} scores from {obstruction_attrs} attributes...")
-    data_with_scores = compute_global_obstruction_scores(
-        score, clinical_df, graphs_dirs, obstruction_attrs, legacy_networkx_format=legacy_networkx_format
+    patient_ids = data["patient_id"].tolist()
+    scores = compute_global_obstruction_scores(
+        patient_ids, score, graphs_dirs, pattern, legacy_networkx_format, obstruction_attrs
     )
+    data = pd.merge(data, scores, on=["patient_id"])
 
-    if data_with_scores.empty:
-        log.info("No data to plot. Make sure graph files exist and patient IDs match.", err=True)
-        return
+    if data.empty:
+        raise AssertionError("No data available after merging clinical data and global obstruction score.")
 
-    if show_visualization:
-        log.info("Generating correlation plot...")
+    log.info("Generating correlation plot...")
     plot_correlation(
-        data_with_scores,
+        data,
         score,
         target_attribute,
         clinical_data_path,

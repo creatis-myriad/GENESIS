@@ -17,15 +17,13 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-def add_graph_loading_args(func: Callable) -> Callable:
-    """Decorator to add common graph-related CLI arguments to commands meant to process a single graph.
+def graph_loading_params(func: Callable) -> Callable:
+    """Decorator to add common CLI parameters to commands meant to load graph.
 
     This decorator injects the following parameters into the click command:
-    - input_file: Path or patient ID for the graph JSON.
     - graphs_dirs: Directories to search for graph files.
     - pattern: Glob pattern for locating the graph file.
     - legacy_networkx_format: If set, use legacy attribute names for NetworkX-internal graph data.
-    - obstruction_attr: Edge attribute to use as obstruction values.
 
     Args:
         func: The click command function to decorate.
@@ -33,10 +31,6 @@ def add_graph_loading_args(func: Callable) -> Callable:
     Returns:
         The decorated function with additional click parameters.
     """
-    func = click.argument(
-        "input-file",
-        type=click.Path(exists=False, dir_okay=False, path_type=Path),
-    )(func)
     func = click.option(
         "--graphs-dirs",
         "-g",
@@ -62,6 +56,22 @@ def add_graph_loading_args(func: Callable) -> Callable:
         help="If set, use legacy attribute name to parse NetworkX-internal graph data "
         "(i.e. 'links' instead of 'edges').",
     )(func)
+    return func  # noqa: RET504
+
+
+def score_params(func: Callable) -> Callable:
+    """Decorator to add common CLI parameters to commands meant to compute global graph scores.
+
+    This decorator injects the following parameters into the click command:
+    - obstruction_attr: Edge attribute to use as obstruction values.
+    - debug: If set, show a debug visualization of the score calculation.
+
+    Args:
+        func: The click command function to decorate.
+
+    Returns:
+        The decorated function with additional click parameters.
+    """
     func = click.option(
         "--obstruction-attr",
         "-o",
@@ -69,6 +79,13 @@ def add_graph_loading_args(func: Callable) -> Callable:
         default="transversal_obstruction_max",
         show_default=True,
         help="The edge attribute to use for obstruction values.",
+    )(func)
+    func = click.option(
+        "--debug",
+        "-d",
+        is_flag=True,
+        default=False,
+        help="If set, show a debug visualization of the score calculation.",
     )(func)
     return func  # noqa: RET504
 
@@ -112,7 +129,12 @@ def run_score(
 
 
 @click.command()
-@add_graph_loading_args
+@graph_loading_params
+@score_params
+@click.argument(
+    "input-file",
+    type=click.Path(exists=False, dir_okay=False, path_type=Path),
+)
 @click.option(
     "--use-percentage",
     "-p",
@@ -129,31 +151,36 @@ def run_score(
     help="Artery levels to include: 'r' (root), 'm' (mediastinal), 'l' (lobar), 's' (segmental). "
     "Any combination (e.g., 'rmls').",
 )
-@click.option(
-    "--debug", "-d", is_flag=True, default=False, help="If set, show a debug visualization of the Mastora calculation."
-)
-def mastora(
+def mastora(  # noqa: D417
+    input_file: Path,
     use_percentage: bool,
     mode: str,
-    debug: bool,
     **kwargs,
 ) -> None:
     """Compute Mastora score from a serialized graph file.
 
     Computes the Mastora score for pulmonary embolism risk assessment, evaluating the degree of vascular obstruction in
     mediastinal, lobar, and segmental arteries.
+
+    Args:
+        input_file: Path to JSON graph or patient ID.
     """
     run_score(
         mastora_score,
+        input_file,
         use_percentage=use_percentage,
         mode=mode,
-        debug=debug,
         **kwargs,
     )
 
 
 @click.command()
-@add_graph_loading_args
+@graph_loading_params
+@score_params
+@click.argument(
+    "input-file",
+    type=click.Path(exists=False, dir_okay=False, path_type=Path),
+)
 @click.option(
     "--partial-obstruction-thresh",
     "-po",
@@ -170,38 +197,53 @@ def mastora(
     show_default=True,
     help="Transversal obstruction threshold to consider a segment totally obstructed.",
 )
-@click.option(
-    "--debug", "-d", is_flag=True, default=False, help="If set, show a debug visualization of the Qanadli calculation."
-)
-def qanadli(
+def qanadli(  # noqa: D417
+    input_file: Path,
     partial_obstruction_thresh: float,
     total_obstruction_thresh: float,
-    debug: bool,
     **kwargs,
 ) -> None:
     """Compute Qanadli score from a serialized graph file.
 
     Computes the Qanadli score for pulmonary embolism risk assessment, considering both embolus location and degree of
     obstruction, weighting each segment by its number of distal subsegments.
+
+    Args:
+        input_file: Path to JSON graph or patient ID.
     """
     run_score(
         qanadli_score,
+        input_file,
         partial_obstruction_thresh=partial_obstruction_thresh,
         total_obstruction_thresh=total_obstruction_thresh,
-        debug=debug,
         **kwargs,
     )
 
 
 @click.command()
-@add_graph_loading_args
-def visualize(
+@graph_loading_params
+@click.argument(
+    "input-file",
+    type=click.Path(exists=False, dir_okay=False, path_type=Path),
+)
+@click.option(
+    "--obstruction-attr",
+    "-o",
+    type=str,
+    default="transversal_obstruction_max",
+    show_default=True,
+    help="The edge attribute to use for obstruction values.",
+)
+def visualize(  # noqa: D417
     input_file: Path, graphs_dirs: list[Path], pattern: str, legacy_networkx_format: bool, obstruction_attr: str
 ) -> None:
     """Visualize attribute values from a serialized graph file using PyVis.
 
     Creates an interactive network visualization of the arterial tree, coloring edges by the specified obstruction
     attribute.
+
+    Args:
+        input_file: Path to JSON graph or patient ID.
     """
     filepath = find_graph_file(input_file, search_dirs=graphs_dirs, pattern=pattern)
     log.info(f"Loading graph from {filepath}")
@@ -212,6 +254,7 @@ def visualize(
 
 
 @click.command()
+@graph_loading_params
 @click.argument(
     "score",
     type=click.Choice(["mastora", "qanadli"], case_sensitive=False),
@@ -228,22 +271,6 @@ def visualize(
     default=rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/clinical_data.csv",
     show_default=True,
     help="Path to the clinical data CSV file.",
-)
-@click.option(
-    "--graphs-dirs",
-    "-g",
-    type=click.Path(exists=True, file_okay=False, path_type=Path),
-    multiple=True,
-    default=[rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/raw"],
-    show_default=True,
-    help="Directory(ies) to search for graph files.",
-)
-@click.option(
-    "--legacy-networkx-format",
-    "-l",
-    is_flag=True,
-    default=False,
-    help="If set, use legacy attribute name to parse NetworkX-internal graph data (i.e. 'links' instead of 'edges').",
 )
 @click.option(
     "--obstruction-attrs",
@@ -265,10 +292,9 @@ def correlate(  # noqa: D417
     score: Literal["mastora", "qanadli"],
     target_attribute: Literal["bnp", "troponin", "risk", "spesi"],
     clinical_data_path: Path,
-    graphs_dirs: list[Path],
-    legacy_networkx_format: bool,
     obstruction_attrs: list[str],
     show_visualization: bool,
+    **kwargs,
 ) -> None:
     """Correlate global vascular tree obstruction scores with clinical attributes and visualize the results.
 
@@ -282,9 +308,8 @@ def correlate(  # noqa: D417
         score=score,
         target_attribute=target_attribute,
         clinical_data_path=clinical_data_path,
-        graphs_dirs=list(graphs_dirs),
-        legacy_networkx_format=legacy_networkx_format,
         obstruction_attrs=obstruction_attrs,
         cli_command=cli_cmd,
         show_visualization=show_visualization,
+        **kwargs,
     )
