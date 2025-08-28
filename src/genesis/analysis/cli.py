@@ -276,12 +276,6 @@ def correlate(  # noqa: D417
         score: The global obstruction score to compute and correlate with `target_attribute`.
         target_attribute: The clinical attribute to correlate with the computed `score`.
     """
-    target_attribute = {
-        "spesi": "spesi",
-        "bnp": "bnp",
-        "troponin": "troponin",
-        "risk": "vte_severity",
-    }[target_attribute]
     script = os.path.basename(sys.argv[0])
     cli_cmd = f"{script} {' '.join(sys.argv[1:])}"
     correlate_and_plot(

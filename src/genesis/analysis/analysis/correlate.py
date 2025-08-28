@@ -177,7 +177,7 @@ def correlate_and_plot(
 
 def _load_and_clean_clinical_data(file_path: Path, target_attribute: str) -> pd.DataFrame:
     """Load and clean clinical data from a CSV file."""
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(file_path, na_values=["nr", "NR"])
     df["patient_id"] = df["patient_id"].astype(str).str.zfill(4)
     df[target_attribute] = (
         df[target_attribute].astype(str).str.replace("<", "").str.strip().pipe(pd.to_numeric, errors="coerce")
