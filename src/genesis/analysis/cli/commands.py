@@ -53,36 +53,30 @@ def qanadli(obj: dict, *args, **kwargs) -> None:
 
 
 @click.command()
+@click.argument(
+    "mode",
+    type=click.Choice(["proximal", "distal"]),
+)
 @option_obstruction_attr
-@click.option(
-    "--use-percentage",
-    "-pct",
-    is_flag=True,
-    default=False,
-    help="Treat degrees as obstruction percentages [0, 1]. Otherwise, use degrees {1...5}.",
-)
-@click.option(
-    "--mode",
-    "-m",
-    type=str,
-    default="rmls",
-    show_default=True,
-    help="Artery levels to include: 'r' (root), 'm' (mediastinal), 'l' (lobar), 's' (segmental). "
-    "Also support any combination of individual levels (e.g., 'rmls').",
-)
 @click.pass_obj
-def mastora(obj: dict, *args, **kwargs) -> None:
+def mastora(obj: dict, mode: Literal["proximal", "distal"], **kwargs) -> None:  # noqa: D417
     """Compute Mastora score on the graph(s).
 
-    Computes the Mastora score for pulmonary embolism risk assessment, evaluating the degree of vascular obstruction in
-    mediastinal, lobar, and segmental arteries.
+    Computes the Mastora score for pulmonary embolism risk assessment, evaluating the precise degree of vascular
+    obstruction in proximal or distal arteries.
+
+    Args:
+        mode: Variant of the Mastora score to compute, either 'proximal' or 'distal'.
+            - 'proximal': Considers obstructions in the mediastinal and lobar arteries
+            - 'distal': Considers obstructions in the segmental arteries
     """
-    _run_score(obj, mastora_score, *args, **kwargs)
+    _run_score(obj, mastora_score, mode, score_name=f"mastora_{mode}", **kwargs)
 
 
 def _run_score(
     obj: dict,
     score_fn: Callable,
+    *score_args,
     score_name: str | None = None,
     obstruction_attr: str = "transversal_obstruction_max",
     **score_kwargs,
@@ -92,6 +86,7 @@ def _run_score(
     Args:
         obj: State dict to store objects and communicate between commands, part of the Click context.
         score_fn: The global obstruction score function.
+        *score_args: Positional arguments to pass along to `score_fn`.
         score_name: Name to use for the score in logging and storing in `obj`. If None, uses `score_fn.__name__`.
         obstruction_attr: Edge attribute to use as obstruction values.
         **score_kwargs: Additional parameters to pass along to `score_fn`.
@@ -102,7 +97,9 @@ def _run_score(
     scores = {}
     debug_info = {}
     for graph_file, graph in tqdm(graphs.items(), desc=f"Compute {score_name} score on input graphs", unit="graph"):
-        score, graph_debug_info = score_fn(graph, obstruction_attr=obstruction_attr, debug=True, **score_kwargs)
+        score, graph_debug_info = score_fn(
+            graph, *score_args, obstruction_attr=obstruction_attr, debug=True, **score_kwargs
+        )
         scores[graph_file] = score
         debug_info[graph_file] = graph_debug_info
 
@@ -128,14 +125,14 @@ def _run_score(
 @click.option(
     "--debug-score",
     "-d",
-    type=click.Choice(["qanadli", "mastora"]),
+    type=click.Choice(["qanadli", "mastora_proximal", "mastora_distal"]),
     help="Score for which to display intermediate values in the visualization, to help debugging.",
 )
 @pass_obj
 def visualize(
     obj: dict,
     obstruction_attr: str | None = None,
-    debug_score: Literal["qanadli", "mastora"] | None = None,
+    debug_score: Literal["qanadli", "mastora_proximal", "mastora_distal"] | None = None,
 ) -> None:
     """Visualize attribute values in the graph(s) using an interactive PyVis-generated HTML.
 
