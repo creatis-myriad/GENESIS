@@ -34,10 +34,6 @@ def derive_missing_obstruction_attrs(graph_arg: int | str, attrs_args: list[int 
             # Import locally to avoid circular imports
             from genesis.analysis.scores.mastora import mastora  # noqa: PLC0415
             from genesis.analysis.scores.qanadli import qanadli  # noqa: PLC0415
-            from genesis.analysis.scores.vascular_tree import (  # noqa: PLC0415
-                ancestors_obstruction_cumulated,
-                ancestors_obstruction_max,
-            )
 
             def _get_arg_val(pos_or_name: int | str) -> Any:
                 if isinstance(pos_or_name, int):
@@ -76,17 +72,10 @@ def derive_missing_obstruction_attrs(graph_arg: int | str, attrs_args: list[int 
             for attr in attrs:
                 # Only compute attribute if it is not available
                 if not networkx_has_edge_attributes(graph, attrs=[attr]):
-                    match attr:
-                        case "ancestors_obstruction_max":
-                            graph = ancestors_obstruction_max(graph, in_place=in_place)
-                        case "ancestors_obstruction_cumulated":
-                            graph = ancestors_obstruction_cumulated(graph, in_place=in_place)
-                        case _:  # If not a special case, aggregate existing attributes based on name and suffix
-                            # Determine base attribute and aggregation function from the attribute's name
-                            base_attr, agg = attr.rsplit("_", 1)
-                            graph = networkx_aggregate_attrs(
-                                graph, {base_attr: agg}, element="edges", in_place=in_place
-                            )
+                    # Aggregate existing attributes, deriving base attribute and aggregation from
+                    # the name and suffix of the requested attribute
+                    base_attr, agg = attr.rsplit("_", 1)
+                    graph = networkx_aggregate_attrs(graph, {base_attr: agg}, element="edges", in_place=in_place)
 
                 if isinstance(graph_arg, int):
                     args = list(args)

@@ -3,8 +3,8 @@ from typing import Any, Literal
 import networkx as nx
 import numpy as np
 
+from genesis.analysis.scores.config import ArteryLevel
 from genesis.analysis.scores.utils import derive_missing_obstruction_attrs
-from genesis.analysis.scores.vascular_tree import ArteryLevel
 from genesis.data.utils import networkx_find_root
 
 DEGREE_THRESHOLDS = [0.25, 0.5, 0.75, 1.0]

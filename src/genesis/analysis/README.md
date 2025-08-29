@@ -20,7 +20,7 @@
 | **Usage**       | `eval-correlate SCORE_NAME ATTRIBUTE_NAME [OPTIONS]`                                                                                                                                                                                                                                                              |
 | **Arguments**   | `SCORE_NAME` : `mastora` or `qanadli`<br>`ATTRIBUTE_NAME` : `bnp`, `troponin`, `risk`, `spesi`                                                                                                                                                                                                                    |
 | **Options**     | `--clinical-data, -c TEXT` : path to clinical CSV, default `data/PERSEVERE/clinical_data.csv`<br>`--graphs-dirs, -g TEXT ...` : directories to search, default `data/PERSEVERE/raw`<br>`--obstruction-attr, -o TEXT` : default `transversal_obstruction_max`<br>`--show-visualization, -v` : open plot in browser |
-| **Examples**    | `eval-correlate mastora bnp -v`<br>`eval-correlate qanadli troponin -c custom/data.csv`<br>`eval-correlate mastora risk -g alt/graphs -o ancestors_obstruction_max`                                                                                                                                               |
+| **Examples**    | `eval-correlate mastora bnp -v`<br>`eval-correlate qanadli troponin -c custom/data.csv`<br>`eval-correlate mastora risk -g alt/graphs -o transversal_obstruction_max`                                                                                                                                             |
 
 &#160;
 
@@ -67,19 +67,15 @@ Details of how the Qanadli score is computed are provided [here](scores/formulas
   <table width="100%">
     <tr>
       <td width="50%" align="center"><b><code>eval-graph 0055 visualize -o transversal_obstruction_max</code></b></td>
-      <td width="50%" align="center"><b><code>eval-graph 0055 visualize -o ancestors_obstruction_max</code></b></td>
     </tr>
     <tr>
       <td width="50%" align="center"><img src="../../../assets/transversal_obstruction_max_graph.png" width="450"></td>
-      <td width="50%" align="center"><img src="../../../assets/ancestors_obstruction_max_graph.png" width="450"></td>
     </tr>
   </table>
 </div>
 
 #### Obstruction attributes choices (`--obstruction-attr`)
 
-| **Attribute**                     | **Description**                                                                                                                                          |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `transversal_obstruction_max`     | Maximum transversal obstruction (mto) value across one edge of the graph, i.e. a blood vessel                                                            |
-| `ancestors_obstruction_max`       | Maximum obstruction across the ancestors of the current edge. <br>Defined on an edge as: `max(parent_mto, own_mto)`                                      |
-| `ancestors_obstruction_cumulated` | Weighted sum to cumulate the obstruction on the current edge with that of its parent. <br> Defined on an edge as: `1 - (1 - parent_mto) * (1 - own_mto)` |
+| **Attribute**                 | **Description**                                                                               |
+| ----------------------------- | --------------------------------------------------------------------------------------------- |
+| `transversal_obstruction_max` | Maximum transversal obstruction (mto) value across one edge of the graph, i.e. a blood vessel |

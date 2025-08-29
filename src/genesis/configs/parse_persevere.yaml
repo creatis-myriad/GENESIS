@@ -42,11 +42,6 @@ attrs_to_aggregate:
     transversal_obstruction: max # aggregation function among max, min, mean and sum
   remove_original: true # remove the original attributes after aggregation
 
-obstruction:
-  input_attr: transversal_obstruction_max # input attribute to use for obstruction
-  ancestors_max_attr: ancestors_obstruction_max # attribute where to save max ancestor obstruction
-  ancestors_cumulated_attr: ancestors_obstruction_cumulated # attribute where to save cumulated ancestor obstruction
-
 clinical_data:
   target_attr: null # Disable the default target attribute, since we do not want to treat it differently at this stage
   drop_na: true # Do not silently propagate missing value NaNs

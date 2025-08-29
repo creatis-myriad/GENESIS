@@ -34,7 +34,7 @@ from genesis.analysis.cli.parameters import graph_loading_params
     "-o",
     type=str,
     multiple=True,
-    default=["transversal_obstruction_max", "ancestors_obstruction_max", "ancestors_obstruction_cumulated"],
+    default=["transversal_obstruction_max"],
     show_default=True,
     help="Edge attribute(s) to use as obstruction values to compute global scores (i.e. Mastora, Qanadli).",
 )
