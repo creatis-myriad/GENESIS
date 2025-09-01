@@ -56,6 +56,8 @@ def qanadli(
                     _depth_first_search(child)
                 case ArteryLevel.MEDIASTINAL | ArteryLevel.LOBAR:
                     if artery_obstruction > partial_obstruction_thresh:
+                        # TODO: Implement recursive counting of descendant segmental arteries, to avoid depending
+                        #       on 'segments_below' attribute in the graph
                         _save_edge_data((node, child), artery_level, edge_attrs["segments_below"], artery_obstruction)
                     else:
                         # Recursively visit children if artery is not obstructed enough
