@@ -10,6 +10,7 @@ from plotly.subplots import make_subplots
 from genesis.analysis.scores.mastora import mastora
 from genesis.analysis.scores.qanadli import qanadli
 from genesis.data.utils import find_graph_file, json_to_networkx
+from genesis.data.utils.io import load_and_clean_clinical_data
 
 log = logging.getLogger(__name__)
 
@@ -154,7 +155,7 @@ def correlate_and_plot(
 ) -> None:
     """Load data, compute scores, and plot the correlation."""
     log.info(f"Loading clinical data from {clinical_data_path}...")
-    data = _load_and_clean_clinical_data(clinical_data_path, target_attribute)
+    data = load_and_clean_clinical_data(clinical_data_path, target_attribute)
 
     log.info(f"Compute {score} scores from {obstruction_attrs} attributes...")
     patient_ids = data["patient_id"].tolist()
@@ -176,14 +177,3 @@ def correlate_and_plot(
         cli_command,
         show_visualization=show_visualization,
     )
-
-
-def _load_and_clean_clinical_data(file_path: Path, target_attribute: str) -> pd.DataFrame:
-    """Load and clean clinical data from a CSV file."""
-    df = pd.read_csv(file_path, na_values=["nr", "NR"])
-    df["patient_id"] = df["patient_id"].astype(str).str.zfill(4)
-    df[target_attribute] = (
-        df[target_attribute].astype(str).str.replace("<", "").str.strip().pipe(pd.to_numeric, errors="coerce")
-    )
-    df.dropna(subset=[target_attribute], inplace=True)
-    return df

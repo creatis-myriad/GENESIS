@@ -1,9 +1,11 @@
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
 import networkx as nx
 import numpy as np
+import pandas as pd
 import torch
 from monai.data import NibabelReader
 from torch_geometric.data import Data
@@ -155,3 +157,33 @@ def find_graph_file(
     if len(unique) > 1:
         raise RuntimeError(f"Multiple matches for ID='{patient_id}' (pattern='{pattern}'): {list(unique)}")
     return unique.pop()
+
+
+def load_and_clean_clinical_data(
+    csv_filepath: Path, drop_na_subset: list[str] = ("risk", "spesi", "troponin", "bnp")
+) -> pd.DataFrame:
+    """Load and clean clinical data from a CSV file.
+
+    Args:
+        csv_filepath: Path to the clinical data CSV file.
+        drop_na_subset: Critical columns where rows with NA values should be dropped.
+
+    Returns:
+        Cleaned clinical data as a pandas DataFrame.
+    """
+    df = pd.read_csv(csv_filepath, na_values=["nr", "NR"])
+    # Standardize patient IDs to be zero-padded strings of length 4, and set as index
+    df["patient_id"] = df["patient_id"].astype(str).str.zfill(4)
+    df = df.set_index("patient_id")
+    # Drop rows with missing values in critical columns
+    if drop_na_subset:
+        if isinstance(drop_na_subset, tuple):
+            drop_na_subset = list(drop_na_subset)  # Convert tuple to list to correctly slice columns
+        na_ids = df.index[df[drop_na_subset].isna().any(axis=1)].tolist()
+        logging.warning(
+            f"Dropping clinical data from patients with at least one missing value in {drop_na_subset}: {na_ids}"
+        )
+    df.dropna(subset=drop_na_subset, inplace=True)
+    # Clean troponin values: convert trace amount ("< 3") to 3 to allow casting to int
+    df["troponin"] = df["troponin"].astype(str).str.replace("< 3", "3").astype(int)
+    return df
