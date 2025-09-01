@@ -1,179 +1,114 @@
+import itertools
 import logging
-from pathlib import Path
-from typing import Literal
 
-import networkx as nx
 import pandas as pd
-import plotly.io as pio
+import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-
-from genesis.analysis.scores.mastora import mastora
-from genesis.analysis.scores.qanadli import qanadli
-from genesis.data.utils import find_graph_file, json_to_networkx
-from genesis.data.utils.io import load_and_clean_clinical_data
 
 log = logging.getLogger(__name__)
 
-
-def compute_global_obstruction_scores(
-    patient_ids: list[str],
-    score: Literal["qanadli", "mastora"],
-    graphs_dirs: list[Path],
-    pattern: str,
-    legacy_networkx_format: bool,
-    obstruction_attrs: list[str],
-) -> pd.DataFrame:
-    """Compute scores for each patient in the clinical data."""
-
-    def _compute(graph: nx.DiGraph, attr: str) -> float:
-        match score:
-            case "qanadli":
-                return qanadli(graph, obstruction_attr=attr)
-            case "mastora":
-                return mastora(graph, obstruction_attr=attr)
-            case _:
-                raise ValueError(f"Unknown score: {score}")
-
-    obstruction_records = []
-
-    for attr in obstruction_attrs:
-        for patient_id in patient_ids:
-            try:
-                graph_file = find_graph_file(patient_id, search_dirs=graphs_dirs, pattern=pattern)
-            except FileNotFoundError:
-                continue  # Skip patient if no associated vascular tree graph is found
-            except RuntimeError:
-                # Log and skip if multiple files are found
-                log.exception("", exc_info=True)
-                continue
-
-            try:
-                graph: nx.DiGraph = json_to_networkx(graph_file, edges="links" if legacy_networkx_format else "edges")
-                obstruction_score = _compute(graph, attr)
-                obstruction_records.append(
-                    {"patient_id": patient_id, "score": obstruction_score, "obstruction_attr": attr}
-                )
-            except Exception as e:
-                log.exception(
-                    f"Error processing graph for patient {patient_id} with attr {attr}: {e}",
-                    exc_info=True,
-                )
-
-    if not obstruction_records:
-        raise AssertionError(f"No graphs could be processed from directories: {graphs_dirs}.")
-
-    return pd.DataFrame(obstruction_records)
+_CATEGORICAL_CLINICAL_ATTRS = {
+    "risk",
+    "spesi",
+    "cancer_history",
+    "cpd_history",
+    "inverted_rv-lv_ratio",
+}
+_LABELS = {
+    "patient_id": "Patient ID",
+    "mastora_proximal": "Mastora (proximal) score",
+    "mastora_distal": "Mastora (distal) score",
+    "qanadli": "Qanadli score",
+    "risk": "ESC Guidelines risk Level",
+    "spesi": "SPESI Score",
+    "bnp": "BNP",
+    "troponin": "Troponin",
+}
 
 
 def plot_correlation(
     data: pd.DataFrame,
-    score: str,
-    target_attribute: str,
-    clinical_data_path: Path,
-    graphs_dirs: list[Path],
+    scores: list[str],
+    clinical_attrs: list[str],
     cli_command: str,
-    show_visualization: bool = False,
 ) -> None:
-    """Plot the correlation using Plotly."""
-    pio.renderers.default = "browser"
+    """Plot the correlation between scores computed on vascular graph and clinical attributes using Plotly.
 
-    obstruction_attrs = data["obstruction_attr"].unique()
-
-    fig = make_subplots(
-        rows=1,
-        cols=len(obstruction_attrs),
-        # Convert snake-case attribute names to title case for better readability
-        subplot_titles=[attr.replace("_", " ").title() for attr in obstruction_attrs],
-        shared_yaxes=True,
-        horizontal_spacing=0.08,
-    )
-
-    # Add scatter plots for each attribute
-    for i, attr in enumerate(obstruction_attrs):
-        attr_data = data[data["obstruction_attr"] == attr]
-        corr = attr_data["score"].corr(attr_data[target_attribute])
-
-        log.info(f"Pearson correlation for {attr}: " + (f"{corr:.3f}" if not pd.isna(corr) else "insufficient data"))
-
-        fig.add_scatter(
-            x=attr_data["score"],
-            y=attr_data[target_attribute],
-            mode="markers",
-            name=attr,
-            marker={"size": 8},
-            row=1,
-            col=i + 1,
-            customdata=attr_data["patient_id"],
-            hovertemplate="<b>Patient ID:</b> %{customdata}<br><b>Score:</b> %{x}<br><b>"
-            + target_attribute.capitalize()
-            + ":</b> %{y}<extra></extra>",
+    Args:
+        data: DataFrame containing patient clinical data and computed vascular graph scores.
+        scores: Score(s) computed on the vascular graph (e.g., "qanadli") to correlate with `clinical_attrs`.
+        clinical_attrs: Clinical attribute(s) (e.g., "risk", "troponin") to correlate with `scores`.
+        cli_command: CLI command used to generate the data, to display in the plot title for reproducibility.
+    """
+    if (missing_scores := pd.Index(scores).difference(data.columns)).any():
+        raise ValueError(f"The following requested scores are missing from the data: {missing_scores.tolist()}.")
+    if (missing_attrs := pd.Index(clinical_attrs).difference(data.columns)).any():
+        raise ValueError(
+            f"The following requested clinical attributes are missing from the data: {missing_attrs.tolist()}."
         )
 
+    data = data.reset_index(names="patient_id")  # Set patient_id index as column to plot it easily
+    # Update labels for clinical attributes and scores for better readability in the plots
+    data = data.rename(columns=_LABELS)
+    scores = [_LABELS.get(score, score) for score in scores]
+    clinical_attrs = [_LABELS.get(attr, attr) for attr in clinical_attrs]
+
+    fig = make_subplots(
+        rows=len(clinical_attrs),
+        cols=len(scores),
+        shared_yaxes=True,
+        shared_xaxes=True,
+        subplot_titles=[f"{attr} vs {score}" for attr, score in itertools.product(clinical_attrs, scores)]
+        # Only display individual subplot titles if there are more than one row and column
+        if len(clinical_attrs) * len(scores) > 1
+        else None,
+    )
+
+    # Add plots for each combination of clinical attribute and graph score
+    for (i, clinical_attr), (j, score) in itertools.product(enumerate(clinical_attrs), enumerate(scores)):
+        corr = data[clinical_attr].corr(data[score])
+
+        log.info(
+            f"Pearson correlation between {clinical_attr} and {score}: "
+            + (f"{corr:.3f}" if not pd.isna(corr) else "insufficient data")
+        )
+
+        if clinical_attr in _CATEGORICAL_CLINICAL_ATTRS:
+            raise NotImplementedError(
+                f"Correlation plots for categorical clinical attributes like '{clinical_attr}' are not implemented yet."
+            )
+        fig.add_trace(
+            go.Scatter(
+                x=data[score],
+                y=data[clinical_attr],
+                mode="markers",
+                customdata=data["Patient ID"],
+                hovertemplate=f"<b>Patient ID:</b> %{{customdata}}"
+                f"<br><b>{score}:</b> %{{x}}"
+                f"<br><b>{clinical_attr}</b> %{{y}}"
+                f"<extra></extra>",
+            ),
+            row=i + 1,
+            col=j + 1,
+        )
+
+    # Set axes titles on the left and bottom of the grid
+    for i, clinical_attr in enumerate(clinical_attrs):
+        fig.update_yaxes(title_text=clinical_attr, row=i + 1, col=1)
+    for j, score in enumerate(scores):
+        fig.update_xaxes(title_text=score, row=len(clinical_attrs), col=j + 1)
+
     title_text = (
-        f"Correlation between {score.capitalize()} Score and {target_attribute.capitalize()}<br>"
-        f"<sup>Clinical Data: <span style='color:blue;'>{clinical_data_path!s}</span> "
-        f"| Graphs Directory: <span style='color:blue;'>{', '.join(str(d) for d in graphs_dirs)}</span>"
-        f"<br>CLI Command: <span style='color:green;'>{cli_command}</span></sup>"
+        f"Correlations between vascular scores and clinical parameters<br>"
+        f"<sup>"
+        f"CLI Command: <span style='color:green;'>{cli_command}</span>"
+        f"</sup>"
     )
     fig.update_layout(
+        template="plotly",
         title=title_text,
         title_font_size=18,
-        plot_bgcolor="white",
-        showlegend=False,
         height=600,
         margin={"t": 150},
     )
-
-    for i in range(len(obstruction_attrs)):
-        fig.update_xaxes(
-            title_text=f"{score.capitalize()} Score", showgrid=True, gridcolor="lightgray", row=1, col=i + 1
-        )
-        if i == 0:  # On the first column, set the y-axis title
-            fig.update_yaxes(
-                title_text=target_attribute.capitalize(), showgrid=True, gridcolor="lightgray", row=1, col=1
-            )
-        else:
-            fig.update_yaxes(showgrid=True, gridcolor="lightgray", row=1, col=i + 1)
-
-    if show_visualization:
-        fig.show(renderer="browser")
-        log.info("Correlation plot displayed.")
-    else:
-        log.info("Correlation plot not displayed. Use --show-visualization to view plot.")
-
-
-def correlate_and_plot(
-    score: Literal["qanadli", "mastora"],
-    target_attribute: str,
-    clinical_data_path: Path,
-    graphs_dirs: list[Path],
-    pattern: str,
-    legacy_networkx_format: bool,
-    obstruction_attrs: list[str],
-    cli_command: str,
-    show_visualization: bool = False,
-) -> None:
-    """Load data, compute scores, and plot the correlation."""
-    log.info(f"Loading clinical data from {clinical_data_path}...")
-    data = load_and_clean_clinical_data(clinical_data_path, target_attribute)
-
-    log.info(f"Compute {score} scores from {obstruction_attrs} attributes...")
-    patient_ids = data["patient_id"].tolist()
-    scores = compute_global_obstruction_scores(
-        patient_ids, score, graphs_dirs, pattern, legacy_networkx_format, obstruction_attrs
-    )
-    data = pd.merge(data, scores, on=["patient_id"])
-
-    if data.empty:
-        raise AssertionError("No data available after merging clinical data and global obstruction score.")
-
-    log.info("Generating correlation plot...")
-    plot_correlation(
-        data,
-        score,
-        target_attribute,
-        clinical_data_path,
-        graphs_dirs,
-        cli_command,
-        show_visualization=show_visualization,
-    )
+    fig.show(renderer="browser")
