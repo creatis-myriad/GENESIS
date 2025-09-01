@@ -32,7 +32,7 @@ log = get_logger(__name__)
 def eval_population(
     ctx: click.Context, clinical_csv: Path, graphs_dirs: list[Path], pattern: str, legacy_networkx_format: bool
 ) -> None:
-    """Command to chain together loading clinical data and graphs for a whole population, for downstream tasks."""
+    """Command to chain together loading clinical data and graphs for a whole population with downstream tasks."""
     ctx.obj = {
         "graphs": {},
     }

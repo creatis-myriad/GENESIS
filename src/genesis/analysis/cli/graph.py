@@ -20,7 +20,7 @@ log = get_logger(__name__)
 def eval_graph(  # noqa: D417
     ctx: click.Context, input_file: Path, graphs_dirs: list[Path], pattern: str, legacy_networkx_format: bool
 ) -> None:
-    """Command to chain together loading a graph with a downstream task (e.g. scoring, visualization).
+    """Command to chain together loading a graph with downstream tasks (e.g. scoring, visualization).
 
     Args:
         input_file: Path to JSON graph or patient ID.
