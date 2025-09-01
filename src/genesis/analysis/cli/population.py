@@ -8,10 +8,10 @@ import pandas as pd
 import rootutils
 from tqdm.auto import tqdm
 
-from genesis.analysis.analysis.correlate import plot_correlation
 from genesis.analysis.cli.commands import mastora, qanadli, visualize
 from genesis.analysis.cli.parameters import graph_loading_params
 from genesis.analysis.cli.utils import get_logger
+from genesis.analysis.plot.correlate import plot_correlation
 from genesis.data.utils.io import find_graph_file, json_to_networkx, load_and_clean_clinical_data
 
 log = get_logger(__name__)

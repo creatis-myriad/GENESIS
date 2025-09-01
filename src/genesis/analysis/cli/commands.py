@@ -5,8 +5,8 @@ import click
 from click import pass_obj
 from tqdm.auto import tqdm
 
-from genesis.analysis.analysis import networkx_to_pyvis, pyvis_show
 from genesis.analysis.cli.utils import get_logger
+from genesis.analysis.plot.graph import networkx_to_pyvis, pyvis_show
 from genesis.analysis.scores.mastora import mastora as mastora_score
 from genesis.analysis.scores.qanadli import qanadli as qanadli_score
 from genesis.data.utils import networkx_has_edge_attributes
