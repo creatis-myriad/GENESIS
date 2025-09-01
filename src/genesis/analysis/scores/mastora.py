@@ -7,7 +7,9 @@ from genesis.analysis.scores.config import ArteryLevel
 from genesis.analysis.scores.utils import derive_missing_obstruction_attrs
 from genesis.data.utils import networkx_find_root
 
-DEGREE_THRESHOLDS = [0.25, 0.5, 0.75, 1.0]
+# Thresholds to discretize obstruction values into 5 levels (1-5) + 0 (no obstruction)
+# Left edges are included in intervals, but 0 should be excluded from bin 1, thus the use of 1e-6 for left-most edge
+DEGREE_THRESHOLDS = [1e-6, 0.25, 0.5, 0.75, 1]
 
 
 @derive_missing_obstruction_attrs(graph_arg=0, attrs_args=["obstruction_attr"])
@@ -67,8 +69,7 @@ def mastora(
 
     # From the lists of obstruction degrees and number of descendant segments, compute the Qanadli score
     obstructions_vals = list(obstructions.values())
-    # Discretize obstruction values between {0...4}, instead of {1...5} so that normalization will be in [0, 1]
-    # This original paper discretized between {1...5}, but that would lead to a minimum score of 1/5 = 0.2
+    # Discretize obstruction values between {0...5}, so that normalization will be in [0, 1]
     degrees = np.digitize(obstructions_vals, DEGREE_THRESHOLDS)
     # Original paper summed the degrees across the landmark arteries, but here we normalize and average degrees
     # to get a score between 0 and 1, invariant to the exact number of arteries of the patient
