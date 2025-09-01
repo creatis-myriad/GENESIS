@@ -11,7 +11,7 @@ from tqdm.auto import tqdm
 from genesis.analysis.cli.commands import mastora, qanadli, visualize
 from genesis.analysis.cli.parameters import graph_loading_params
 from genesis.analysis.cli.utils import get_logger
-from genesis.analysis.plot.correlate import plot_correlation
+from genesis.analysis.plot.distribution import facet_grid
 from genesis.data.utils.io import find_graph_file, json_to_networkx, load_and_clean_clinical_data
 
 log = get_logger(__name__)
@@ -91,7 +91,7 @@ eval_population.add_command(visualize)
     help="Type of plot to use for categorical clinical attributes.",
 )
 @click.pass_obj
-def correlate(obj: dict, scores: list[str], clinical_attrs: list[str], **plot_correlation_kwargs) -> None:
+def correlate(obj: dict, scores: list[str], clinical_attrs: list[str], **facet_grid_kwargs) -> None:
     """Correlate graph scores with clinical data."""
     # Recover the clinical data extracted by the main command
     if (data := obj.get("clinical_data")) is None:
@@ -113,7 +113,7 @@ def correlate(obj: dict, scores: list[str], clinical_attrs: list[str], **plot_co
     cli_cmd = f"{script} {' '.join(sys.argv[1:])}"
 
     log.info("Generating correlation plot...")
-    plot_correlation(data, scores, clinical_attrs, cli_cmd, **plot_correlation_kwargs)
+    facet_grid(data, scores, clinical_attrs, cli_cmd, **facet_grid_kwargs)
 
 
 if __name__ == "__main__":
