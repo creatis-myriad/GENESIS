@@ -34,3 +34,9 @@ PERSEVERE_ATTRS_CATEGORIES = {
     "cpd_history": [0, 1],
     "inverted_rv-lv_ratio": [0, 1],
 }
+PERSEVERE_GRAPH_SCORES = [
+    "mastora_central",
+    "mastora_peripheral",
+    "mastora_global",
+    "qanadli",
+]

@@ -11,6 +11,7 @@ from tqdm.auto import tqdm
 from genesis.analysis.cli.commands import mastora, qanadli, visualize
 from genesis.analysis.cli.parameters import graph_loading_params
 from genesis.analysis.cli.utils import get_logger
+from genesis.analysis.config import PERSEVERE_ATTRS_LABELS, PERSEVERE_GRAPH_SCORES
 from genesis.analysis.plot.distribution import facet_grid
 from genesis.data.utils.io import find_graph_file, json_to_networkx, load_and_clean_clinical_data
 
@@ -65,34 +66,35 @@ eval_population.add_command(visualize)
 
 @eval_population.command()
 @click.option(
-    "--score",
-    "-s",
-    "scores",
-    type=click.Choice(["qanadli", "mastora_central", "mastora_peripheral", "mastora_global"]),
+    "--row",
+    "-r",
+    "rows",
+    type=click.Choice(list(PERSEVERE_ATTRS_LABELS.keys())),
     multiple=True,
     required=True,
-    help="The global graph score(s) to correlate with `clinical_attr`. They must have been computed previously by "
-    "calling their dedicated command (e.g. `qanadli`) earlier in the same command chain.",
+    help="Attribute(s) to plot along the rows of the facet grid. If a graph score is specified, it must have been "
+    "computed previously by calling their dedicated command (e.g. `qanadli`) earlier in the same command chain.",
 )
 @click.option(
-    "--clinical-attr",
+    "--col",
     "-c",
-    "clinical_attrs",
-    type=click.Choice(["bnp", "troponin", "risk", "spesi"], case_sensitive=False),
+    "cols",
+    type=click.Choice(list(PERSEVERE_ATTRS_LABELS.keys())),
     multiple=True,
     required=True,
-    help="The clinical attribute(s) to correlate with `score`.",
+    help="Attribute(s) to plot along the columns of the facet grid. If a graph score is specified, it must have been "
+    "computed previously by calling their dedicated command (e.g. `qanadli`) earlier in the same command chain.",
 )
 @click.option(
     "--categorical-plot",
     type=click.Choice(["violin", "histogram"]),
     default="violin",
     show_default=True,
-    help="Type of plot to use for categorical clinical attributes.",
+    help="Type of plot to use for categorical attributes.",
 )
 @click.pass_obj
-def correlate(obj: dict, scores: list[str], clinical_attrs: list[str], **facet_grid_kwargs) -> None:
-    """Correlate graph scores with clinical data."""
+def plot(obj: dict, rows: list[str], cols: list[str], **facet_grid_kwargs) -> None:
+    """Plot distribution of attribute(s) with respect to other attribute(s)."""
     # Recover the clinical data extracted by the main command
     if (data := obj.get("clinical_data")) is None:
         raise AssertionError(
@@ -100,7 +102,8 @@ def correlate(obj: dict, scores: list[str], clinical_attrs: list[str], **facet_g
         )
 
     # Recover the requested scores, checking they were computed by a previous command in the chain
-    for score in scores:
+    requested_scores = [attr for attr in rows + cols if attr in PERSEVERE_GRAPH_SCORES]
+    for score in requested_scores:
         if not (score_dict := obj.get(score, {}).get("scores")):
             raise ValueError(
                 f"Score '{score}' not found in the stored data; please call its dedicated command earlier in the chain "
@@ -113,7 +116,7 @@ def correlate(obj: dict, scores: list[str], clinical_attrs: list[str], **facet_g
     cli_cmd = f"{script} {' '.join(sys.argv[1:])}"
 
     log.info("Generating correlation plot...")
-    facet_grid(data, scores, clinical_attrs, cli_cmd, **facet_grid_kwargs)
+    facet_grid(data, rows, cols, cli_cmd, **facet_grid_kwargs)
 
 
 if __name__ == "__main__":
