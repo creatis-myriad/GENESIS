@@ -13,7 +13,7 @@ DEGREE_THRESHOLDS = [0.25, 0.5, 0.75, 1.0]
 @derive_missing_obstruction_attrs(graph_arg=0, attrs_args=["obstruction_attr"])
 def mastora(
     graph: nx.DiGraph,
-    mode: Literal["proximal", "distal"],
+    mode: Literal["central", "peripheral", "global"],
     obstruction_attr: str = "transversal_obstruction_max",
     debug: bool = False,
 ) -> float | tuple[float, dict[tuple[int, int], str]]:
@@ -21,9 +21,10 @@ def mastora(
 
     Args:
         graph: Directed graph representing the arterial tree.
-        mode: Variant of the Mastora score to compute, either 'proximal' or 'distal'.
-            - 'proximal': Considers obstructions in the mediastinal and lobar arteries
-            - 'distal': Considers obstructions in the segmental arteries
+        mode: Variant of the Mastora score to compute.
+            - 'central': Considers obstructions in the mediastinal and lobar arteries
+            - 'peripheral': Considers obstructions in the segmental arteries
+            - 'global': Considers obstructions in all arteries (i.e. both central and peripheral)
         obstruction_attr: The name of the edge attribute to use for obstruction values.
         debug: If True, return debug information for visualization.
 
@@ -33,12 +34,14 @@ def mastora(
     """
     # Determine numerical levels for which to look for obstructions, based on mode
     match mode:
-        case "proximal":
+        case "global":
+            levels_to_search = {ArteryLevel.MEDIASTINAL, ArteryLevel.LOBAR, ArteryLevel.SEGMENTAL}
+        case "central":
             levels_to_search = {ArteryLevel.MEDIASTINAL, ArteryLevel.LOBAR}
-        case "distal":
+        case "peripheral":
             levels_to_search = {ArteryLevel.SEGMENTAL}
         case _:
-            raise ValueError(f"Invalid mode '{mode}'. Allowed values are 'proximal' or 'distal'.")
+            raise ValueError(f"Invalid mode '{mode}'. Allowed values are 'central', 'peripheral' or 'global'.")
 
     # Data structures to save data for each selected edge,
     # mapped by edge (u, v) to facilitate debugging if needed

@@ -55,20 +55,21 @@ def qanadli(obj: dict, *args, **kwargs) -> None:
 @click.command()
 @click.argument(
     "mode",
-    type=click.Choice(["proximal", "distal"]),
+    type=click.Choice(["central", "peripheral", "global"]),
 )
 @option_obstruction_attr
 @click.pass_obj
-def mastora(obj: dict, mode: Literal["proximal", "distal"], **kwargs) -> None:  # noqa: D417
+def mastora(obj: dict, mode: Literal["central", "peripheral", "global"], **kwargs) -> None:  # noqa: D417
     """Compute Mastora score on the graph(s).
 
     Computes the Mastora score for pulmonary embolism risk assessment, evaluating the precise degree of vascular
-    obstruction in proximal or distal arteries.
+    obstruction in central and/or peripheral arteries.
 
     Args:
-        mode: Variant of the Mastora score to compute, either 'proximal' or 'distal'.
-            - 'proximal': Considers obstructions in the mediastinal and lobar arteries
-            - 'distal': Considers obstructions in the segmental arteries
+        mode: Variant of the Mastora score to compute.
+            - 'central': Considers obstructions in the mediastinal and lobar arteries
+            - 'peripheral': Considers obstructions in the segmental arteries
+            - 'global': Considers obstructions in all arteries (i.e. both central and peripheral)
     """
     _run_score(obj, mastora_score, mode, score_name=f"mastora_{mode}", **kwargs)
 
@@ -125,14 +126,14 @@ def _run_score(
 @click.option(
     "--debug-score",
     "-d",
-    type=click.Choice(["qanadli", "mastora_proximal", "mastora_distal"]),
+    type=click.Choice(["qanadli", "mastora_central", "mastora_peripheral", "mastora_global"]),
     help="Score for which to display intermediate values in the visualization, to help debugging.",
 )
 @pass_obj
 def visualize(
     obj: dict,
     obstruction_attr: str | None = None,
-    debug_score: Literal["qanadli", "mastora_proximal", "mastora_distal"] | None = None,
+    debug_score: str | None = None,
 ) -> None:
     """Visualize attribute values in the graph(s) using an interactive PyVis-generated HTML.
 
