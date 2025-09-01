@@ -83,8 +83,15 @@ eval_population.add_command(visualize)
     required=True,
     help="The clinical attribute(s) to correlate with `score`.",
 )
+@click.option(
+    "--categorical-plot",
+    type=click.Choice(["violin", "histogram"]),
+    default="violin",
+    show_default=True,
+    help="Type of plot to use for categorical clinical attributes.",
+)
 @click.pass_obj
-def correlate(obj: dict, scores: list[str], clinical_attrs: list[str]) -> None:
+def correlate(obj: dict, scores: list[str], clinical_attrs: list[str], **plot_correlation_kwargs) -> None:
     """Correlate graph scores with clinical data."""
     # Recover the clinical data extracted by the main command
     if (data := obj.get("clinical_data")) is None:
@@ -106,7 +113,7 @@ def correlate(obj: dict, scores: list[str], clinical_attrs: list[str]) -> None:
     cli_cmd = f"{script} {' '.join(sys.argv[1:])}"
 
     log.info("Generating correlation plot...")
-    plot_correlation(data, scores, clinical_attrs, cli_cmd)
+    plot_correlation(data, scores, clinical_attrs, cli_cmd, **plot_correlation_kwargs)
 
 
 if __name__ == "__main__":
