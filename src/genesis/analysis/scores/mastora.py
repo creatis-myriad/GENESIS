@@ -3,7 +3,7 @@ from typing import Any, Literal
 import networkx as nx
 import numpy as np
 
-from genesis.analysis.scores.config import ArteryLevel
+from genesis.analysis.config import ArteryLevel
 from genesis.analysis.scores.utils import derive_missing_obstruction_attrs
 from genesis.data.utils import networkx_find_root
 
