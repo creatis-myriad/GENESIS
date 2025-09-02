@@ -43,7 +43,7 @@ def qanadli(
         if debug:
             degree = np.digitize(obstruction, [partial_obstruction_thresh, total_obstruction_thresh])
             artery_type = ArteryLevel(level).name
-            debug_info[edge_key] = f"{artery_type[0]}: {obstruction:.2f} (num_seg:{segments_below}, deg:{degree})"
+            debug_info[edge_key] = f"{artery_type[0]}: {obstruction:.2f} (n_seg:{segments_below}, deg:{degree})"
 
     def _depth_first_search(node: Any) -> None:
         for child in graph.successors(node):
@@ -56,9 +56,9 @@ def qanadli(
                     _depth_first_search(child)
                 case ArteryLevel.MEDIASTINAL | ArteryLevel.LOBAR:
                     if artery_obstruction > partial_obstruction_thresh:
-                        # TODO: Implement recursive counting of descendant segmental arteries, to avoid depending
-                        #       on 'segments_below' attribute in the graph
-                        _save_edge_data((node, child), artery_level, edge_attrs["segments_below"], artery_obstruction)
+                        _save_edge_data(
+                            (node, child), artery_level, _count_segmental_descendants(graph, child), artery_obstruction
+                        )
                     else:
                         # Recursively visit children if artery is not obstructed enough
                         _depth_first_search(child)
@@ -86,3 +86,30 @@ def qanadli(
     if debug:
         return score, debug_info
     return score
+
+
+def _count_segmental_descendants(graph: nx.DiGraph, node: int) -> int:
+    """Count the number of segmental arteries below a given node in the graph.
+
+    Args:
+        graph: Directed graph representing the arterial tree.
+        node: ID of the node from which to start counting.
+
+    Returns:
+        Number of segmental arteries below the given node.
+    """
+
+    def _depth_first_search(n: Any) -> int:
+        count = 0
+        for child in graph.successors(n):
+            artery_level = graph.edges[n, child]["level"]
+
+            if artery_level > ArteryLevel.SEGMENTAL:
+                continue  # Stop search if we reach an artery below segmental level
+            if artery_level == ArteryLevel.SEGMENTAL:
+                count += 1  # Count the current artery if it is segmental
+            count += _depth_first_search(child)  # For any artery above or equal to segmental level, continue the search
+
+        return count
+
+    return _depth_first_search(node)
