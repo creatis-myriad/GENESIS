@@ -1,5 +1,5 @@
 defaults:
-  - components@encoder: gcn
+  - components@encoder: gin
   - components/global_pool@readout: add
   - components@head: mlp
   - optimizer: adamw

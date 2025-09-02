@@ -5,7 +5,7 @@
 _target_: ???
 in_channels: ${hparams.data.num_node_features}
 hidden_channels: 64
-num_layers: 5
+num_layers: 4
 out_channels: ${oc.select:hparams.data.num_classes,1}
 dropout: 0.5
 act: relu
