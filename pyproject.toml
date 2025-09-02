@@ -35,13 +35,10 @@ dependencies = [
 ]
 [project.optional-dependencies]
 all = [
-    "genesis[wandb,tensorboard,baselines]",
+    "genesis[wandb,baselines]",
 ]
 wandb = [
     "wandb>=0.21,<0.22",
-]
-tensorboard = [
-    "tensorboard>=2.19.0,<3",
 ]
 baselines = [
     "tabpfn>=2.0.9,<3",

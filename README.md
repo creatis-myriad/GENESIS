@@ -116,7 +116,6 @@ neural networks to predict the risk of pulmonary embolism.
 - \[`cpu`|`cu128`|`cu126`|`cu118`\]: Required mutually exclusive extras to install the project with a PyTorch version
   built for CPU or a specific CUDA version (only available when using `uv`, not `pip`).
 - `wandb`: For experiment tracking with Weights & Biases.
-- `tensorboard`: For experiment tracking with TensorBoard.
 - `baselines`: Extra dependencies required to run the baselines.
 - `all`: Install all (non-mutually exclusive) extras at once.
 
@@ -206,9 +205,6 @@ gnn-train logger=wandb
 
 # track experiment offline w/ W&B
 gnn-train logger=wandb logger.wandb.offline=True
-
-# track experiments using different loggers at once (i.e. CSV, TensorBoard, W&B)
-gnn-train logger=many_loggers
 ```
 
 ### Run multiple experiments
