@@ -1,4 +1,4 @@
-patient_id,spesi,vte_severity,troponin,bnp,cancer_history,cpd_history,heart_rate,systolic_bp,spO2,age
+patient_id,spesi,risk,troponin,bnp,cancer_history,cpd_history,heart_rate,systolic_bp,spO2,age
 0001,0,0,5,5,0,0,50,110,100,35
 0002,0,0,5,5,0,0,50,110,100,35
 0003,0,0,80,20,0,0,70,165,95,64

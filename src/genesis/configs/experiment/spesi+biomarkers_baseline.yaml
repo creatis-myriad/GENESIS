@@ -19,7 +19,7 @@ data:
   dataset:
     usecols:
       - patient_id
-      - vte_severity
+      - risk
       - troponin
       - bnp
       - age

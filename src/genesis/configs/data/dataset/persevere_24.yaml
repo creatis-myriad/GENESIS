@@ -7,12 +7,12 @@ defaults:
   - /data/dataset/transform: null
   - /data/dataset/transform@data.dataset.pre_transform: null
   - _self_
-  - /data/dataset/target: vte_severity
+  - /data/dataset/target: risk
 
 data:
   dataset:
     _target_: genesis.data.persevere.PersevereDataset
-    root: ${paths.data_dir}/PERSEVERE_ALL
+    root: ${paths.data_dir}/PERSEVERE_24
     line_graph: True
     target_attr: ??? # To be set by the target config
     target_dtype:
@@ -26,9 +26,9 @@ data:
 
 hparams:
   data:
-    num_graphs: 356
+    num_graphs: 24
     # If no explicit filter of edge attributes is provided, the maximum number of edge features (8) is used
-    num_raw_edge_features: 11
+    num_raw_edge_features: 9
     num_filtered_edge_features: ${op:length_hint,${oc.select:data.dataset.edge_attrs_filter}, ${.num_raw_edge_features}}
     num_edge_features: ${op.ternary:${data.dataset.line_graph}, 0, ${.num_filtered_edge_features}}
     num_node_features: ${op.ternary:${data.dataset.line_graph}, ${.num_filtered_edge_features}, 0}

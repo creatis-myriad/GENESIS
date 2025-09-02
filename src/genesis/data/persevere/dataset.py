@@ -27,7 +27,7 @@ class PersevereDataset(InMemoryDataset):
         pre_filter: Callable | None = None,
         force_reload: bool = False,
         line_graph: bool = True,
-        target_attr: str = "vte_severity",
+        target_attr: str = "risk",
         target_dtype: str | torch.dtype = torch.long,
         node_attrs_filter: list[str] | None = None,
         edge_attrs_filter: list[str] | None = None,

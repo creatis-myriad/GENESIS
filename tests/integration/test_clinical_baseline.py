@@ -93,7 +93,7 @@ def persevere_classification_overrides() -> list[str]:
     return [
         "data=split_lightning_dataset",
         "data/dataset=persevere_clinical",
-        "data/dataset/target=vte_severity",
+        "data/dataset/target=risk",
         # Specify the metrics here, since they depend on the data task
         "model/metrics=multi_classification",
     ]

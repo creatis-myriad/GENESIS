@@ -2,7 +2,7 @@
 
 data:
   dataset:
-    target_attr: vte_severity
+    target_attr: risk
 
 hparams:
   data:
