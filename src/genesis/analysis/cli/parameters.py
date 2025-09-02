@@ -25,7 +25,7 @@ def graph_loading_params(func: Callable) -> Callable:
         "graphs_dirs",
         type=click.Path(exists=True, file_okay=False, path_type=Path),
         multiple=True,
-        default=[rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/raw"],
+        default=[rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/graphs"],
         show_default=True,
         help="Directory(ies) to search for graph files.",
     )(func)
