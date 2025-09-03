@@ -66,16 +66,6 @@ eval_population.add_command(visualize)
 
 @eval_population.command()
 @click.option(
-    "--row",
-    "-r",
-    "rows",
-    type=click.Choice(list(PERSEVERE_ATTRS_LABELS.keys())),
-    multiple=True,
-    required=True,
-    help="Attribute(s) to plot along the rows of the facet grid. If a graph score is specified, it must have been "
-    "computed previously by calling their dedicated command (e.g. `qanadli`) earlier in the same command chain.",
-)
-@click.option(
     "--col",
     "-c",
     "cols",
@@ -86,6 +76,16 @@ eval_population.add_command(visualize)
     "computed previously by calling their dedicated command (e.g. `qanadli`) earlier in the same command chain.",
 )
 @click.option(
+    "--row",
+    "-r",
+    "rows",
+    type=click.Choice(list(PERSEVERE_ATTRS_LABELS.keys())),
+    multiple=True,
+    required=True,
+    help="Attribute(s) to plot along the rows of the facet grid. If a graph score is specified, it must have been "
+    "computed previously by calling their dedicated command (e.g. `qanadli`) earlier in the same command chain.",
+)
+@click.option(
     "--categorical-plot",
     type=click.Choice(["violin", "histogram"]),
     default="violin",
@@ -93,7 +93,7 @@ eval_population.add_command(visualize)
     help="Type of plot to use for categorical attributes.",
 )
 @click.pass_obj
-def plot(obj: dict, rows: list[str], cols: list[str], **facet_grid_kwargs) -> None:
+def plot(obj: dict, cols: list[str], rows: list[str], **facet_grid_kwargs) -> None:
     """Plot distribution of attribute(s) with respect to other attribute(s)."""
     # Recover the clinical data extracted by the main command
     if (data := obj.get("clinical_data")) is None:
@@ -102,7 +102,7 @@ def plot(obj: dict, rows: list[str], cols: list[str], **facet_grid_kwargs) -> No
         )
 
     # Recover the requested scores, checking they were computed by a previous command in the chain
-    requested_scores = [attr for attr in rows + cols if attr in PERSEVERE_GRAPH_SCORES]
+    requested_scores = [attr for attr in cols + rows if attr in PERSEVERE_GRAPH_SCORES]
     for score in requested_scores:
         if not (score_dict := obj.get(score, {}).get("scores")):
             raise ValueError(
@@ -116,7 +116,7 @@ def plot(obj: dict, rows: list[str], cols: list[str], **facet_grid_kwargs) -> No
     cli_cmd = f"{script} {' '.join(sys.argv[1:])}"
 
     log.info("Generating correlation plot...")
-    facet_grid(data, rows, cols, cli_cmd, **facet_grid_kwargs)
+    facet_grid(data, cols, rows, cli_cmd, **facet_grid_kwargs)
 
 
 if __name__ == "__main__":
