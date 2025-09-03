@@ -31,85 +31,97 @@ def qanadli(
     """
     # Data structures to save data for each selected edge,
     # mapped by edge (u, v) to facilitate debugging if needed
-    num_descendant_segments: dict[tuple[int, int], int] = {}
+    descendant_segments_counts: dict[tuple[int, int], int] = {}
     obstructions: dict[tuple[int, int], float] = {}
     debug_info: dict[tuple[int, int], str] = {}
 
-    def _save_edge_data(edge_key: tuple[int, int], level: int, segments_below: int, obstruction: float) -> None:
-        """Save data for a given edge to the data structures used to compute/debug the score."""
-        num_descendant_segments[edge_key] = segments_below
-        obstructions[edge_key] = obstruction
+    def _store_edge_data(
+        edge: tuple[int, int], obstruction: float, descendant_segments_count: int, level: ArteryLevel
+    ) -> None:
+        """Store data for a given edge to the data structures used to compute/debug the score."""
+        obstructions[edge] = obstruction
+        descendant_segments_counts[edge] = descendant_segments_count
 
         if debug:
             degree = np.digitize(obstruction, [partial_obstruction_thresh, total_obstruction_thresh])
             artery_type = ArteryLevel(level).name
-            debug_info[edge_key] = f"{artery_type[0]}: {obstruction:.2f} (n_seg:{segments_below}, deg:{degree})"
+            debug_info[edge] = f"{artery_type[0]}: {obstruction:.2f} (n_seg:{descendant_segments_count}, deg:{degree})"
 
     def _depth_first_search(node: Any) -> None:
         for child in graph.successors(node):
             edge_attrs = graph.edges[node, child]
             artery_obstruction = edge_attrs[obstruction_attr]
+            artery_level = edge_attrs["level"]
 
-            match artery_level := edge_attrs["level"]:
-                case ArteryLevel.ROOT:
-                    # Recursively visit children, but do not add root arteries to the score
+            if artery_level <= ArteryLevel.SEGMENTAL:  # Only consider arteries of segmental level or above
+                if artery_obstruction > partial_obstruction_thresh:
+                    # If artery is obstructed enough:
+                    # - Count the whole subtree (number of segmental descendants) as obstructed to the same degree
+                    # - Stop recursion
+                    descendant_segments_count = _count_terminal_descendants(graph, (node, child), ArteryLevel.SEGMENTAL)
+                    _store_edge_data((node, child), artery_obstruction, descendant_segments_count, artery_level)
+
+                elif _is_terminal(graph, (node, child), ArteryLevel.SEGMENTAL):
+                    # If artery has no descendants of at least segmental level:
+                    # - Count it as one non-obstructed artery
+                    # - Stop recursion
+                    _store_edge_data((node, child), artery_obstruction, 1, artery_level)
+
+                else:
+                    # Recursively visit children
                     _depth_first_search(child)
-                case ArteryLevel.MEDIASTINAL | ArteryLevel.LOBAR:
-                    if artery_obstruction > partial_obstruction_thresh:
-                        _save_edge_data(
-                            (node, child), artery_level, _count_segmental_descendants(graph, child), artery_obstruction
-                        )
-                    else:
-                        # Recursively visit children if artery is not obstructed enough
-                        _depth_first_search(child)
-                case ArteryLevel.SEGMENTAL:
-                    _save_edge_data((node, child), artery_level, 1, artery_obstruction)
-                case _:
-                    artery_type = ArteryLevel(artery_level).name.lower()
-                    raise ValueError(
-                        f"Unexpected artery level '{artery_level} ({artery_type})' for edge ({node}, {child})"
-                    )
 
     _depth_first_search(networkx_find_root(graph))
 
-    # From the lists of obstruction degrees and number of descendant segments, compute the Qanadli score
+    # From the lists of obstruction degrees and number of segmental descendants, compute the Qanadli score
     obstructions_vals = list(obstructions.values())
-    num_descendant_segments_vals = list(num_descendant_segments.values())
+    descendant_segments_counts_vals = list(descendant_segments_counts.values())
     # Discretize obstruction values into degrees: 0 (no obstruction), 1 (partial), 2 (total)
     degrees = np.digitize(obstructions_vals, [partial_obstruction_thresh, total_obstruction_thresh])
-    # Compute the Qanadli score as the obstruction degrees weighted by the number of descendant segments
-    weighted_degrees = num_descendant_segments_vals * degrees
+    # Compute the Qanadli score as the obstruction degrees weighted by the number of segmental descendants
+    weighted_degrees = descendant_segments_counts_vals * degrees
     # Original paper summed the weighted degrees across the landmark arteries, but here we normalize by the maximum
     # possible score (2 * total number of segmental arteries) to get a score between 0 and 1
-    score = sum(weighted_degrees) / (2 * sum(num_descendant_segments_vals))
+    score = sum(weighted_degrees) / (2 * sum(descendant_segments_counts_vals))
 
     if debug:
         return score, debug_info
     return score
 
 
-def _count_segmental_descendants(graph: nx.DiGraph, node: int) -> int:
-    """Count the number of segmental arteries below a given node in the graph.
+def _is_terminal(graph: nx.DiGraph, edge: tuple[int, int], terminal_level: int) -> bool:
+    """Check if an edge is terminal, i.e. of defined level at most with no successors of that level at most.
 
     Args:
         graph: Directed graph representing the arterial tree.
-        node: ID of the node from which to start counting.
+        edge: IDs of the source and destination nodes of the edge to check.
+        terminal_level: Level at the end of which descendants are considered terminal.
 
     Returns:
-        Number of segmental arteries below the given node.
+        True if the edge is terminal, i.e. of defined level at most with no successors of that level at most.
+    """
+    parent, node = edge
+    if graph.edges[parent, node]["level"] > terminal_level:
+        return False  # Edge above the terminal level cannot be terminal
+    return all(graph.edges[node, child]["level"] > terminal_level for child in graph.successors(node))
+
+
+def _count_terminal_descendants(graph: nx.DiGraph, edge: tuple[int, int], terminal_level: int) -> int:
+    """Count the number of terminal descendants of an edge.
+
+    Args:
+        graph: Directed graph representing the arterial tree.
+        edge: IDs of the source and destination nodes of the edge from which to start counting.
+        terminal_level: Artery level at the end of which descendants are considered terminal.
+
+    Returns:
+        Number of terminal descendants of an edge.
     """
 
-    def _depth_first_search(n: Any) -> int:
-        count = 0
-        for child in graph.successors(n):
-            artery_level = graph.edges[n, child]["level"]
+    def _depth_first_search(_edge: tuple[int, int]) -> int:
+        if _is_terminal(graph, _edge, terminal_level):
+            return 1
+        parent, node = _edge
+        return sum(_depth_first_search((node, child)) for child in graph.successors(node))
 
-            if artery_level > ArteryLevel.SEGMENTAL:
-                continue  # Stop search if we reach an artery below segmental level
-            if artery_level == ArteryLevel.SEGMENTAL:
-                count += 1  # Count the current artery if it is segmental
-            count += _depth_first_search(child)  # For any artery above or equal to segmental level, continue the search
-
-        return count
-
-    return _depth_first_search(node)
+    return _depth_first_search(edge)
