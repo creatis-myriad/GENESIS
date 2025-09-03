@@ -67,7 +67,7 @@ def mastora(
 
     _depth_first_search(networkx_find_root(graph))
 
-    # From the lists of obstruction degrees and number of descendant segments, compute the Qanadli score
+    # From the lists of obstruction degrees, compute the Mastora score
     obstructions_vals = list(obstructions.values())
     # Discretize obstruction values between {0...5}, so that normalization will be in [0, 1]
     degrees = np.digitize(obstructions_vals, DEGREE_THRESHOLDS)
