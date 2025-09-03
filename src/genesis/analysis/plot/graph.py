@@ -1,6 +1,3 @@
-import os
-import tempfile
-
 import networkx as nx
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from pyvis.network import Network
@@ -17,20 +14,6 @@ HIERARCHICAL_LAYOUT_OPTIONS = """
   "physics": { "enabled": false }
 }
 """
-
-
-def pyvis_show(net: Network, name: str = "graph.html", notebook: bool = False) -> None:
-    """Render a PyVis Network visualization.
-
-    Utility function to wrap the creation of a temporary HTML file to save the generated HTML visualization.
-
-    Args:
-        net: The PyVis Network instance to render.
-        name: Name of the temporary HTML file, customizable for easier identification of debug graph visualizations.
-        notebook: Whether to render inline in a Jupyter notebook (True) or as a standalone HTML file (False).
-    """
-    with tempfile.TemporaryDirectory(delete=False) as tmpdirname:
-        net.show(os.path.join(tmpdirname, name), notebook=notebook)
 
 
 def networkx_to_pyvis(

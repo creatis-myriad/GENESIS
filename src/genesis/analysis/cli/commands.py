@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from pathlib import Path
 from typing import Literal
 
 import click
@@ -6,7 +7,7 @@ from click import pass_obj
 from tqdm.auto import tqdm
 
 from genesis.analysis.cli.utils import get_logger
-from genesis.analysis.plot.graph import networkx_to_pyvis, pyvis_show
+from genesis.analysis.plot.graph import networkx_to_pyvis
 from genesis.analysis.scores.mastora import mastora as mastora_score
 from genesis.analysis.scores.qanadli import qanadli as qanadli_score
 from genesis.data.utils import networkx_has_edge_attributes
@@ -129,11 +130,18 @@ def _run_score(
     type=click.Choice(["qanadli", "mastora_central", "mastora_peripheral", "mastora_global"]),
     help="Score for which to display intermediate values in the visualization, to help debugging.",
 )
+@click.option(
+    "--output-dir",
+    "-O",
+    type=click.Path(file_okay=False, writable=True, path_type=Path),
+    help="Directory to save the generated HTML files under.",
+)
 @pass_obj
 def visualize(
     obj: dict,
     obstruction_attr: str | None = None,
     debug_score: str | None = None,
+    output_dir: Path | None = None,
 ) -> None:
     """Visualize attribute values in the graph(s) using an interactive PyVis-generated HTML.
 
@@ -151,6 +159,8 @@ def visualize(
     else:
         obstruction_attr = obstruction_attr or "transversal_obstruction_max"  # Default if nothing specified
 
+    output_dir = output_dir or Path.cwd()
+    output_dir.mkdir(parents=True, exist_ok=True)
     for graph_file, graph in tqdm(
         obj["graphs"].items(), desc="Generating interactive visualizations for input graphs", unit="graph"
     ):
@@ -165,4 +175,5 @@ def visualize(
             debug_info = score_data["debug_info"][graph_file]
             visu_filename = f"{graph_file.stem}_{obstruction_attr}_{debug_score}.html"
 
-        pyvis_show(networkx_to_pyvis(graph, attr=obstruction_attr, debug_info=debug_info), name=visu_filename)
+        net = networkx_to_pyvis(graph, attr=obstruction_attr, debug_info=debug_info)
+        net.show(str(output_dir / visu_filename), notebook=False)
