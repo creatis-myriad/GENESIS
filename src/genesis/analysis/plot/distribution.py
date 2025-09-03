@@ -7,7 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from genesis.analysis.config import PERSEVERE_ATTRS_CATEGORIES, PERSEVERE_ATTRS_LABELS
+from genesis.analysis.config import PERSEVERE_ATTRS_CATEGORIES, PERSEVERE_ATTRS_LABELS, PERSEVERE_ATTRS_RANGES
 
 log = logging.getLogger(__name__)
 
@@ -123,12 +123,28 @@ def facet_grid(
             )
             fig.add_trace(scatter, row=i + 1, col=j + 1)
 
-    # Set axes titles on the left and bottom of the grid
+    # Customize properties of the axes, based on their specific attributes
+
     for i, row_attr in enumerate(row_attrs):
         row_title = PERSEVERE_ATTRS_LABELS.get(row_attr, row_attr)
         if row_attr in PERSEVERE_ATTRS_CATEGORIES and categorical_plot == "histogram":
             # For histogram plots, indicate the y-axis is a count
             row_title = "Patient count"
+
+        # Set y-axes ranges manually if defined for the attribute
+        elif y_range := PERSEVERE_ATTRS_RANGES.get(row_attr):
+            col_cat_attrs = [attr for attr in col_attrs if attr in PERSEVERE_ATTRS_CATEGORIES]
+            if any(col_cat_attrs) and categorical_plot == "histogram":
+                log.warning(
+                    f"Setting pre-defined y-axis range {y_range} for attribute '{row_attr}' when histograms are "
+                    f"requested for categorical attributes {col_cat_attrs} would risk cropping out bars at the edge; "
+                    f"ignoring the range. \n"
+                    f"To avoid this warning, use violin plots instead of histograms for categorical attributes."
+                )
+            else:
+                fig.update_yaxes(range=y_range, row=i + 1)
+
+        # Set row titles on the left (1st column) of the grid
         fig.update_yaxes(title_text=row_title, row=i + 1, col=1)
 
     for j, col_attr in enumerate(col_attrs):
@@ -136,6 +152,21 @@ def facet_grid(
         if col_attr in PERSEVERE_ATTRS_CATEGORIES and categorical_plot == "histogram":
             # For histogram plots, indicate the x-axis is a count
             col_title = "Patient count"
+
+        # Set x-axes ranges manually if defined for the attribute
+        elif x_range := PERSEVERE_ATTRS_RANGES.get(col_attr):
+            row_cat_attrs = [attr for attr in row_attrs if attr in PERSEVERE_ATTRS_CATEGORIES]
+            if any(row_cat_attrs) and categorical_plot == "histogram":
+                log.warning(
+                    f"Setting pre-defined x-axis range {x_range} for attribute '{col_attr}' when histograms are "
+                    f"requested for categorical attributes {row_cat_attrs} would risk cropping out bars at the edge; "
+                    f"ignoring the range. \n"
+                    f"To avoid this warning, use violin plots instead of histograms for categorical attributes."
+                )
+            else:
+                fig.update_xaxes(range=x_range, col=j + 1)
+
+        # Set column titles on the bottom (last row) of the grid
         fig.update_xaxes(title_text=col_title, row=len(row_attrs), col=j + 1)
 
     title_text = (
