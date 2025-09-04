@@ -1,4 +1,4 @@
-cm:
+confusion_matrix:
   _target_: torchmetrics.ConfusionMatrix
   # Force `binary` task if `num_classes=1` (e.g. in special cases of multilabel classification),
   # otherwise use the task associated with the dataset
