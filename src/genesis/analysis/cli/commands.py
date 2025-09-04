@@ -175,5 +175,5 @@ def visualize(
             debug_info = score_data["debug_info"][graph_file]
             visu_filename = f"{graph_file.stem}_{obstruction_attr}_{debug_score}.html"
 
-        net = networkx_to_pyvis(graph, attr=obstruction_attr, debug_info=debug_info)
+        net = networkx_to_pyvis(graph, color_attr=obstruction_attr, debug_info=debug_info)
         net.show(str(output_dir / visu_filename), notebook=False)
