@@ -118,10 +118,10 @@ def _run_score(
 
 @click.command()
 @click.option(
-    "--obstruction-attr",
-    "-o",
+    "--color-attr",
+    "-c",
     type=str,
-    help="Edge obstruction attribute to display in the visualization. Ignored in favor of obstruction attribute used "
+    help="Edge attribute to color edges in the graph visualization. Ignored in favor of obstruction attribute used "
     "by score if `--debug-score` is also specified.",
 )
 @click.option(
@@ -139,41 +139,38 @@ def _run_score(
 @pass_obj
 def visualize(
     obj: dict,
-    obstruction_attr: str | None = None,
+    color_attr: str | None = None,
     debug_score: str | None = None,
     output_dir: Path | None = None,
 ) -> None:
     """Visualize attribute values in the graph(s) using an interactive PyVis-generated HTML.
 
-    Creates an interactive network visualization of the arterial tree, coloring edges by the specified obstruction
-    attribute.
+    Creates an interactive network visualization of the arterial tree, coloring edges by the specified attribute.
     """
     if score_data := obj.get(debug_score):
-        if obstruction_attr:
+        if color_attr:
             log.warning(
-                f"Both `--obstruction-attr` and `--debug-score` are specified. '{obstruction_attr}' value "
-                f"(`--obstruction-attr`) ignored in favor of '{score_data['obstruction_attr']}' attribute used by "
+                f"Both `--color-attr` and `--debug-score` are specified. '{color_attr}' value "
+                f"(`--color-attr`) ignored in favor of '{score_data['obstruction_attr']}' attribute used by "
                 f"{debug_score} (`--debug-score`)."
             )
-        obstruction_attr = score_data["obstruction_attr"]
-    else:
-        obstruction_attr = obstruction_attr or "transversal_obstruction_max"  # Default if nothing specified
+        color_attr = score_data["obstruction_attr"]
 
     output_dir = output_dir or Path.cwd()
     output_dir.mkdir(parents=True, exist_ok=True)
     for graph_file, graph in tqdm(
         obj["graphs"].items(), desc="Generating interactive visualizations for input graphs", unit="graph"
     ):
-        if not networkx_has_edge_attributes(graph, attrs=[obstruction_attr]):
+        if color_attr and not networkx_has_edge_attributes(graph, attrs=[color_attr]):
             raise ValueError(
-                f"Graph {graph_file} does not have edge attribute '{obstruction_attr}', required for visualization."
+                f"Graph {graph_file} does not have edge attribute '{color_attr}', required for visualization."
             )
 
         visu_filename = f"{graph_file.stem}.html"
         debug_info = None
         if debug_score:
             debug_info = score_data["debug_info"][graph_file]
-            visu_filename = f"{graph_file.stem}_{obstruction_attr}_{debug_score}.html"
+            visu_filename = f"{graph_file.stem}_{color_attr}_{debug_score}.html"
 
-        net = networkx_to_pyvis(graph, color_attr=obstruction_attr, debug_info=debug_info)
+        net = networkx_to_pyvis(graph, color_attr=color_attr, debug_info=debug_info)
         net.show(str(output_dir / visu_filename), notebook=False)
