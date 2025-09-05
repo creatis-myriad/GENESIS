@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, Literal
 
 import networkx as nx
@@ -5,6 +6,10 @@ import numpy as np
 import torch
 from torch_geometric.data import Data
 from torch_geometric.utils import from_networkx
+
+from genesis.utils import pylogger
+
+log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 
 
 def networkx_to_pyg(graph: nx.Graph, target_attr: str, target_dtype: torch.dtype, **from_networkx_kwargs) -> Data:
@@ -158,6 +163,7 @@ def networkx_aggregate_attrs[G: nx.Graph](
     graph: G,
     agg_func: dict[str, Literal["sum", "max", "min", "mean"] | list[Literal["sum", "max", "min", "mean"]]],
     element: Literal["nodes", "edges", "links"],
+    nan_default: Any = 0,
     remove_original: bool = False,
     in_place: bool = False,
 ) -> G:
@@ -169,6 +175,7 @@ def networkx_aggregate_attrs[G: nx.Graph](
         graph: NetworkX graph whose nodes or edges hold list-valued attrs.
         agg_func: Mapping from attribute name to aggregation operator(s) to apply.
         element: Elements on which to aggregate attribute values: should be 'nodes' or 'edges'/'links'.
+        nan_default: Value to use if all values are NaN during aggregation.
         remove_original: If True, drop the original list-valued attribute after aggregation.
         in_place: If True, modify the input graph in place. Otherwise, return a modified copy of the graph.
 
@@ -192,26 +199,43 @@ def networkx_aggregate_attrs[G: nx.Graph](
 
         # Re-create iterator for each attribute
         items = graph.nodes(data=True) if element == "nodes" else graph.edges(data=True)
-        for *_, data in items:
+        for *elem_key, data in items:
             attr_vals = data[attr]
 
             for op in ops:
-                match op:
-                    case "sum":
-                        v = np.nansum(attr_vals)
-                    case "max":
-                        v = np.nanmax(attr_vals)
-                    case "min":
-                        v = np.nanmin(attr_vals)
-                    case "mean":
-                        v = np.nanmean(attr_vals)
-                    case _:
-                        raise NotImplementedError(f"Unsupported aggregation operation on '{attr}': {op}")
+                # Handle warning from np.nan* functions when all values are NaN
+                # to silence default RuntimeWarning and give a custom warning message instead
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("error", r"All-NaN (slice|axis) encountered")
+                    try:
+                        match op:
+                            case "sum":
+                                v = np.nansum(attr_vals)
+                            case "max":
+                                v = np.nanmax(attr_vals)
+                            case "min":
+                                v = np.nanmin(attr_vals)
+                            case "mean":
+                                v = np.nanmean(attr_vals)
+                            case _:
+                                raise NotImplementedError(f"Unsupported aggregation operation on '{attr}': {op}")
+                    except Warning:
+                        match element:
+                            case "nodes":
+                                elem_desc = f"node {elem_key}"
+                            case "edges" | "links":
+                                elem_desc = f"edge between nodes {' and '.join(map(str, elem_key))}"
+
+                        log.warning(
+                            f"Attribute '{attr}' on {elem_desc} was all-NaN; "
+                            f"default to setting '{attr}_{op}' to {nan_default}."
+                        )
+                        v = nan_default
 
                 data[f"{attr}_{op}"] = v
 
             if remove_original:
-                data.pop(attr, None)
+                data.pop(attr)
 
     return graph
 
