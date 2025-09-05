@@ -35,10 +35,9 @@ def hydra_main(cfg: DictConfig) -> None:
 
     agg_cfg = cfg.attrs_to_aggregate
     log.info(
-        f"List-valued attributes to aggregate: "
-        f"  nodes={agg_cfg.get('nodes', {})}, "
+        f"List-valued attributes to aggregate: \n"
+        f"  nodes={agg_cfg.get('nodes', {})}, \n"
         f"  links={agg_cfg.get('links', {})}, "
-        f"  Delete original list-valued attributes after aggregation: {agg_cfg.remove_original}"
     )
 
     global_attrs = list(cfg.clinical_data.usecols)
@@ -66,21 +65,17 @@ def hydra_main(cfg: DictConfig) -> None:
             graph = networkx_add_attrs(graph, "graph", patient_attrs)
 
             # Aggregate list attributes to scalar values
-            graph = networkx_aggregate_attrs(
-                graph, agg_cfg.get("nodes", {}), "nodes", remove_original=agg_cfg.remove_original
-            )
-            graph = networkx_aggregate_attrs(
-                graph, agg_cfg.get(edges_key, {}), edges_key, remove_original=agg_cfg.remove_original
-            )
+            graph = networkx_aggregate_attrs(graph, agg_cfg.get("nodes", {}), "nodes")
+            graph = networkx_aggregate_attrs(graph, agg_cfg.get(edges_key, {}), edges_key)
 
-            # Remove unnecessary attributes
+            # Remove requested attributes
             for key, attrs_to_remove in cfg.attrs_to_remove.items():
                 graph = networkx_remove_attrs(graph, key, attrs_to_remove)
                 if key == "graph":
                     continue  # Skip setting default attributes for the graph
                 graph = networkx_setdefault_attrs(graph, key, 0)
 
-            # Override 'nodes' and 'edges' keys in the node-link data, and save the modified graph
+            # Rename 'nodes' and 'edges' keys in the node-link data, and save the modified graph
             node_link_data = nx.node_link_data(
                 graph,
                 nodes=cfg.node_link_data_nodes_key,
