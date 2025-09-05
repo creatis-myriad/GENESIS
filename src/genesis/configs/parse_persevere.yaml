@@ -31,8 +31,6 @@ attrs_to_remove:
       max_radius, # since we recompute the aggregated radius attributes from the list of radii
       mean_radius, # since we recompute the aggregated radius attributes from the list of radii
       contour_points,
-      ep_id,
-      ep_coordinates,
       segments_below,
       total_vessel_volume_mm3, # since total_vessel_voxels already exists
       total_vessel_volume_cm3, # since total_vessel_voxels already exists
