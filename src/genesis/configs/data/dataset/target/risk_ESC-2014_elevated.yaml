@@ -1,0 +1,9 @@
+# @package _global_
+
+data:
+  dataset:
+    target_attr: risk_ESC-2014_elevated
+
+hparams:
+  data:
+    task: binary

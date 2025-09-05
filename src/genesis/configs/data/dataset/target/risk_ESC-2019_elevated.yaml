@@ -1,0 +1,9 @@
+# @package _global_
+
+data:
+  dataset:
+    target_attr: risk_ESC-2019_elevated
+
+hparams:
+  data:
+    task: binary
