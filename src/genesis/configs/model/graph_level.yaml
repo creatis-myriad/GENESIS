@@ -26,7 +26,7 @@ head:
   in_channels: ${..encoder.hidden_channels}
   hidden_channels: ${.in_channels}
   num_layers: 2
-  dropout: ${..encoder.dropout}
+  dropout: ${oc.select:..encoder.dropout,0.5}
   norm: batch_norm
 
 criterion:
