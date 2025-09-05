@@ -167,20 +167,20 @@ def networkx_aggregate_attrs[G: nx.Graph](
     remove_original: bool = False,
     in_place: bool = False,
 ) -> G:
-    """Aggregate list-valued attributes on nodes or edges.
+    """Aggregate multivalued attributes on nodes or edges.
 
-    Writes each result under a new key `<op>_<attr>`, and (optionally) deletes the original list-valued attribute.
+    Writes each result under a new key `<op>_<attr>`, and (optionally) deletes the original multivalued attribute.
 
     Args:
-        graph: NetworkX graph whose nodes or edges hold list-valued attrs.
+        graph: NetworkX graph whose nodes or edges hold multivalued attrs.
         agg_func: Mapping from attribute name to aggregation operator(s) to apply.
         element: Elements on which to aggregate attribute values: should be 'nodes' or 'edges'/'links'.
         nan_default: Value to use if all values are NaN during aggregation.
-        remove_original: If True, drop the original list-valued attribute after aggregation.
+        remove_original: If True, drop the original multivalued attribute after aggregation.
         in_place: If True, modify the input graph in place. Otherwise, return a modified copy of the graph.
 
     Returns:
-        Graph with new scalar attributes, aggregated from list-valued ones.
+        Graph with new scalar attributes, aggregated from multivalued ones.
 
     Raises:
         ValueError: if `element` is not one of "nodes" or "edges"/"links".
@@ -200,7 +200,9 @@ def networkx_aggregate_attrs[G: nx.Graph](
         # Re-create iterator for each attribute
         items = graph.nodes(data=True) if element == "nodes" else graph.edges(data=True)
         for *elem_key, data in items:
-            attr_vals = data[attr]
+            attr_data = data[attr]
+            if isinstance(attr_data, dict):
+                attr_data = attr_data.values()
 
             for op in ops:
                 # Handle warning from np.nan* functions when all values are NaN
@@ -210,13 +212,13 @@ def networkx_aggregate_attrs[G: nx.Graph](
                     try:
                         match op:
                             case "sum":
-                                v = np.nansum(attr_vals)
+                                v = np.nansum(attr_data)
                             case "max":
-                                v = np.nanmax(attr_vals)
+                                v = np.nanmax(attr_data)
                             case "min":
-                                v = np.nanmin(attr_vals)
+                                v = np.nanmin(attr_data)
                             case "mean":
-                                v = np.nanmean(attr_vals)
+                                v = np.nanmean(attr_data)
                             case _:
                                 raise NotImplementedError(f"Unsupported aggregation operation on '{attr}': {op}")
                     except Warning:
