@@ -10,7 +10,7 @@ from genesis.analysis.cli.utils import get_logger
 from genesis.analysis.plot.graph import networkx_to_pyvis
 from genesis.analysis.scores.mastora import mastora as mastora_score
 from genesis.analysis.scores.qanadli import qanadli as qanadli_score
-from genesis.data.utils import networkx_has_edge_attributes
+from genesis.data.utils import networkx_has_attributes
 
 log = get_logger(__name__)
 
@@ -161,7 +161,7 @@ def visualize(
     for graph_file, graph in tqdm(
         obj["graphs"].items(), desc="Generating interactive visualizations for input graphs", unit="graph"
     ):
-        if color_attr and not networkx_has_edge_attributes(graph, attrs=[color_attr]):
+        if color_attr and not networkx_has_attributes(graph, element="edges", attrs=[color_attr]):
             raise ValueError(
                 f"Graph {graph_file} does not have edge attribute '{color_attr}', required for visualization."
             )

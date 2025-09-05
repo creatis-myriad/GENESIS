@@ -5,7 +5,7 @@ from typing import Any
 
 import networkx as nx
 
-from genesis.data.utils import networkx_aggregate_attrs, networkx_has_edge_attributes
+from genesis.data.utils import networkx_aggregate_attrs, networkx_has_attributes
 from genesis.utils.builtin import is_identical_function
 
 
@@ -71,7 +71,7 @@ def derive_missing_obstruction_attrs(graph_arg: int | str, attrs_args: list[int 
 
             for attr in attrs:
                 # Only compute attribute if it is not available
-                if not networkx_has_edge_attributes(graph, attrs=[attr]):
+                if not networkx_has_attributes(graph, element="edges", attrs=[attr]):
                     # Aggregate existing attributes, deriving base attribute and aggregation from
                     # the name and suffix of the requested attribute
                     base_attr, agg = attr.rsplit("_", 1)
