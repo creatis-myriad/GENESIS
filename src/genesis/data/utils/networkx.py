@@ -45,7 +45,7 @@ def networkx_to_pyg(graph: nx.Graph, target_attr: str, target_dtype: torch.dtype
 def networkx_line_graph(graph: nx.Graph) -> nx.Graph:
     """Convert NetworkX `Graph` to its line graph.
 
-    Only transpose original edge features to dual graph nodes, as edge features are not used in most GNNs.
+    Only transpose original edge features to line graph nodes, as edge features are not used in most GNNs.
 
     Args:
         graph: Original graph.
@@ -53,11 +53,11 @@ def networkx_line_graph(graph: nx.Graph) -> nx.Graph:
     Returns:
         Line graph.
     """
-    dual_graph = nx.line_graph(graph)
-    dual_graph.graph.update(graph.graph)
+    line_graph = nx.line_graph(graph)
+    line_graph.graph.update(graph.graph)
     for source, target, feats in graph.edges(data=True):
-        dual_graph.nodes[(source, target)].update(feats)
-    return dual_graph
+        line_graph.nodes[(source, target)].update(feats)
+    return line_graph
 
 
 def networkx_add_attrs[G: nx.Graph](
