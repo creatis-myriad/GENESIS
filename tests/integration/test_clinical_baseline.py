@@ -73,81 +73,34 @@ def application_overrides(data_overrides: list[str], model_overrides: list[str])
     return [*data_overrides, *model_overrides]
 
 
-@pytest.fixture(scope="module", params=["persevere_classification_overrides", "persevere_regression_overrides"])
+@pytest.fixture(scope="module", params=[("risk", "multi_classification"), ("bnp", "regression")])
 def data_overrides(request: FixtureRequest) -> list[str]:
     """A pytest fixture for the overrides to use to specify the data.
 
     Returns:
         A list of configuration overrides.
     """
-    return request.getfixturevalue(request.param)
-
-
-@pytest.fixture(scope="module")
-def persevere_classification_overrides() -> list[str]:
-    """A pytest fixture for the overrides to use for classification task tests on the PERSEVERE dataset.
-
-    Returns:
-        A list of configuration overrides.
-    """
+    target, metrics = request.param
     return [
         "data=split_lightning_dataset",
         "data/dataset=persevere_clinical",
-        "data/dataset/target=risk",
+        f"data/dataset/target={target}",
         # Specify the metrics here, since they depend on the data task
-        "model/metrics=multi_classification",
+        f"model/metrics={metrics}",
     ]
 
 
-@pytest.fixture(scope="module")
-def persevere_regression_overrides() -> list[str]:
-    """A pytest fixture for the overrides to use for regression task tests on the PERSEVERE dataset.
-
-    Returns:
-        A list of configuration overrides.
-    """
-    return [
-        "data=split_lightning_dataset",
-        "data/dataset=persevere_clinical",
-        "data/dataset/target=bnp",
-        # Specify the metrics here, since they depend on the data task
-        "model/metrics=regression",
-    ]
-
-
-@pytest.fixture(scope="module", params=["tabpfn_overrides", "xgboost_overrides"])
+@pytest.fixture(scope="module", params=["tabpfn", "xgboost"])
 def model_overrides(request: FixtureRequest) -> list[str]:
     """A pytest fixture for the overrides to use to specify the model for the tests.
 
     Returns:
         A list of configuration overrides.
     """
-    return request.getfixturevalue(request.param)
-
-
-@pytest.fixture(scope="module")
-def tabpfn_overrides() -> list[str]:
-    """A pytest fixture for the overrides to use for tests with the TabPFN model.
-
-    Returns:
-        A list of configuration overrides.
-    """
+    model = request.param
     return [
         "model=tabular_estimator",
-        "model/components@model.model=tabpfn",
-    ]
-
-
-@pytest.fixture(scope="module")
-def xgboost_overrides() -> list[str]:
-    """A pytest fixture for the overrides to use for tests with the XGBoost model.
-
-    Returns:
-        A list of configuration overrides.
-    """
-    return [
-        "model=tabular_estimator",
-        "model/components@model.model=xgboost",
+        f"model/components@model.model={model}",
     ]
 
 
