@@ -3,3 +3,4 @@ defaults:
 
 _target_: torch_geometric.nn.GAT
 v2: true
+edge_dim: ${oc.select:hparams.data.num_edge_features}
