@@ -77,12 +77,11 @@ def test_clinical_baseline_experiments(script: Path, shared_datadir: Path, testi
 
 @RunIf(sh=True)
 @pytest.mark.slow
-def test_hydra_sweep(script: Path, application_overrides: list[str], testing_overrides: list[str]) -> None:
+def test_hydra_sweep(script: Path, testing_overrides: list[str]) -> None:
     """Test default hydra sweep.
 
     Args:
         script: The path of the script to invoke.
-        application_overrides: The application-specific overrides to use.
         testing_overrides: The generic overrides to suitably configure tests.
     """
     command = [
@@ -90,7 +89,6 @@ def test_hydra_sweep(script: Path, application_overrides: list[str], testing_ove
         "-m",
         "model.optimizer.lr=0.005,0.01",
         "++trainer.fast_dev_run=true",
-        *application_overrides,
         *testing_overrides,
     ]
     run_sh_command(command)
@@ -98,17 +96,13 @@ def test_hydra_sweep(script: Path, application_overrides: list[str], testing_ove
 
 @RunIf(sh=True)
 @pytest.mark.slow
-def test_optuna_sweep(script: Path, mutag_classification_overrides: list[str], testing_overrides: list[str]) -> None:
+def test_optuna_sweep(script: Path, testing_overrides: list[str]) -> None:
     """Test Optuna hyperparam sweeping.
 
     Args:
         script: The path of the script to invoke.
-        mutag_classification_overrides: The overrides to use for the MUTAG classification task.
         testing_overrides: The generic overrides to suitably configure tests.
     """
-    # TODO: Make this test more flexible by using `application_overrides` (instead of `mutag_classification_overrides`)
-    #       and automatically picking the `hparams_search` config based on the application overrides.
-    #       Not done because it is not trivial to find a reliable way to pick an appropriate `hparams_search` config.
     command = [
         str(script),
         "-m",
@@ -118,7 +112,6 @@ def test_optuna_sweep(script: Path, mutag_classification_overrides: list[str], t
         "hydra.sweeper.n_trials=10",
         "hydra.sweeper.sampler.n_startup_trials=5",
         "++trainer.fast_dev_run=true",
-        *mutag_classification_overrides,
         *testing_overrides,
     ]
     run_sh_command(command)
@@ -126,19 +119,17 @@ def test_optuna_sweep(script: Path, mutag_classification_overrides: list[str], t
 
 @RunIf(sh=True)
 @pytest.mark.slow
-def test_serial_sweep(script: Path, application_overrides: list[str], testing_overrides: list[str]) -> None:
+def test_serial_sweep(script: Path, testing_overrides: list[str]) -> None:
     """Test single-process serial sweeping.
 
     Args:
         script: The path of the script to invoke.
-        application_overrides: The application-specific overrides to use.
         testing_overrides: The generic overrides to suitably configure tests.
     """
     command = [
         str(script),
         "serial_sweeper=cross_validation",
         "++trainer.fast_dev_run=true",
-        *application_overrides,
         *testing_overrides,
     ]
     run_sh_command(command)
