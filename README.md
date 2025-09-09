@@ -192,8 +192,7 @@ gnn-train experiment=<YOUR_EXPERIMENT_CONFIG>
 
 ### Track experiments
 
-Although some basic logging configurations are provided for CSV file and TensorBoard, the recommended tool to track
-experiments is [Weights & Biases](https://wandb.ai/site), by using W&B's
+The implemented tool to track experiments is [Weights & Biases](https://wandb.ai/site), by using W&B's
 [integration in PyTorch Lightning](https://docs.wandb.ai/guides/integrations/lightning/).
 
 > [!WARNING]
