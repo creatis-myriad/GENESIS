@@ -121,7 +121,7 @@ def _count_terminal_descendants(graph: nx.DiGraph, edge: tuple[int, int], termin
     def _depth_first_search(_edge: tuple[int, int]) -> int:
         if _is_terminal(graph, _edge, terminal_level):
             return 1
-        parent, node = _edge
+        _parent, node = _edge
         return sum(_depth_first_search((node, child)) for child in graph.successors(node))
 
     return _depth_first_search(edge)
