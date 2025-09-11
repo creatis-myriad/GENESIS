@@ -40,6 +40,10 @@ PERSEVERE_ATTRS_RANGES = {
     "mastora_global": (0.0, 1.0),
     "qanadli": (0.0, 1.0),
 }
+PERSEVERE_ATTRS_SCALES = {
+    "bnp": "log",
+    "troponin": "log",
+}
 PERSEVERE_GRAPH_SCORES = [
     "mastora_central",
     "mastora_peripheral",

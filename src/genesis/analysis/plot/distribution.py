@@ -11,6 +11,7 @@ from genesis.analysis.config import (
     PERSEVERE_ATTRS_CATEGORIES,
     PERSEVERE_ATTRS_LABELS,
     PERSEVERE_ATTRS_RANGES,
+    PERSEVERE_ATTRS_SCALES,
 )
 
 log = logging.getLogger(__name__)
@@ -186,6 +187,9 @@ def _customize_axes_layout(
                 )
             else:
                 update_kwargs["range"] = attr_range
+
+        if attr_scale := PERSEVERE_ATTRS_SCALES.get(attr):
+            update_kwargs["type"] = attr_scale
 
         if axis == "row":
             # Apply updates shared across the y-axes of the row
