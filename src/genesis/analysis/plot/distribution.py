@@ -7,7 +7,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from genesis.analysis.config import PERSEVERE_ATTRS_CATEGORIES, PERSEVERE_ATTRS_LABELS, PERSEVERE_ATTRS_RANGES
+from genesis.analysis.config import (
+    PERSEVERE_ATTRS_CATEGORIES,
+    PERSEVERE_ATTRS_LABELS,
+    PERSEVERE_ATTRS_RANGES,
+)
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +59,36 @@ def facet_grid(
         else None,
     )
 
+    _add_traces_to_grid(fig, data, row_attrs, col_attrs, categorical_plot)
+
+    # Customize properties of the axes, based on their specific attributes
+    _customize_axes_layout(fig, row_attrs, "row", col_attrs, categorical_plot)
+    _customize_axes_layout(fig, col_attrs, "col", row_attrs, categorical_plot)
+
+    title_text = (
+        f"Distributions between clinical parameters and vascular scores<br>"
+        f"<sup><br>"
+        f"CLI command: <span style='color:green;'>{cli_command}</span>"
+        f"</sup>"
+    )
+    fig.update_layout(
+        template="plotly",
+        title={
+            "text": title_text,
+            "font_size": 18,
+        },
+        margin={"t": 150},
+    )
+    fig.show(renderer="browser")
+
+
+def _add_traces_to_grid(
+    fig: go.Figure,
+    data: pd.DataFrame,
+    row_attrs: list[str],
+    col_attrs: list[str],
+    categorical_plot: Literal["violin", "histogram"],
+) -> None:
     # Add plots for each combination in the grid
     for (i, row_attr), (j, col_attr) in itertools.product(enumerate(row_attrs), enumerate(col_attrs)):
         corr = data[row_attr].corr(data[col_attr])
@@ -123,64 +157,43 @@ def facet_grid(
             )
             fig.add_trace(scatter, row=i + 1, col=j + 1)
 
-    # Customize properties of the axes, based on their specific attributes
 
-    for i, row_attr in enumerate(row_attrs):
-        row_title = PERSEVERE_ATTRS_LABELS.get(row_attr, row_attr)
-        if row_attr in PERSEVERE_ATTRS_CATEGORIES and categorical_plot == "histogram":
-            # For histogram plots, indicate the y-axis is a count
-            row_title = "Patient count"
+def _customize_axes_layout(
+    fig: go.Figure,
+    attrs: list[str],
+    axis: Literal["row", "col"],
+    opposite_attrs: list[str],
+    categorical_plot: Literal["violin", "histogram"],
+) -> None:
+    for idx, attr in enumerate(attrs):
+        update_kwargs = {}
 
-        # Set y-axes ranges manually if defined for the attribute
-        elif y_range := PERSEVERE_ATTRS_RANGES.get(row_attr):
-            col_cat_attrs = [attr for attr in col_attrs if attr in PERSEVERE_ATTRS_CATEGORIES]
-            if any(col_cat_attrs) and categorical_plot == "histogram":
+        axis_title = PERSEVERE_ATTRS_LABELS.get(attr, attr)
+        if attr in PERSEVERE_ATTRS_CATEGORIES and categorical_plot == "histogram":
+            # For histogram plots, indicate the axis is a count
+            axis_title = "Patient count"
+
+        # Set axis range manually if defined for the attribute
+        elif attr_range := PERSEVERE_ATTRS_RANGES.get(attr):
+            opposite_cat_attrs = [attr for attr in opposite_attrs if attr in PERSEVERE_ATTRS_CATEGORIES]
+            if any(opposite_cat_attrs) and categorical_plot == "histogram":
+                shared_axis = "y" if axis == "row" else "x"
                 log.warning(
-                    f"Setting pre-defined y-axis range {y_range} for attribute '{row_attr}' when histograms are "
-                    f"requested for categorical attributes {col_cat_attrs} would risk cropping out bars at the edge; "
-                    f"ignoring the range. \n"
+                    f"Setting pre-defined {shared_axis}-axis range {attr_range} for attribute '{attr}' when histograms "
+                    f"are requested for categorical attributes {opposite_cat_attrs} would risk cropping out bars at "
+                    f"the edge; ignoring the range. \n"
                     f"To avoid this warning, use violin plots instead of histograms for categorical attributes."
                 )
             else:
-                fig.update_yaxes(range=y_range, row=i + 1)
+                update_kwargs["range"] = attr_range
 
-        # Set row titles on the left (1st column) of the grid
-        fig.update_yaxes(title_text=row_title, row=i + 1, col=1)
-
-    for j, col_attr in enumerate(col_attrs):
-        col_title = PERSEVERE_ATTRS_LABELS.get(col_attr, col_attr)
-        if col_attr in PERSEVERE_ATTRS_CATEGORIES and categorical_plot == "histogram":
-            # For histogram plots, indicate the x-axis is a count
-            col_title = "Patient count"
-
-        # Set x-axes ranges manually if defined for the attribute
-        elif x_range := PERSEVERE_ATTRS_RANGES.get(col_attr):
-            row_cat_attrs = [attr for attr in row_attrs if attr in PERSEVERE_ATTRS_CATEGORIES]
-            if any(row_cat_attrs) and categorical_plot == "histogram":
-                log.warning(
-                    f"Setting pre-defined x-axis range {x_range} for attribute '{col_attr}' when histograms are "
-                    f"requested for categorical attributes {row_cat_attrs} would risk cropping out bars at the edge; "
-                    f"ignoring the range. \n"
-                    f"To avoid this warning, use violin plots instead of histograms for categorical attributes."
-                )
-            else:
-                fig.update_xaxes(range=x_range, col=j + 1)
-
-        # Set column titles on the bottom (last row) of the grid
-        fig.update_xaxes(title_text=col_title, row=len(row_attrs), col=j + 1)
-
-    title_text = (
-        f"Distributions between clinical parameters and vascular scores<br>"
-        f"<sup><br>"
-        f"CLI command: <span style='color:green;'>{cli_command}</span>"
-        f"</sup>"
-    )
-    fig.update_layout(
-        template="plotly",
-        title={
-            "text": title_text,
-            "font_size": 18,
-        },
-        margin={"t": 150},
-    )
-    fig.show(renderer="browser")
+        if axis == "row":
+            # Apply updates shared across the y-axes of the row
+            fig.update_yaxes(**update_kwargs, row=idx + 1)
+            # Set row title on the left (1st column) of the grid
+            fig.update_yaxes(title_text=axis_title, row=idx + 1, col=1)
+        else:  # axis == "col"
+            # Apply updates shared across the x-axes of the column
+            fig.update_xaxes(**update_kwargs, col=idx + 1)
+            # Set column title on the bottom (last row) of the grid
+            fig.update_xaxes(title_text=axis_title, row=len(opposite_attrs), col=idx + 1)
