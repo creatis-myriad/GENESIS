@@ -15,23 +15,27 @@ PERSEVERE_ATTRS_LABELS = {
     "mastora_peripheral": "Mastora (peripheral) score",
     "mastora_global": "Mastora (global) score",
     "qanadli": "Qanadli score",
-    "risk": "ESC Guidelines risk level",
+    "risk_treated": "PE risk based on which patients were treated",
+    "risk_ESC-2014": "PE risk based on ESC 2014 Guidelines",
+    "risk_ESC-2019": "PE risk based on ESC 2019 Guidelines",
     "spesi": "SPESI Score",
-    "bnp": "BNP",
+    "nt-probnp": "NT-proBNP",
     "troponin": "Troponin",
     "age": "Age (years)",
-    "cancer_history": "History of cancer",
-    "cpd_history": "History of chronic cardiopulmonary disease",
+    "history_cancer": "History of cancer",
+    "history_cpd": "History of chronic cardiopulmonary disease",
     "heart_rate": "Heart rate (bpm)",
     "systolic_bp": "Systolic blood pressure (mmHg)",
     "spO2": "Oxygen saturation (%)",
     "inverted_rv-lv_ratio": "Inverted RV/LV ratio",
 }
 PERSEVERE_ATTRS_CATEGORIES = {
-    "risk": [0, 1, 2],
+    "risk_treated": [0, 1, 2],
+    "risk_ESC-2014": [0, 1, 2],
+    "risk_ESC-2019": [0, 1, 2],
     "spesi": [0, 1, 2],
-    "cancer_history": [0, 1],
-    "cpd_history": [0, 1],
+    "history_cancer": [0, 1],
+    "history_cpd": [0, 1],
     "inverted_rv-lv_ratio": [0, 1],
 }
 PERSEVERE_ATTRS_RANGES = {
@@ -41,7 +45,7 @@ PERSEVERE_ATTRS_RANGES = {
     "qanadli": (0.0, 1.0),
 }
 PERSEVERE_ATTRS_SCALES = {
-    "bnp": "log",
+    "nt-probnp": "log",
     "troponin": "log",
 }
 PERSEVERE_GRAPH_SCORES = [

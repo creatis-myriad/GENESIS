@@ -7,7 +7,7 @@ defaults:
   - /data/dataset/transform: null
   - /data/dataset/transform@data.dataset.pre_transform: null
   - _self_
-  - /data/dataset/target: risk
+  - /data/dataset/target: risk_ESC-2014
 
 data:
   dataset:
@@ -26,7 +26,7 @@ data:
 
 hparams:
   data:
-    num_graphs: 355
+    num_graphs: 353
     # If no explicit filter of edge attributes is provided, the maximum number of edge features (8) is used
     num_raw_edge_features: 9
     num_filtered_edge_features: ${op:length_hint,${oc.select:data.dataset.edge_attrs_filter}, ${.num_raw_edge_features}}

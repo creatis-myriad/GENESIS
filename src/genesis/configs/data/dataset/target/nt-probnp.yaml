@@ -2,7 +2,7 @@
 
 data:
   dataset:
-    target_attr: bnp
+    target_attr: nt-probnp
 
 hparams:
   data:

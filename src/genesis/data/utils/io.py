@@ -159,9 +159,7 @@ def find_graph_file(
     return unique.pop()
 
 
-def load_and_clean_clinical_data(
-    csv_filepath: Path, drop_na_subset: list[str] = ("risk", "spesi", "troponin", "bnp")
-) -> pd.DataFrame:
+def load_and_clean_clinical_data(csv_filepath: Path, drop_na_subset: list[str] | None = None) -> pd.DataFrame:
     """Load and clean clinical data from a CSV file.
 
     Args:

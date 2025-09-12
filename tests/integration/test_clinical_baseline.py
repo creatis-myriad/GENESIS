@@ -73,7 +73,7 @@ def application_overrides(data_overrides: list[str], model_overrides: list[str])
     return [*data_overrides, *model_overrides]
 
 
-@pytest.fixture(scope="module", params=[("risk", "multi_classification"), ("bnp", "regression")])
+@pytest.fixture(scope="module", params=[("risk_ESC-2014", "multi_classification"), ("troponin", "regression")])
 def data_overrides(request: FixtureRequest) -> list[str]:
     """A pytest fixture for the overrides to use to specify the data.
 

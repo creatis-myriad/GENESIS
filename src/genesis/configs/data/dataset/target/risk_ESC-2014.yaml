@@ -2,7 +2,7 @@
 
 data:
   dataset:
-    target_attr: risk
+    target_attr: risk_ESC-2014
 
 hparams:
   data:

@@ -1,7 +1,7 @@
 defaults:
   - imputer: null
   - _self_
-  - target: risk
+  - target: risk_ESC-2014
 
 _target_: genesis.data.CSVDataset
 # since pandas.read_csv does not recognize OmegaConf containers as their corresponding Python primitives
@@ -10,16 +10,6 @@ _convert_: all
 src: ${paths.data_dir}/PERSEVERE/clinical_data.csv
 target_attr: null # To be set by the target config
 index_col: patient_id
-usecols:
-  - patient_id
-  - risk
-  - troponin
-  - bnp
-dtype:
-  patient_id: str
-  risk: int
-  troponin: float
-  bnp: float
-na_values: ["NF"]
+na_values: ["nr", "NR"]
 impute_cols: null
 drop_na: false
