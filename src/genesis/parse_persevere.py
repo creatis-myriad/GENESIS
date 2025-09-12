@@ -4,6 +4,7 @@ from pathlib import Path
 import hydra
 import networkx as nx
 from omegaconf import DictConfig
+from pandas.core.dtypes.common import is_integer_dtype
 
 from genesis.data.utils import (
     NumpyEncoder,
@@ -55,6 +56,8 @@ def hydra_main(cfg: DictConfig) -> None:
 
     for json_path in json_files:
         patient_id = json_path.stem[:4]
+        if is_integer_dtype(clinical_data.index):
+            patient_id = int(patient_id)
 
         if patient_id in clinical_data.index:
             log.debug(f"Parsing file '{json_path.name}' for patient ID '{patient_id}'")
