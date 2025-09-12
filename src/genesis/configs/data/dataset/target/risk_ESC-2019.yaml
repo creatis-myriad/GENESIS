@@ -1,0 +1,10 @@
+# @package _global_
+
+data:
+  dataset:
+    target_attr: risk_ESC-2019
+
+hparams:
+  data:
+    num_classes: 3
+    task: multiclass

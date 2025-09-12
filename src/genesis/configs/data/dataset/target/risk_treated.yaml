@@ -1,0 +1,10 @@
+# @package _global_
+
+data:
+  dataset:
+    target_attr: risk_treated
+
+hparams:
+  data:
+    num_classes: 3
+    task: multiclass
