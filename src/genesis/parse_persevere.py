@@ -40,20 +40,23 @@ def hydra_main(cfg: DictConfig) -> None:
         f"  links={agg_cfg.get('links', {})}, "
     )
 
-    global_attrs = list(cfg.clinical_data.usecols)
+    clinical_dataset = hydra.utils.instantiate(cfg.clinical_data)
+    clinical_data = clinical_dataset.data  # Extract the raw DataFrame from the dataset
+    log.info(f"Extracted clinical attributes for {len(clinical_data)} patients")
+
+    # If usecols is not specified, use all columns
+    global_attrs = cfg.clinical_data.get("usecols", clinical_data.columns.tolist())
     # Do not include the index column in the global attributes if it is specified
-    if index_col := cfg.clinical_data.get("index_col"):
+    if (index_col := cfg.clinical_data.get("index_col")) and (index_col in global_attrs):
         global_attrs.remove(index_col)
     log.info(f"Clinical attributes to add: {global_attrs}")
-    clinical_data = hydra.utils.instantiate(cfg.clinical_data)
-    log.info(f"Extracted clinical attributes for {len(clinical_data)} patients")
 
     skipped_patient_ids = []
 
     for json_path in json_files:
         patient_id = json_path.stem[:4]
 
-        if patient_id in clinical_data.data.index:
+        if patient_id in clinical_data.index:
             log.debug(f"Parsing file '{json_path.name}' for patient ID '{patient_id}'")
             with open(json_path) as f:
                 node_link_data = json.load(f)
@@ -61,7 +64,7 @@ def hydra_main(cfg: DictConfig) -> None:
                 graph = nx.node_link_graph(node_link_data, edges=edges_key)
 
             # Add patient attributes as graph attributes
-            patient_attrs = dict(zip(global_attrs, clinical_data.data.loc[patient_id], strict=False))
+            patient_attrs = clinical_data.loc[patient_id, global_attrs].to_dict()
             graph = networkx_add_attrs(graph, "graph", patient_attrs)
 
             # Aggregate list attributes to scalar values
