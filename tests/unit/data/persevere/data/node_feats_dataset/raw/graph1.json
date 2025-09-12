@@ -3,7 +3,7 @@
     "multigraph": false,
     "graph":
     {
-      "risk": 2.0
+      "target": 2.0
     },
     "nodes": [
         {
