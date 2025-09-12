@@ -38,7 +38,7 @@ def testing_overrides(tmp_path: Path) -> list[str]:
 @RunIf(sh=True)
 @pytest.mark.slow
 def test_experiments(script: Path, testing_overrides: list[str]) -> None:
-    """Test running all available experiment configs (except for clinical baselines) with `fast_dev_run=True`.
+    """Test running all available experiment configs (except for tabular baselines) with `fast_dev_run=True`.
 
     Args:
         script: The path of the script to invoke.
@@ -47,7 +47,7 @@ def test_experiments(script: Path, testing_overrides: list[str]) -> None:
     command = [
         str(script),
         "-m",
-        "experiment=glob(*,exclude=*baseline*)",
+        "experiment=glob(*,exclude=tabular_baseline/*)",
         "++trainer.fast_dev_run=true",
         *testing_overrides,
     ]
@@ -56,9 +56,9 @@ def test_experiments(script: Path, testing_overrides: list[str]) -> None:
 
 @RunIf(sh=True)
 @pytest.mark.slow
-@pytest.mark.parametrize("script", ["src/genesis/clinical_baseline.py"], indirect=True)
-def test_clinical_baseline_experiments(script: Path, shared_datadir: Path, testing_overrides: list[str]) -> None:
-    """Test running all available clinical baseline experiment configs.
+@pytest.mark.parametrize("script", ["src/genesis/tabular_baseline.py"], indirect=True)
+def test_tabular_baseline_experiments(script: Path, shared_datadir: Path, testing_overrides: list[str]) -> None:
+    """Test running all available tabular baseline experiment configs.
 
     Args:
         script: The path of the script to invoke.
@@ -68,7 +68,7 @@ def test_clinical_baseline_experiments(script: Path, shared_datadir: Path, testi
     command = [
         str(script),
         "-m",
-        "experiment=glob(*baseline*)",
+        "experiment=glob(tabular_baseline/*)",
         f"paths.data_dir={shared_datadir}",  # Override the data path with the test dummy data path
         *testing_overrides,
     ]

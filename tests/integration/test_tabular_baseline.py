@@ -7,24 +7,24 @@ from hydra.core.global_hydra import GlobalHydra
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, open_dict
 
-from genesis.clinical_baseline import fit_and_score
+from genesis.tabular_baseline import fit_and_score
 
 from ..helpers.run import RunIf  # noqa: TID252
 
 
 @pytest.fixture(scope="module")
 def cfg_global(cfg_path: Path, application_overrides: list[str]) -> DictConfig:
-    """A pytest fixture for setting up a Hydra DictConfig for a clinical baseline run.
+    """A pytest fixture for setting up a Hydra DictConfig for a tabular baseline run.
 
     Args:
         cfg_path: The directory containing the Hydra configuration files.
         application_overrides: The overrides to use to specify the application (i.e. data, model, etc.) for the tests.
 
     Returns:
-        A DictConfig object containing a Hydra configuration for a clinical baseline run.
+        A DictConfig object containing a Hydra configuration for a tabular baseline run.
     """
     with initialize(version_base=None, config_path=str(cfg_path)):
-        cfg = compose(config_name="clinical_baseline.yaml", return_hydra_config=True, overrides=application_overrides)
+        cfg = compose(config_name="tabular_baseline.yaml", return_hydra_config=True, overrides=application_overrides)
 
         # set defaults for all tests
         with open_dict(cfg):

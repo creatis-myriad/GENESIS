@@ -16,7 +16,7 @@ defaults:
 
   # experiment configs allow for version control of specific hyperparameters
   # e.g. best hyperparameters for given model and datamodule
-  - experiment: ESC_baseline
+  - experiment: tabular_baseline/ESC
 
   # config for hyperparameter optimization
   - hparams_search: null
@@ -29,7 +29,7 @@ defaults:
   - debug: null
 
 # task name, determines output directory path
-task_name: "clinical_baseline"
+task_name: "tabular_baseline"
 
 # tags to help you identify your experiments
 # you can overwrite this in experiment configs

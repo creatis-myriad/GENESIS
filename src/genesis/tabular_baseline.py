@@ -27,7 +27,7 @@ log = RankedLogger(__name__, rank_zero_only=True)
 
 @task_wrapper
 def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Fit the baseline model to the clinical data from the patients."""
+    """Fit the baseline model to tabular data."""
     # set seed for random number generators in pytorch, numpy and python.random
     if cfg.get("seed"):
         L.seed_everything(cfg.seed, workers=True)
@@ -94,7 +94,7 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     return metric_dict, object_dict
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="clinical_baseline.yaml")
+@hydra.main(version_base=None, config_path="configs", config_name="tabular_baseline.yaml")
 @hydra_serial_sweeper
 def hydra_main(cfg: DictConfig) -> float | None:
     """Hydra entry point for training.

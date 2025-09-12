@@ -1,8 +1,5 @@
 # @package _global_
 
-# to execute this experiment run:
-# python clinical_baseline.py experiment=ESC_baseline
-
 defaults:
   - override /data: split_lightning_dataset
   - override /data/dataset: persevere_clinical
@@ -13,17 +10,10 @@ defaults:
   # In this context, the least bad solution is to assign the metrics manually at the experiment (or main config) level.
   - override /model/metrics: multi_classification
 
-# all parameters below will be merged with parameters from default configurations ('configs/clinical_baseline.yaml')
-# this allows you to overwrite only specified parameters
+# Final experiments can reuse the same base config, but must define the columns to include from the dataset
 data:
   dataset:
-    usecols:
-      - patient_id
-      - risk_ESC-2014
-      - spesi
-      - nt-probnp
-      - troponin
-      - inverted_rv-lv_ratio
+    usecols: ???
 
 tags:
   - ${hydra:runtime.choices.data/dataset} # automatically tag with the chosen dataset
