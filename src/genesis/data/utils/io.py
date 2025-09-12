@@ -183,7 +183,7 @@ def load_and_clean_clinical_data(
         logging.warning(
             f"Dropping clinical data from patients with at least one missing value in {drop_na_subset}: {na_ids}"
         )
-    df.dropna(subset=drop_na_subset, inplace=True)
+        df.dropna(subset=drop_na_subset, inplace=True)
     # Clean troponin values: convert trace amount ("< 3") to 3 to allow casting to int
     df["troponin"] = df["troponin"].astype(str).str.replace("< 3", "3").astype(int)
     return df
