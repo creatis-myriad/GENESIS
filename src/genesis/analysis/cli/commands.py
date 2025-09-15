@@ -50,7 +50,7 @@ def qanadli(obj: dict, *args, **kwargs) -> None:
     Computes the Qanadli score for pulmonary embolism risk assessment, considering both embolus location and degree of
     obstruction, weighting each segment by its number of distal subsegments.
     """
-    _run_score(obj, qanadli_score, *args, **kwargs)
+    _run_graph_obstruction_score(obj, qanadli_score, *args, **kwargs)
 
 
 @click.command()
@@ -72,10 +72,10 @@ def mastora(obj: dict, mode: Literal["central", "peripheral", "global"], **kwarg
             - 'peripheral': Considers obstructions in the segmental arteries
             - 'global': Considers obstructions in all arteries (i.e. both central and peripheral)
     """
-    _run_score(obj, mastora_score, mode, score_name=f"mastora_{mode}", **kwargs)
+    _run_graph_obstruction_score(obj, mastora_score, mode, score_name=f"mastora_{mode}", **kwargs)
 
 
-def _run_score(
+def _run_graph_obstruction_score(
     obj: dict,
     score_fn: Callable,
     *score_args,
@@ -83,7 +83,7 @@ def _run_score(
     obstruction_attr: str = "transversal_obstruction_max",
     **score_kwargs,
 ) -> None:
-    """Compute a global score on a graph (previously loaded in the click context), with optional debug visualization.
+    """Compute a global score on graph(s) (previously loaded in the click context), with optional debug visualization.
 
     Args:
         obj: State dict to store objects and communicate between commands, part of the Click context.
@@ -98,12 +98,12 @@ def _run_score(
     graphs = obj["graphs"]
     scores = {}
     debug_info = {}
-    for graph_file, graph in tqdm(graphs.items(), desc=f"Compute {score_name} score on input graphs", unit="graph"):
+    for patient_id, graph in tqdm(graphs.items(), desc=f"Compute {score_name} score on input graphs", unit="graph"):
         score, graph_debug_info = score_fn(
             graph, *score_args, obstruction_attr=obstruction_attr, debug=True, **score_kwargs
         )
-        scores[graph_file] = score
-        debug_info[graph_file] = graph_debug_info
+        scores[patient_id] = score
+        debug_info[patient_id] = graph_debug_info
 
     obj[score_name] = {
         "scores": scores,
@@ -112,8 +112,8 @@ def _run_score(
     }
     # If only one graph was processed, show its score and optionally a debug visualization
     if len(scores) == 1:
-        graph_file = next(iter(scores))
-        log.info(f"{score_name} score for graph {graph_file}: {scores[graph_file]}")
+        patient_id = next(iter(scores))
+        log.info(f"{score_name} score for patient {patient_id}: {scores[patient_id]}")
 
 
 @click.command()
@@ -158,19 +158,19 @@ def visualize(
 
     output_dir = output_dir or Path.cwd()
     output_dir.mkdir(parents=True, exist_ok=True)
-    for graph_file, graph in tqdm(
+    for patient_id, graph in tqdm(
         obj["graphs"].items(), desc="Generating interactive visualizations for input graphs", unit="graph"
     ):
         if color_attr and not networkx_has_attributes(graph, element="edges", attrs=[color_attr]):
             raise ValueError(
-                f"Graph {graph_file} does not have edge attribute '{color_attr}', required for visualization."
+                f"Graph of patient {patient_id} does not have edge attribute '{color_attr}' required for visualization."
             )
 
-        visu_filename = f"{graph_file.stem}.html"
+        visu_filename = f"{patient_id}.html"
         debug_info = None
         if debug_score:
-            debug_info = score_data["debug_info"][graph_file]
-            visu_filename = f"{graph_file.stem}_{color_attr}_{debug_score}.html"
+            debug_info = score_data["debug_info"][patient_id]
+            visu_filename = f"{patient_id}_{color_attr}_{debug_score}.html"
 
         net = networkx_to_pyvis(graph, color_attr=color_attr, debug_info=debug_info)
         net.show(str(output_dir / visu_filename), notebook=False)

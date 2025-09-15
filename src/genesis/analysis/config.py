@@ -57,7 +57,7 @@ PERSEVERE_ATTRS_SCALES = {
     "nt-probnp": "log",
     "troponin": "log",
 }
-PERSEVERE_GRAPH_SCORES = [
+PERSEVERE_SCORES = [
     "mastora_central",
     "mastora_peripheral",
     "mastora_global",

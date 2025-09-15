@@ -85,7 +85,7 @@ test = [
 gnn-train = "genesis.train:main"
 gnn-eval = "genesis.eval:main"
 persevere-parse = "genesis.parse_persevere:main"
-eval-graph = "genesis.analysis.cli.graph:eval_graph"
+eval-patient = "genesis.analysis.cli.patient:eval_patient"
 eval-population = "genesis.analysis.cli.population:eval_population"
 
 [build-system]

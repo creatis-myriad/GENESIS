@@ -109,41 +109,38 @@ class NumpyEncoder(json.JSONEncoder):
         return super(self).default(obj)
 
 
-def find_graph_file(
-    input_file: Path | str,
+def find_file(
+    hint: Path | str,
     *,
     search_dirs: list[Path] | None = None,
-    pattern: str = "*{id}*.json",
+    pattern: str = "*{id}*",
 ) -> Path:
-    """Find a unique serialized graph file based on the input file.
+    """Find a unique file based on the path or pattern.
 
     Resolve either:
         - a direct file path (if input_file.exists()), or
-        - a patient ID (zero-padded to 4 digits) to any JSON matching `pattern`.
+        - a patient ID (zero-padded to 4 digits) to any file matching `pattern`.
 
     Args:
-        input_file: either a Path to an existing file or a Path whose stem is a patient ID.
-        search_dirs: list of directories to search under; defaults to standard PERSEVERE/raw locations.
+        hint: either a Path to an existing file or a patient ID.
+        search_dirs: list of directories to search under.
         pattern: a glob pattern containing '{id}' which will be replaced by the zero-padded ID.
-            e.g. "*{id}*_enriched_graph.json" or the default "*{id}*.json"
+            e.g. "*{id}*.json"
 
     Returns:
-        The unique matching JSON Path.
+        The unique matching file path.
 
     Raises:
-        FileNotFoundError: if no match, or
-        RuntimeError: if more than one unique match is found.
+        FileNotFoundError: if no match, or if more than one unique match is found.
     """
-    input_file = Path(input_file)
-
     # 1) If they've passed a real file, just use it
-    if input_file.is_file():
-        return input_file.resolve()
+    if Path(hint).is_file():
+        return Path(hint).resolve()
     if search_dirs is None:
-        raise ValueError("If `input_file` is not a path to an existing file, `search_dirs` must be provided.")
+        raise ValueError("If `hint` is not a path to an existing file, `search_dirs` must be provided.")
 
     # 2) Otherwise interpret the stem as an ID
-    patient_id = input_file.stem.zfill(4)
+    patient_id = hint.zfill(4)
     pattern = pattern.format(id=patient_id)
 
     found = []
@@ -153,9 +150,9 @@ def find_graph_file(
 
     unique = {p.resolve() for p in found}
     if not unique:
-        raise FileNotFoundError(f"No graph JSON found for ID='{patient_id}' (pattern='{pattern}').")
+        raise FileNotFoundError(f"No file found for ID='{patient_id}' (pattern='{pattern}').")
     if len(unique) > 1:
-        raise RuntimeError(f"Multiple matches for ID='{patient_id}' (pattern='{pattern}'): {list(unique)}")
+        raise FileNotFoundError(f"Multiple matches for ID='{patient_id}' (pattern='{pattern}'): {list(unique)}")
     return unique.pop()
 
 

@@ -9,11 +9,11 @@ import rootutils
 from tqdm.auto import tqdm
 
 from genesis.analysis.cli.commands import mastora, qanadli, visualize
-from genesis.analysis.cli.parameters import graph_loading_params
+from genesis.analysis.cli.parameters import patient_data_params
 from genesis.analysis.cli.utils import get_logger
-from genesis.analysis.config import PERSEVERE_ATTRS_LABELS, PERSEVERE_GRAPH_SCORES
+from genesis.analysis.config import PERSEVERE_ATTRS_LABELS, PERSEVERE_SCORES
 from genesis.analysis.plot.distribution import facet_grid
-from genesis.data.utils.io import find_graph_file, json_to_networkx, load_and_clean_clinical_data
+from genesis.data.utils.io import find_file, json_to_networkx, load_and_clean_clinical_data
 
 log = get_logger(__name__)
 
@@ -25,38 +25,52 @@ log = get_logger(__name__)
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
     default=rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/clinical_data.csv",
     show_default=True,
-    help="Path to a CSV file of clinical data to pair with patients' graphs.",
+    help="Path to a CSV file of clinical data to pair with patients' data.",
 )
-@graph_loading_params
+@patient_data_params
 @click.pass_context
 def eval_population(
-    ctx: click.Context, clinical_csv: Path, graphs_dirs: list[Path], pattern: str, legacy_networkx_format: bool
+    ctx: click.Context,
+    clinical_csv: Path,
+    search_dirs: list[Path],
+    graph_pattern: str,
+    legacy_networkx_format: bool,
+    ctpa_pattern: str | None = None,
 ) -> None:
-    """Command to chain together loading clinical data and graphs for a whole population with downstream tasks."""
+    """Command to chain together loading data for a whole population with downstream tasks."""
     ctx.obj = {
         "graphs": {},
     }
+    if ctpa_pattern:
+        ctx.obj["ctpa_paths"] = {}
 
     log.info(f"Loading clinical data from {clinical_csv}...")
     data = load_and_clean_clinical_data(clinical_csv)
     ctx.obj["clinical_data"] = data  # Store loaded clinical data in the Click context object
 
-    for patient_id in tqdm(data.index, desc="Loading vascular graphs", unit="graph"):
+    for patient_id in tqdm(data.index, desc="Loading patient files", unit="patient"):
         try:
-            graph_file = find_graph_file(patient_id, search_dirs=graphs_dirs, pattern=pattern)
-        except FileNotFoundError:
-            continue  # Skip patient if no associated vascular tree graph is found
-        except RuntimeError:
-            # Log and skip if multiple files are found
-            log.exception("", exc_info=True)
-            continue
+            graph_file = find_file(patient_id, search_dirs=search_dirs, pattern=graph_pattern)
+            ctpa_file = find_file(patient_id, search_dirs=search_dirs, pattern=ctpa_pattern) if ctpa_pattern else None
+        except FileNotFoundError as e:
+            if "No file found" in str(e):
+                # Skip silently if no associated file is found
+                continue
+            if "Multiple matches" in str(e):
+                # Log and skip if multiple files are found
+                log.exception("", exc_info=True)
+                continue
+            # Re-raise unexpected errors
+            raise
 
         graph: nx.DiGraph = json_to_networkx(graph_file, edges="links" if legacy_networkx_format else "edges")
-        # Store the loaded graphs in the Click context object, to make them available to following commands in the chain
+        # Store the loaded data in the Click context object, to make them available to following commands in the chain
         ctx.obj["graphs"][patient_id] = graph
+        if ctpa_file:
+            ctx.obj["ctpa_paths"][patient_id] = ctpa_file
 
     if not ctx.obj["graphs"]:
-        raise AssertionError(f"No graphs could be processed from directories: {graphs_dirs}.")
+        raise AssertionError(f"No graphs could be processed from directories: {search_dirs}.")
 
 
 eval_population.add_command(qanadli)
@@ -102,7 +116,7 @@ def plot(obj: dict, cols: list[str], rows: list[str], **facet_grid_kwargs) -> No
         )
 
     # Recover the requested scores, checking they were computed by a previous command in the chain
-    requested_scores = [attr for attr in cols + rows if attr in PERSEVERE_GRAPH_SCORES]
+    requested_scores = [attr for attr in cols + rows if attr in PERSEVERE_SCORES]
     for score in requested_scores:
         if not (score_dict := obj.get(score, {}).get("scores")):
             raise ValueError(
