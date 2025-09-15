@@ -1,4 +1,4 @@
-"patient_id","spesi","risk_ESC-2014","troponin","nt-probnp","history_cancer","history_cpd","heart_rate","systolic_bp","spO2","age","inverted_rv-lv_ratio"
+"patient_id","spesi","risk_ESC-2014","troponin","nt-probnp","history_cancer","history_cpd","heart_rate","systolic_bp","spO2","age","inverted_rv_lv_ratio_radiologist"
 "0001",0,0,5,5,0,0,50,110,100,35,0
 "0002",0,0,5,5,0,0,50,110,100,35,0
 "0003",0,0,80,20,0,0,70,165,95,64,0

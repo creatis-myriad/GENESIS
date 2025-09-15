@@ -19,4 +19,6 @@ data:
       - systolic_bp
       - spO2
       - age
-      - inverted_rv-lv_ratio
+      - rv_lv_ratio
+      - rv_volume
+      - lv_volume

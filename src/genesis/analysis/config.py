@@ -21,18 +21,21 @@ PERSEVERE_ATTRS_LABELS = {
     "risk_ESC-2014_elevated": "PE risk based on ESC 2014 Guidelines >= 2",
     "risk_ESC-2019": "PE risk based on ESC 2019 Guidelines",
     "risk_ESC-2019_elevated": "PE risk based on ESC 2019 Guidelines >= 2",
-    "spesi": "SPESI Score",
     "nt-probnp": "NT-proBNP",
     "nt-probnp_elevated": "NT-proBNP > 600",
     "troponin": "Troponin",
     "troponin_elevated": "Troponin > 14",
+    "spesi": "SPESI Score",
     "age": "Age (years)",
     "history_cancer": "History of cancer",
     "history_cpd": "History of chronic cardiopulmonary disease",
     "heart_rate": "Heart rate (bpm)",
     "systolic_bp": "Systolic blood pressure (mmHg)",
     "spO2": "Oxygen saturation (%)",
-    "inverted_rv-lv_ratio": "Inverted RV/LV ratio",
+    "rv_volume": "Heart's right ventricle volume (mL)",
+    "lv_volume": "Heart's left ventricle volume (mL)",
+    "rv_lv_ratio": "Ratio of heart's right to left ventricle volumes",
+    "inverted_rv_lv_ratio_radiologist": "RV/LV ratio inversion noted by radiologist",
 }
 PERSEVERE_ATTRS_CATEGORIES = {
     "risk_treated": [0, 1, 2],
@@ -41,7 +44,7 @@ PERSEVERE_ATTRS_CATEGORIES = {
     "spesi": [0, 1, 2],
     "history_cancer": [0, 1],
     "history_cpd": [0, 1],
-    "inverted_rv-lv_ratio": [0, 1],
+    "inverted_rv_lv_ratio_radiologist": [0, 1],
     **{attr: [0, 1] for attr in PERSEVERE_ATTRS_LABELS if attr.endswith("_elevated")},
 }
 PERSEVERE_ATTRS_RANGES = {
