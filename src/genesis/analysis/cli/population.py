@@ -18,7 +18,7 @@ from genesis.data.utils.io import find_file, json_to_networkx, load_and_clean_cl
 log = get_logger(__name__)
 
 
-@click.group("eval-graph", chain=True)
+@click.group(chain=True)
 @click.option(
     "--clinical-csv",
     "-c",

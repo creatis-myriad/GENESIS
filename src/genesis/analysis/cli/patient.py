@@ -10,7 +10,7 @@ from genesis.data.utils import find_file, json_to_networkx
 log = get_logger(__name__)
 
 
-@click.group("eval-patient", chain=True)
+@click.group(chain=True)
 @click.argument("patient_id", type=str)
 @patient_data_params
 @click.pass_context
