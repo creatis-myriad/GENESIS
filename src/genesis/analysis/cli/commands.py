@@ -17,7 +17,7 @@ log = get_logger(__name__)
 # Options common to scoring commands
 option_obstruction_attr = click.option(
     "--obstruction-attr",
-    "-o",
+    "-oa",
     type=str,
     default="transversal_obstruction_max",
     show_default=True,
@@ -132,7 +132,7 @@ def _run_graph_obstruction_score(
 )
 @click.option(
     "--output-dir",
-    "-O",
+    "-o",
     type=click.Path(file_okay=False, writable=True, path_type=Path),
     help="Directory to save the generated HTML files under.",
 )
