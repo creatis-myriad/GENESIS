@@ -11,7 +11,7 @@ from tqdm.auto import tqdm
 from genesis.analysis.cli.commands import mastora, qanadli, visualize
 from genesis.analysis.cli.parameters import patient_data_params
 from genesis.analysis.cli.utils import get_logger
-from genesis.analysis.config import PERSEVERE_ATTRS_LABELS, PERSEVERE_SCORES
+from genesis.analysis.config import PERSEVERE_ATTRS_LABELS, PERSEVERE_AUTO_MEASURES
 from genesis.analysis.plot.distribution import facet_grid
 from genesis.data.utils.io import find_file, json_to_networkx, load_and_clean_clinical_data
 
@@ -115,16 +115,20 @@ def plot(obj: dict, cols: list[str], rows: list[str], **facet_grid_kwargs) -> No
             "Clinical data not found in the stored data. Unexpected error must have occurred in the main command."
         )
 
-    # Recover the requested scores, checking they were computed by a previous command in the chain
-    requested_scores = [attr for attr in cols + rows if attr in PERSEVERE_SCORES]
-    for score in requested_scores:
-        if not (score_dict := obj.get(score, {}).get("scores")):
+    # Recover measurable attributes if they were computed by a previous command in the chain
+    # Otherwise, if they are not in the stored clinical data, raise an error to inform the user
+    measurable_attributes = [attr for attr in cols + rows if attr in PERSEVERE_AUTO_MEASURES]
+    for attr in measurable_attributes:
+        if attr_data := obj.get(attr):
+            # If the attribute was computed by a previous command in the chain, update the clinical data
+            # Join the current score with the clinical data (and previous scores)
+            data[attr] = pd.Series(attr_data["values"])
+
+        if attr not in data.columns:
             raise ValueError(
-                f"Score '{score}' not found in the stored data; please call its dedicated command earlier in the chain "
-                f"to compute it."
+                f"Attribute '{attr}' not found in the stored data; either call its dedicated command earlier in the "
+                f"chain to compute it, or pre-compute it and add it to the clinical data CSV file."
             )
-        # Join the current score with the clinical data (and previous scores)
-        data = data.join(pd.Series(score_dict, name=score))
 
     script = os.path.basename(sys.argv[0])
     cli_cmd = f"{script} {' '.join(sys.argv[1:])}"

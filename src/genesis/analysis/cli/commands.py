@@ -106,7 +106,7 @@ def _run_graph_obstruction_score(
         debug_info[patient_id] = graph_debug_info
 
     obj[score_name] = {
-        "scores": scores,
+        "values": scores,
         "debug_info": debug_info,
         "obstruction_attr": obstruction_attr,
     }
