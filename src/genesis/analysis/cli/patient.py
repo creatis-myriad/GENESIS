@@ -2,7 +2,7 @@ from pathlib import Path
 
 import click
 
-from genesis.analysis.cli.commands import mastora, qanadli, visualize
+from genesis.analysis.cli.commands import mastora, qanadli, rv_lv_ratio, visualize
 from genesis.analysis.cli.parameters import patient_data_params
 from genesis.analysis.cli.utils import get_logger
 from genesis.data.utils import find_file, json_to_networkx
@@ -46,6 +46,7 @@ def eval_patient(  # noqa: D417
 eval_patient.add_command(qanadli)
 eval_patient.add_command(mastora)
 eval_patient.add_command(visualize)
+eval_patient.add_command(rv_lv_ratio)
 
 
 if __name__ == "__main__":

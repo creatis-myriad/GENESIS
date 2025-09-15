@@ -62,4 +62,7 @@ PERSEVERE_AUTO_MEASURES = [
     "mastora_peripheral",
     "mastora_global",
     "qanadli",
+    "rv_volume",
+    "lv_volume",
+    "rv_lv_ratio",
 ]

@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import Literal
 
 import click
+import numpy as np
+import rootutils
 from click import pass_obj
 from tqdm.auto import tqdm
 
@@ -10,7 +12,7 @@ from genesis.analysis.cli.utils import get_logger
 from genesis.analysis.plot.graph import networkx_to_pyvis
 from genesis.analysis.scores.mastora import mastora as mastora_score
 from genesis.analysis.scores.qanadli import qanadli as qanadli_score
-from genesis.data.utils import networkx_has_attributes
+from genesis.data.utils import find_file, load_nifti, networkx_has_attributes
 
 log = get_logger(__name__)
 
@@ -110,10 +112,120 @@ def _run_graph_obstruction_score(
         "debug_info": debug_info,
         "obstruction_attr": obstruction_attr,
     }
-    # If only one graph was processed, show its score and optionally a debug visualization
+    # If only one graph was processed, show its score
     if len(scores) == 1:
         patient_id = next(iter(scores))
         log.info(f"{score_name} score for patient {patient_id}: {scores[patient_id]}")
+
+
+@click.command()
+@click.option(
+    "--annotations-ventricles-dir",
+    "-d",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/annotations_ventricles",
+    show_default=True,
+    help="Directory containing the right and left ventricles masks to compute ratio from. "
+    "If empty, masks will be inferred using TotalSegmentator and stored here for future use.",
+)
+@click.option(
+    "--mask-pattern",
+    "-m",
+    type=str,
+    default="*{id}*.nii.gz",
+    show_default=False,
+    help="Glob pattern to search for segmentation masks within `annotations-ventricles-dir`.",
+)
+@click.option(
+    "--lv-label",
+    "-lv",
+    type=int,
+    default=3,
+    show_default=True,
+    help="Label value for the left ventricle in the masks. "
+    "Default to the label used by TotalSegmentator with the `heartchambers_highres` task.",
+)
+@click.option(
+    "--rv-label",
+    "-rv",
+    type=int,
+    default=5,
+    show_default=True,
+    help="Label value for the right ventricle in the masks. "
+    "Default to the label used by TotalSegmentator with the `heartchambers_highres` task.",
+)
+@click.pass_obj
+def rv_lv_ratio(obj: dict, annotations_ventricles_dir: Path, mask_pattern: str, lv_label: int, rv_label: int) -> None:
+    """Compute the right-over-left ventricle volume ratio on the CTPA image(s).
+
+    If no pre-computed masks are provided, they will be inferred using TotalSegmentator and saved for future use. This
+    requires TotalSegmentator to be installed if no pre-computed masks are available. It also means the first run may
+    take a while, up to several hours depending on the number of images and your hardware.
+    """
+    if not (ctpa_files := obj.get("ctpa_paths")):
+        raise ValueError(
+            "No CTPA files found in the context. Please load them using by setting `--ctpa-pattern` to look for under "
+            "`--search-dir`."
+        )
+
+    if not annotations_ventricles_dir.exists():
+        annotations_ventricles_dir.mkdir(parents=True)
+        log.info(f"Created annotations directory at {annotations_ventricles_dir} save inferred masks for future use.")
+
+    rv_volumes = {}
+    lv_volumes = {}
+    rv_lv_ratios = {}
+    for patient_id, ctpa_file in tqdm(ctpa_files.items(), desc="Compute RV/LV ratio on input CTPA", unit="image"):
+        try:
+            mask_path = find_file(patient_id, search_dirs=[annotations_ventricles_dir], pattern=mask_pattern)
+        except FileNotFoundError as e:
+            if "No file found" in str(e):
+                # If no pre-computed mask is found, compute it now and save it for future use
+                try:
+                    from totalsegmentator.python_api import totalsegmentator  # noqa: PLC0415
+                except ImportError:
+                    raise ImportError(
+                        "No pre-computed ventricle mask found and TotalSegmentator is not installed. Please provide "
+                        "pre-computed masks or install TotalSegmentator to enable predicting masks automatically."
+                    ) from None
+
+                mask_path = annotations_ventricles_dir / f"{patient_id}.nii.gz"
+                totalsegmentator(ctpa_file, mask_path, task="heartchambers_highres", ml=True)
+
+            elif "Multiple matches" in str(e):
+                # Log and skip if multiple files are found
+                log.exception("", exc_info=True)
+                continue
+            else:
+                # Re-raise unexpected errors
+                raise
+
+        # Load the mask and metadata
+        img, metadata = load_nifti(mask_path)
+
+        # Compute voxel volume from spacing
+        spacing = metadata["pixdim"][1:4]  # Voxel spacing (in mm)
+        voxel_volume = np.prod(spacing) / 1000  # Convert mm^3 to mL
+
+        # Compute the volume from the masks and CTPA spacing
+        rv_volume = np.sum(img == rv_label) * voxel_volume
+        lv_volume = np.sum(img == lv_label) * voxel_volume
+
+        rv_volumes[patient_id] = rv_volume
+        lv_volumes[patient_id] = lv_volume
+        rv_lv_ratios[patient_id] = rv_volume / lv_volume
+
+    obj["rv_volume"] = {"values": rv_volumes}
+    obj["lv_volume"] = {"values": lv_volumes}
+    obj["rv_lv_ratio"] = {"values": rv_lv_ratios}
+
+    # If only one graph was processed, show its measures
+    if len(ctpa_files) == 1:
+        patient_id = next(iter(ctpa_files))
+        log.info(
+            f"Ventricle volumes (in mL) for patient {patient_id}: RV={rv_volumes[patient_id]}, "
+            f"LV={lv_volumes[patient_id]}, ratio={rv_lv_ratios[patient_id]}"
+        )
 
 
 @click.command()

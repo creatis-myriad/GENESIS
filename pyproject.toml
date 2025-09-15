@@ -35,7 +35,7 @@ dependencies = [
 ]
 [project.optional-dependencies]
 all = [
-    "genesis[wandb,baselines]",
+    "genesis[wandb,baselines,totalsegmentator]",    # Adjust this entry when adding new extras
 ]
 wandb = [
     "wandb>=0.21,<0.22",
@@ -43,6 +43,9 @@ wandb = [
 baselines = [
     "tabpfn>=2.0.9,<3",
     "xgboost>=2.1.4,<3",
+]
+totalsegmentator = [
+    "TotalSegmentator>=2.5.0,<2.6",
 ]
 # torch libraries are not included in the main dependencies because they can be platform-specific
 # rather, we leave them as optional dependencies (even though they are required for the code to run)
@@ -53,15 +56,19 @@ baselines = [
 # they want to list here, i.e. support
 cpu = [
   "torch>=2.7,<2.8",
+  "torchvision>=0.22,<0.23",  # torchvision is required as an indirect dependency of TotalSegmentator
 ]
 cu118 = [
   "torch>=2.7,<2.8",
+  "torchvision>=0.22,<0.23",  # torchvision is required as an indirect dependency of TotalSegmentator
 ]
 cu126 = [
   "torch>=2.7,<2.8",
+  "torchvision>=0.22,<0.23",  # torchvision is required as an indirect dependency of TotalSegmentator
 ]
 cu128 = [
   "torch>=2.7,<2.8",
+  "torchvision>=0.22,<0.23",  # torchvision is required as an indirect dependency of TotalSegmentator
 ]
 
 [dependency-groups]
@@ -109,6 +116,12 @@ conflicts = [
 # Refer to the note above about installing pytorch using optional dependencies,
 # especially the link to uv's documentation, to understand this configuration
 torch = [
+  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cu118", extra = "cu118" },
+  { index = "pytorch-cu126", extra = "cu126" },
+  { index = "pytorch-cu128", extra = "cu128" },
+]
+torchvision = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu118", extra = "cu118" },
   { index = "pytorch-cu126", extra = "cu126" },

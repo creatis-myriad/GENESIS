@@ -8,7 +8,7 @@ import pandas as pd
 import rootutils
 from tqdm.auto import tqdm
 
-from genesis.analysis.cli.commands import mastora, qanadli, visualize
+from genesis.analysis.cli.commands import mastora, qanadli, rv_lv_ratio, visualize
 from genesis.analysis.cli.parameters import patient_data_params
 from genesis.analysis.cli.utils import get_logger
 from genesis.analysis.config import PERSEVERE_ATTRS_LABELS, PERSEVERE_AUTO_MEASURES
@@ -76,6 +76,7 @@ def eval_population(
 eval_population.add_command(qanadli)
 eval_population.add_command(mastora)
 eval_population.add_command(visualize)
+eval_population.add_command(rv_lv_ratio)
 
 
 @eval_population.command()
