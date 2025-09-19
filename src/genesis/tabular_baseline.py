@@ -17,7 +17,6 @@ from genesis.utils import (
     instantiate_loggers,
     log_hyperparameters,
     metrics_table,
-    pad_keys,
     pre_hydra_routine,
     task_wrapper,
 )
@@ -35,11 +34,11 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     log.info(f"Instantiating datamodule <{cfg.data._target_}>")
     datamodule: LightningDataModule = hydra.utils.instantiate(cfg.data)
 
-    log.info(f"Instantiating model <{cfg.model._target_}>")
-    model: TabularEstimator = hydra.utils.instantiate(cfg.model)
-
     log.info("Instantiating loggers...")
     logger: list[Logger] = instantiate_loggers(cfg.get("logger"))
+
+    log.info(f"Instantiating model <{cfg.model._target_}>")
+    model: TabularEstimator = hydra.utils.instantiate(cfg.model, logger=logger)
 
     object_dict = {
         "cfg": cfg,
@@ -67,8 +66,8 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     if cfg.get("train"):
         log.info("Starting training!")
         model = model.fit(datamodule=datamodule, subset="train")
-        train_metrics = pad_keys(model.score(datamodule=datamodule, subset="train"), prefix="train/")
-        val_metrics = pad_keys(model.score(datamodule=datamodule, subset="val"), prefix="val/")
+        train_metrics = model.score(datamodule=datamodule, subset="train")
+        val_metrics = model.score(datamodule=datamodule, subset="val")
         train_metrics.update(val_metrics)
 
         ckpt_save_path = Path(cfg["ckpt_save_dirpath"]) / cfg["ckpt_save_filename"]
@@ -80,16 +79,12 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
         log.info("Starting testing!")
         if not (cfg.get("ckpt_path") or cfg.get("train")):
             log.warning("ckpt not found! Using untrained model for testing... This is likely a mistake in your config.")
-        test_metrics = pad_keys(model.score(datamodule=datamodule, subset="test"), prefix="test/")
+        test_metrics = model.score(datamodule=datamodule, subset="test")
 
     # merge train and test metrics
     metric_dict = {**train_metrics, **test_metrics}
 
     Console().print(metrics_table(metric_dict, cols_from_prefixes=["train", "val", "test"]))
-
-    for logger_instance in logger:
-        log.info(f"Logging scores to {logger_instance}...")
-        logger_instance.log_metrics(metric_dict)
 
     return metric_dict, object_dict
 

@@ -6,11 +6,13 @@ import numpy as np
 import pandas as pd
 import torch
 from lightning import LightningDataModule
+from lightning.pytorch.loggers import Logger
 from lightning.pytorch.trainer.states import TrainerFn
 from lightning_utilities import apply_to_collection
 from torchmetrics import MetricCollection
 
 from genesis.data import split
+from genesis.utils.logging_utils import log_nonscalar_metrics, split_scalar_nonscalar_metrics
 
 
 @runtime_checkable
@@ -38,18 +40,25 @@ class TabularEstimator:
         self,
         model: BaseClassifier | BaseRegressor,
         metrics: MetricCollection | None = None,
+        logger: Logger | list[Logger] | None = None,
     ) -> None:
         """Initializes a `SklearnClassifierLitModule`.
 
         Args:
             model: Backbone estimator model.
             metrics: A collection of metrics to use for evaluation.
+            logger: Logger to log metrics to when scoring the model.
         """
         if not isinstance(model, BaseClassifier | BaseRegressor):
             raise ValueError("Model must be an instance of either `BaseClassifier` or `BaseRegressor`")
 
         self.model = model
-        self.metrics = metrics
+
+        self._scalar_metrics, self._nonscalar_metrics = split_scalar_nonscalar_metrics(metrics or {})
+
+        if isinstance(logger, Logger):
+            logger = [logger]
+        self.logger = logger
 
     @staticmethod
     def _setup_data(datamodule: LightningDataModule, subset: str) -> tuple[pd.DataFrame, np.ndarray]:
@@ -138,21 +147,25 @@ class TabularEstimator:
 
         return self._predict(X)
 
-    def score(self, datamodule: LightningDataModule, subset: str) -> dict[str, float]:
+    def score(self, datamodule: LightningDataModule, subset: str, log: bool = True) -> dict[str, float]:
         """Measure the model's performance on a subset of the data.
 
         Args:
             datamodule: Data module.
             subset: Subset of the data to evaluate the model on (e.g. "train", "test").
+            log: Whether to log the scored metrics to the logger(s), if any.
 
         Returns:
             Dictionary of model's metrics (e.g. accuracy, AUROC, etc.).
         """
-        if self.metrics is None:
+        if not (self._scalar_metrics or self._nonscalar_metrics):
             raise ValueError(
                 "This model instance has no defined evaluation metrics, i.e. no `metrics` arg was provided when "
                 "instantiating the model. Calling `score` is only valid for models with metrics."
             )
+        # Use a fresh copy of the metrics for each call, to make sure state is not carried over between calls
+        scalar_metrics = self._scalar_metrics.clone(prefix=f"{subset}/") if self._scalar_metrics else None
+        nonscalar_metrics = self._nonscalar_metrics.clone(prefix=f"{subset}/") if self._nonscalar_metrics else None
 
         # Extract the input features and target labels from the specified subset
         X, y_true = self._setup_data(datamodule, subset)  # noqa: N806
@@ -162,8 +175,30 @@ class TabularEstimator:
         # Compute the model's performance metrics
         # Because we use the `MetricCollection` API from torchmetrics, we have to convert the predictions/targets from
         # numpy arrays to torch tensors, and conversely for the computed metrics
-        scores = self.metrics(torch.from_numpy(y_pred), torch.from_numpy(y_true))
+        scores = {}
+        if scalar_metrics:
+            scores.update(scalar_metrics(torch.from_numpy(y_pred), torch.from_numpy(y_true)))
+        if nonscalar_metrics:
+            scores.update(nonscalar_metrics(torch.from_numpy(y_pred), torch.from_numpy(y_true)))
+        if log:
+            self._log(scalar_metrics, nonscalar_metrics)
         return apply_to_collection(scores, torch.Tensor, lambda x: x.cpu().numpy())
+
+    def _log(self, scalar_metrics: MetricCollection | None, nonscalar_metrics: MetricCollection | None) -> None:
+        """Log the scored metrics to the logger(s), if any.
+
+        Args:
+            scalar_metrics: Collection of scalar metrics to log, whose state must have been already updated.
+            nonscalar_metrics: Collection of non-scalar metrics to log, whose state must have been already updated.
+        """
+        if self.logger is None:
+            return
+
+        for logger_instance in self.logger:
+            if scalar_metrics:
+                logger_instance.log_metrics(scalar_metrics.compute())
+            if nonscalar_metrics:
+                log_nonscalar_metrics(logger_instance, nonscalar_metrics)
 
     def save(self, ckpt: Path | str) -> None:
         """Save the model to disk.
