@@ -1,10 +1,12 @@
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from lightning.pytorch.loggers import Logger
+import matplotlib
+from lightning.pytorch.loggers import Logger, WandbLogger
 from lightning_utilities.core.rank_zero import rank_zero_only
 from omegaconf import OmegaConf
 from torch import nn
+from torchmetrics import MetricCollection
 
 from genesis.utils import pylogger
 
@@ -86,3 +88,61 @@ def pad_keys(
         postfix = ""
 
     return {f"{prefix}{k}{postfix}" if k not in exclude else k: v for k, v in mapping.items()}
+
+
+def split_scalar_nonscalar_metrics(
+    metrics: MetricCollection,
+) -> tuple[MetricCollection | None, MetricCollection | None]:
+    """Splits a MetricCollection into scalar and non-scalar metrics.
+
+    Args:
+        metrics: MetricCollection to split.
+
+    Returns:
+        A tuple containing two MetricCollections: the first with scalar metrics, the second with non-scalar metrics.
+    """
+    # Infer whether a metric is scalar or not based on whether it implements `higher_is_better` attribute.
+    # This might not be perfect, but it works for most common cases.
+    scalar_metrics = {}
+    nonscalar_metrics = {}
+
+    for tag, metric in (metrics or {}).items():
+        if metric.higher_is_better is not None:
+            scalar_metrics[tag] = metric
+        else:
+            nonscalar_metrics[tag] = metric
+
+    return (
+        MetricCollection(scalar_metrics) if scalar_metrics else None,
+        MetricCollection(nonscalar_metrics) if nonscalar_metrics else None,
+    )
+
+
+def log_nonscalar_metrics(logger: Logger, metrics: MetricCollection) -> None:
+    """Log non-scalar metrics as figures, if the logger supports it.
+
+    Args:
+        logger: Logger to log to.
+        metrics: MetricCollection containing the non-scalar metrics to log.
+
+    Raises:
+        NotImplementedError: If support for non-scalar metrics has not been implemented for the given logger.
+    """
+    # Manually log non-scalar metrics, if wandb is being used as logger
+    plots = metrics.plot()
+
+    match logger:
+        case WandbLogger():
+            import wandb  # noqa: PLC0415
+
+            wandb_run = logger.experiment
+            for tag, (fig_, ax_) in zip(metrics.keys(), plots, strict=False):  # noqa: B007
+                wandb_run.log({tag: wandb.Image(fig_)})
+        case None:
+            pass  # not logging if no logger is configured
+        case _:
+            raise NotImplementedError(
+                f"Logging non-scalar metrics is only implemented for wandb logger, found {type(logger)}."
+            )
+
+    matplotlib.pyplot.close("all")  # avoid memory leaks from figures left opened
