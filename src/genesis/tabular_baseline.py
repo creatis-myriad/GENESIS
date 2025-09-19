@@ -50,7 +50,7 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
 
     if logger:
         log.info("Logging hyperparameters!")
-        log_hyperparameters(object_dict)
+        log_hyperparameters(object_dict, logger=logger)
 
     train_metrics = {}
     if ckpt_path := cfg.get("ckpt_path"):
