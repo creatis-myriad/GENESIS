@@ -1,7 +1,7 @@
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-import matplotlib
+import matplotlib.pyplot as plt
 from lightning.pytorch.loggers import Logger, WandbLogger
 from lightning_utilities.core.rank_zero import rank_zero_only
 from omegaconf import OmegaConf
@@ -128,21 +128,22 @@ def log_nonscalar_metrics(logger: Logger, metrics: MetricCollection) -> None:
     Raises:
         NotImplementedError: If support for non-scalar metrics has not been implemented for the given logger.
     """
-    # Manually log non-scalar metrics, if wandb is being used as logger
-    plots = metrics.plot()
+    # Disable matplotlib text rendering with LaTeX, to avoid errors or warnings about missing
+    # on systems with LaTeX, but w/o all the expected packages and fonts
+    with plt.rc_context({"text.usetex": False}):
+        # Plot non-scalar metrics as figures
+        plots = metrics.plot()
 
-    match logger:
-        case WandbLogger():
-            import wandb  # noqa: PLC0415
+        match logger:
+            case WandbLogger():
+                wandb_run = logger.experiment
+                for tag, (fig_, ax_) in zip(metrics.keys(), plots, strict=False):  # noqa: B007
+                    wandb_run.log({tag: fig_})
+            case None:
+                pass  # not logging if no logger is configured
+            case _:
+                raise NotImplementedError(
+                    f"Logging non-scalar metrics is only implemented for wandb logger, found {type(logger)}."
+                )
 
-            wandb_run = logger.experiment
-            for tag, (fig_, ax_) in zip(metrics.keys(), plots, strict=False):  # noqa: B007
-                wandb_run.log({tag: wandb.Image(fig_)})
-        case None:
-            pass  # not logging if no logger is configured
-        case _:
-            raise NotImplementedError(
-                f"Logging non-scalar metrics is only implemented for wandb logger, found {type(logger)}."
-            )
-
-    matplotlib.pyplot.close("all")  # avoid memory leaks from figures left opened
+        plt.close("all")  # avoid memory leaks from figures left opened
