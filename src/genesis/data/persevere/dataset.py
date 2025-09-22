@@ -85,7 +85,9 @@ class PersevereDataset(InMemoryDataset):
                 json_to_nx_kwargs=self._json_to_nx_kwargs,
                 nx_to_pyg_kwargs=self._nx_to_pyg_kwargs,
             )
-            for json_path in Path(self.raw_dir).glob("*.json")
+            # NOTE: Sort the JSON files to ensure a deterministic order of the graphs in the dataset
+            #  necessary to guarantee reproducibility of training/validation/test splits.
+            for json_path in sorted(Path(self.raw_dir).glob("*.json"))
         ]
 
         if self.pre_filter is not None:
