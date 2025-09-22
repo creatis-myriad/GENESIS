@@ -40,7 +40,7 @@ class PersevereDataset(InMemoryDataset):
             transform: PyG data transform, applies on-access transformation without altering stored data.
             pre_transform: PyG data pre-transform, applies transformation before storing.
             pre_filter: PyG data pre-filter, filters data before storing.
-            force_reload: PyG force reload, forces reprocessing to update pre_transform/filter changes.
+            force_reload: PyG force reload, to update target/pre_transform/filter of dataset cached on disk.
             line_graph: Whether to convert graphs to their line graphs.
             target_attr: Key of the graph attribute to use as target.
             target_dtype: Data type of the target attribute.

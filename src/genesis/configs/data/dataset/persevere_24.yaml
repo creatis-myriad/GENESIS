@@ -13,6 +13,7 @@ data:
   dataset:
     _target_: genesis.data.persevere.PersevereDataset
     root: ${paths.data_dir}/PERSEVERE_24
+    force_reload: True
     line_graph: True
     target_attr: ??? # To be set by the target config
     target_dtype:
