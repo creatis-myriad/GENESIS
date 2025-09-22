@@ -36,6 +36,8 @@ PERSEVERE_ATTRS_LABELS = {
     "lv_volume": "Heart's left ventricle volume (mL)",
     "rv_lv_ratio": "Ratio of heart's right to left ventricle volumes",
     "inverted_rv_lv_ratio_radiologist": "RV/LV ratio inversion noted by radiologist",
+    "total_embolism_volume": "Total embolism volume (mL)",
+    "num_embolisms": "Total number of thrombi detected",
 }
 PERSEVERE_ATTRS_CATEGORIES = {
     "risk_treated": [0, 1, 2],
