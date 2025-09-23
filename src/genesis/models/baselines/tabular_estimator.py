@@ -171,6 +171,8 @@ class TabularEstimator:
         X, y_true = self._setup_data(datamodule, subset)  # noqa: N806
 
         y_pred = self._predict(X)
+        if getattr(self.model, "n_classes_", None) == 2:  # If binary classification, keep only the positive class prob
+            y_pred = y_pred[:, 1]
 
         # Compute the model's performance metrics
         # Because we use the `MetricCollection` API from torchmetrics, we have to convert the predictions/targets from
