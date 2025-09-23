@@ -11,7 +11,7 @@ data:
   dataset:
     usecols:
       - patient_id
-      - risk_ESC-2014
+      - ${data.dataset.target_attr} # ensure target attribute is also included in the features
       - spesi
       - history_cancer
       - history_cpd
