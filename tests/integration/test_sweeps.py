@@ -128,7 +128,7 @@ def test_serial_sweep(script: Path, testing_overrides: list[str]) -> None:
     """
     command = [
         str(script),
-        "serial_sweeper=cross_validation",
+        "serial_sweeper=splits",
         "++trainer.fast_dev_run=true",
         *testing_overrides,
     ]
