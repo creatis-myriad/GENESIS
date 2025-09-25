@@ -1,0 +1,66 @@
+# @package _global_
+
+# example hyperparameter optimization of some experiment with Optuna:
+# python train.py -m hparams_search=basic_gnn_risk_ESC-2014
+
+defaults:
+  - override /experiment: persevere/default
+  # Evaluate each trial with cross-validation, running folds serially on the same worker and averaging the metric to
+  # optimize across all folds to get a more robust estimate of performance
+  - override /data/split: k_fold
+  - override /serial_sweeper: splits
+  - override /hydra/sweeper: optuna
+
+# task name, determines output directory path
+task_name: "hparams_search"
+
+# choose metric which will be optimized by Optuna
+# make sure this is the correct name of some metric logged in lightning module!
+optimized_metric: "val/acc/best"
+
+data:
+  dataset:
+    # Disable preprocessing and reloading dataset on each trial
+    # This limits all runs to use the same preprocessed dataset (e.g. cannot use different targets or positional encodings)
+    # but leads to much faster hyperparameter search by enabling parallel execution of trials
+    force_reload: False
+
+# here we define Optuna hyperparameter search
+# it optimizes for value returned from function with @hydra.main decorator
+# docs: https://hydra.cc/docs/next/plugins/optuna_sweeper
+hydra:
+  mode: MULTIRUN # set hydra to multirun by default if this config is attached
+
+  sweeper:
+    _target_: hydra_plugins.hydra_optuna_sweeper.optuna_sweeper.OptunaSweeper
+
+    # storage URL to persist optimization results
+    # for example, you can use SQLite if you set 'sqlite:///example.db'
+    storage: null
+
+    # name of the study to persist optimization results
+    study_name: null
+
+    # number of parallel workers
+    n_jobs: 10
+
+    # 'minimize' or 'maximize' the objective
+    direction: maximize
+
+    # total number of runs that will be executed
+    n_trials: 1000
+
+    # choose Optuna hyperparameter sampler
+    # you can choose bayesian sampler (tpe), random search (without optimization), grid sampler, and others
+    # docs: https://optuna.readthedocs.io/en/stable/reference/samplers/index.html
+    sampler:
+      _target_: optuna.samplers.TPESampler
+      seed: ${seed}
+      n_startup_trials: 50 # number of random sampling runs before optimization starts
+
+    # define hyperparameter search space
+    params: ???
+
+logger:
+  wandb:
+    project: "GENESIS-hparams-search" # set a dedicated project for hparams search
