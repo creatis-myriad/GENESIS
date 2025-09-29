@@ -3,7 +3,10 @@
 # https://arxiv.org/abs/1810.00826
 
 _target_: ???
-in_channels: ${hparams.data.num_node_features}
+# If positional encoding is used and concatenated to node features, add it to the number of node features to compute
+# the input dimension of the first GNN layer.
+# Otherwise (i.e. no PE or PE stored in its own attribute), use the number of node features directly.
+in_channels: ${op:add, ${hparams.data.num_node_features}, ${op.ternary:${oc.select:hparams.data.pe_attr}, 0, ${oc.select:hparams.data.num_pe_features,0}} }
 hidden_channels: 64
 num_layers: 4
 out_channels: ${oc.select:hparams.data.num_classes,1}

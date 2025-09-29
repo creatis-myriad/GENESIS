@@ -1,0 +1,6 @@
+# @package _global_
+
+hparams:
+  data:
+    num_pe_features: 20
+    pe_attr: pe

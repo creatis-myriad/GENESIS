@@ -9,6 +9,7 @@ from lightning import LightningModule
 from torch import nn
 from torch_geometric.data import Batch
 from torch_geometric.datasets import FakeDataset
+from torch_geometric.transforms import AddRandomWalkPE
 from torchmetrics import MeanMetric, Metric, MetricCollection, MetricTracker
 
 from genesis.utils import RankedLogger, pad_keys
@@ -272,7 +273,13 @@ class GraphLitModule(MetricTrackingLitModule, ABC):
     """The type of task the model is designed for, used to generate an example input batch."""
 
     def __init__(
-        self, num_node_features: int | None = None, num_edge_features: int | None = None, *args, **kwargs
+        self,
+        num_node_features: int | None = None,
+        num_edge_features: int | None = None,
+        pe_attr: str | None = None,
+        num_pe_features: int | None = None,
+        *args,
+        **kwargs,
     ) -> None:
         """Initializes a `GraphLitModule`.
 
@@ -281,6 +288,11 @@ class GraphLitModule(MetricTrackingLitModule, ABC):
                 generate an example input batch, useful for inspecting the model's input/output shapes.
             num_edge_features: The number of features per edge in the input graph(s). If provided, it is used to
                 generate an example input batch, useful for inspecting the model's input/output shapes.
+            pe_attr: The attribute name in data batches containing positional encodings, if the model uses them.
+                If `None` but `num_pe_features` is provided, assumes positional encodings are concatenated to `data.x`.
+            num_pe_features: The number of positional encoding features in the input graph(s), if any.
+                If provided, it is used to generate an example input batch, useful for inspecting the model's
+                input/output shapes.
             *args: Additional positional arguments to pass to the superclass.
             **kwargs: Additional keyword arguments to pass to the superclass.
         """
@@ -288,7 +300,11 @@ class GraphLitModule(MetricTrackingLitModule, ABC):
 
         required_data_hparams = {"num_node_features": num_node_features}
         missing_required_hparams = [k for k, v in required_data_hparams.items() if v is None]
-        optional_data_hparams = {"num_edge_features": num_edge_features}
+        optional_data_hparams = {
+            "num_edge_features": num_edge_features,
+            "pe_attr": pe_attr,
+            "num_pe_features": num_pe_features,
+        }
         data_hparams = required_data_hparams | optional_data_hparams
 
         # If at least one of the required or optional hparams is provided (not None), try to generate an example batch
@@ -302,9 +318,19 @@ class GraphLitModule(MetricTrackingLitModule, ABC):
                     f"or provide missing required hparams: {missing_required_hparams}."
                 )
             else:
+                pe_transform = None
+                if num_pe_features:
+                    if pe_attr is None:
+                        # If no attribute name is provided, PE features are concatenated to node features in `data.x`
+                        num_node_features += num_pe_features
+                    else:
+                        # If an attribute name is provided, PE features are stored in `data[pe_attr]`
+                        pe_transform = AddRandomWalkPE(num_pe_features, attr_name=pe_attr)
+
                 fake_dataset = FakeDataset(
                     num_graphs=2 if self.task_level == "graph" else 1,
                     num_channels=num_node_features,
                     edge_dim=num_edge_features or 0,
+                    transform=pe_transform,
                 )
                 self.example_input_array = Batch.from_data_list(list(fake_dataset))
