@@ -1,0 +1,17 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/gcn
+
+defaults:
+  - persevere/default
+  - override /model/encoder: gcn
+
+# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+model:
+  encoder:
+    hidden_channels: 64
+    num_layers: 2
+    dropout: 0.1
+  optimizer:
+    weight_decay: 3e-5

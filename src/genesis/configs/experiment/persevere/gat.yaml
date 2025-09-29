@@ -1,0 +1,17 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/gat
+
+defaults:
+  - persevere/default
+  - override /model/encoder: gat
+
+# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+model:
+  encoder:
+    hidden_channels: 64
+    num_layers: 3
+    dropout: 0.07
+  optimizer:
+    weight_decay: 9.4e-5

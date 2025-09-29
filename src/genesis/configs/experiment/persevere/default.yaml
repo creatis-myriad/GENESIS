@@ -22,7 +22,7 @@ tags:
   - ${hydra:runtime.choices.data/dataset/target} # automatically tag with the chosen target
 
 seed: 12345
-weighted_loss: true
+weighted_loss: false
 
 trainer:
   min_epochs: 50
