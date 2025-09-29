@@ -1,5 +1,5 @@
 defaults:
-  - components@model: tabpfn
+  - model: tabpfn
   # Metrics are part of the model, used to evaluate it during training, but they depend on the data task.
   # Intuitively, the metrics config should be interpolated based on the data config. However, limitations in the
   # interpolation capabilities of Hydra make this impractical.

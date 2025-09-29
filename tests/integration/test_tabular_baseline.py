@@ -107,7 +107,7 @@ def model_overrides(request: FixtureRequest) -> list[str]:
     model = request.param
     return [
         "model=tabular_estimator",
-        f"model/components@model.model={model}",
+        f"model/model={model}",
     ]
 
 
