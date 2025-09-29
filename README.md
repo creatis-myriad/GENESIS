@@ -98,7 +98,16 @@ neural networks to predict the risk of pulmonary embolism.
    # e.g. to install the PyTorch version built for CUDA 12.6
    pip install torch --index-url https://download.pytorch.org/whl/cu126
    ```
-4. Install the project in editable mode.
+4. Install PyG and its `torch_scatter` dependency according to the [official instructions](https://pytorch-geometric.readthedocs.io/en/stable/install/installation.html)
+   Follow the instructions for `pip` and the compute platform compatible with your system.
+   ```bash
+   # install PyG
+   pip install torch_geometric
+
+   # install `torch_scatter` optional dependency (e.g. for CUDA 12.6)
+   pip install torch_scatter -f https://data.pyg.org/whl/torch-2.7.0+cu126.html
+   ```
+5. Install the project in editable mode.
    ```bash
    pip install -e .
    ```

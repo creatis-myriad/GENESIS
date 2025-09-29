@@ -752,19 +752,24 @@ baselines = [
 cpu = [
     { name = "torch", version = "2.7.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-7-genesis-cpu') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128')" },
     { name = "torch", version = "2.7.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-7-genesis-cpu') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128')" },
+    { name = "torch-scatter", version = "2.1.2", source = { registry = "https://data.pyg.org/whl/torch-2.7.0+cpu.html" }, marker = "(sys_platform == 'darwin' and extra == 'extra-7-genesis-cpu') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128')" },
+    { name = "torch-scatter", version = "2.1.2+pt27cpu", source = { registry = "https://data.pyg.org/whl/torch-2.7.0+cpu.html" }, marker = "(sys_platform != 'darwin' and extra == 'extra-7-genesis-cpu') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128')" },
     { name = "torchvision", version = "0.22.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-genesis-cpu') or (platform_machine != 'aarch64' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118') or (platform_machine != 'aarch64' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (platform_machine != 'aarch64' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (platform_machine != 'aarch64' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (platform_machine != 'aarch64' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (platform_machine != 'aarch64' and extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (sys_platform == 'darwin' and extra == 'extra-7-genesis-cpu') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (sys_platform == 'darwin' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (sys_platform == 'darwin' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (sys_platform == 'darwin' and extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra != 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (extra != 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (extra != 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128')" },
     { name = "torchvision", version = "0.22.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-genesis-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-7-genesis-cpu') or (sys_platform == 'darwin' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118') or (sys_platform == 'darwin' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (sys_platform == 'darwin' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (sys_platform == 'darwin' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (sys_platform == 'darwin' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (sys_platform == 'darwin' and extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (sys_platform == 'linux' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118') or (sys_platform == 'linux' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (sys_platform == 'linux' and extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra != 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (extra != 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (extra != 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128')" },
 ]
 cu118 = [
     { name = "torch", version = "2.7.0+cu118", source = { registry = "https://download.pytorch.org/whl/cu118" } },
+    { name = "torch-scatter", version = "2.1.2+pt27cu118", source = { registry = "https://data.pyg.org/whl/torch-2.7.0+cu118.html" } },
     { name = "torchvision", version = "0.22.0+cu118", source = { registry = "https://download.pytorch.org/whl/cu118" } },
 ]
 cu126 = [
     { name = "torch", version = "2.7.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" } },
+    { name = "torch-scatter", version = "2.1.2+pt27cu126", source = { registry = "https://data.pyg.org/whl/torch-2.7.0+cu126.html" } },
     { name = "torchvision", version = "0.22.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" } },
 ]
 cu128 = [
     { name = "torch", version = "2.7.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" } },
+    { name = "torch-scatter", version = "2.1.2+pt27cu128", source = { registry = "https://data.pyg.org/whl/torch-2.7.0+cu128.html" } },
     { name = "torchvision", version = "0.22.0", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu128') or (platform_machine != 'aarch64' and extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128')" },
     { name = "torchvision", version = "0.22.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "(platform_machine != 'aarch64' and extra == 'extra-7-genesis-cu128') or (sys_platform != 'linux' and extra != 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (sys_platform != 'linux' and extra != 'extra-7-genesis-cpu' and extra != 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu118') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cu118' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128')" },
 ]
@@ -821,6 +826,10 @@ requires-dist = [
     { name = "torch", marker = "extra == 'cu126'", specifier = ">=2.7,<2.8", index = "https://download.pytorch.org/whl/cu126", conflict = { package = "genesis", extra = "cu126" } },
     { name = "torch", marker = "extra == 'cu128'", specifier = ">=2.7,<2.8", index = "https://download.pytorch.org/whl/cu128", conflict = { package = "genesis", extra = "cu128" } },
     { name = "torch-geometric", git = "https://github.com/nathanpainchaud/pytorch_geometric.git?rev=b20a4d72c3309f608b8990c89d128c67799a3fff" },
+    { name = "torch-scatter", marker = "extra == 'cpu'", specifier = ">=2.1.2,<3", index = "https://data.pyg.org/whl/torch-2.7.0+cpu.html", conflict = { package = "genesis", extra = "cpu" } },
+    { name = "torch-scatter", marker = "extra == 'cu118'", specifier = ">=2.1.2,<3", index = "https://data.pyg.org/whl/torch-2.7.0+cu118.html", conflict = { package = "genesis", extra = "cu118" } },
+    { name = "torch-scatter", marker = "extra == 'cu126'", specifier = ">=2.1.2,<3", index = "https://data.pyg.org/whl/torch-2.7.0+cu126.html", conflict = { package = "genesis", extra = "cu126" } },
+    { name = "torch-scatter", marker = "extra == 'cu128'", specifier = ">=2.1.2,<3", index = "https://data.pyg.org/whl/torch-2.7.0+cu128.html", conflict = { package = "genesis", extra = "cu128" } },
     { name = "torchmetrics", extras = ["visual"], specifier = ">=1.8,<1.9" },
     { name = "torchvision", marker = "extra == 'cpu'", specifier = ">=0.22,<0.23", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "genesis", extra = "cpu" } },
     { name = "torchvision", marker = "extra == 'cu118'", specifier = ">=0.22,<0.23", index = "https://download.pytorch.org/whl/cu118", conflict = { package = "genesis", extra = "cu118" } },
@@ -3667,6 +3676,82 @@ dependencies = [
     { name = "requests" },
     { name = "tqdm" },
     { name = "xxhash" },
+]
+
+[[package]]
+name = "torch-scatter"
+version = "2.1.2"
+source = { registry = "https://data.pyg.org/whl/torch-2.7.0+cpu.html" }
+resolution-markers = [
+    "sys_platform == 'darwin'",
+]
+wheels = [
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcpu/torch_scatter-2.1.2-cp312-cp312-macosx_10_13_universal2.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcpu/torch_scatter-2.1.2-cp313-cp313-macosx_10_13_universal2.whl" },
+]
+
+[[package]]
+name = "torch-scatter"
+version = "2.1.2+pt27cpu"
+source = { registry = "https://data.pyg.org/whl/torch-2.7.0+cpu.html" }
+resolution-markers = [
+    "platform_machine != 'aarch64' and sys_platform == 'linux'",
+    "platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "sys_platform != 'darwin' and sys_platform != 'linux'",
+]
+wheels = [
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcpu/torch_scatter-2.1.2%2Bpt27cpu-cp312-cp312-linux_aarch64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcpu/torch_scatter-2.1.2%2Bpt27cpu-cp312-cp312-linux_x86_64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcpu/torch_scatter-2.1.2%2Bpt27cpu-cp312-cp312-win_amd64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcpu/torch_scatter-2.1.2%2Bpt27cpu-cp313-cp313-linux_aarch64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcpu/torch_scatter-2.1.2%2Bpt27cpu-cp313-cp313-linux_x86_64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcpu/torch_scatter-2.1.2%2Bpt27cpu-cp313-cp313-win_amd64.whl" },
+]
+
+[[package]]
+name = "torch-scatter"
+version = "2.1.2+pt27cu118"
+source = { registry = "https://data.pyg.org/whl/torch-2.7.0+cu118.html" }
+resolution-markers = [
+    "sys_platform == 'linux'",
+    "sys_platform != 'linux'",
+]
+wheels = [
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu118/torch_scatter-2.1.2%2Bpt27cu118-cp312-cp312-linux_x86_64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu118/torch_scatter-2.1.2%2Bpt27cu118-cp312-cp312-win_amd64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu118/torch_scatter-2.1.2%2Bpt27cu118-cp313-cp313-linux_x86_64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu118/torch_scatter-2.1.2%2Bpt27cu118-cp313-cp313-win_amd64.whl" },
+]
+
+[[package]]
+name = "torch-scatter"
+version = "2.1.2+pt27cu126"
+source = { registry = "https://data.pyg.org/whl/torch-2.7.0+cu126.html" }
+resolution-markers = [
+    "sys_platform == 'linux'",
+    "sys_platform != 'linux'",
+]
+wheels = [
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu126/torch_scatter-2.1.2%2Bpt27cu126-cp312-cp312-linux_x86_64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu126/torch_scatter-2.1.2%2Bpt27cu126-cp312-cp312-win_amd64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu126/torch_scatter-2.1.2%2Bpt27cu126-cp313-cp313-linux_x86_64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu126/torch_scatter-2.1.2%2Bpt27cu126-cp313-cp313-win_amd64.whl" },
+]
+
+[[package]]
+name = "torch-scatter"
+version = "2.1.2+pt27cu128"
+source = { registry = "https://data.pyg.org/whl/torch-2.7.0+cu128.html" }
+resolution-markers = [
+    "platform_machine != 'aarch64' and sys_platform == 'linux'",
+    "platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "sys_platform != 'linux'",
+]
+wheels = [
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu128/torch_scatter-2.1.2%2Bpt27cu128-cp312-cp312-linux_x86_64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu128/torch_scatter-2.1.2%2Bpt27cu128-cp312-cp312-win_amd64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu128/torch_scatter-2.1.2%2Bpt27cu128-cp313-cp313-linux_x86_64.whl" },
+    { url = "https://data.pyg.org/whl/torch-2.7.0%2Bcu128/torch_scatter-2.1.2%2Bpt27cu128-cp313-cp313-win_amd64.whl" },
 ]
 
 [[package]]
