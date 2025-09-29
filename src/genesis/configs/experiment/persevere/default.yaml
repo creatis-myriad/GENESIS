@@ -60,4 +60,3 @@ logger:
 # and stop the program from running if the configs are known to be incompatible
 _assert_:
   data_more_than_one_graph: ${assert:${op:gt,${oc.select:hparams.data.num_graphs,0},1}}
-  data_at_least_one_num_node_features: ${assert:${op:ge,${oc.select:hparams.data.num_node_features,0},1}}

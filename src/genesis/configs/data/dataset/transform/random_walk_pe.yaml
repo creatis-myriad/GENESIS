@@ -1,0 +1,6 @@
+defaults:
+  - _pe
+
+_target_: torch_geometric.transforms.AddRandomWalkPE
+walk_length: ${hparams.data.num_pe_features}
+attr_name: ${hparams.data.pe_attr}
