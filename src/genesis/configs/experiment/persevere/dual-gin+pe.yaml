@@ -1,0 +1,24 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/gin+pe
+
+defaults:
+  - persevere/default
+  - override /data/dataset/transform@data.dataset.transform: random_walk_pe
+  - override /model/encoder: gin
+
+# Use the default config, and only define parameters to use dual representation (default) with concatenated positional
+# encoding
+hparams:
+  data:
+    pe_attr: null
+
+# For the model, use the hparams tuned for GIN
+model:
+  encoder:
+    hidden_channels: 64
+    num_layers: 2
+    dropout: 0.34
+  optimizer:
+    weight_decay: 1.3e-5

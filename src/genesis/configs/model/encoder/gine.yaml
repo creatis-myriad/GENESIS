@@ -1,0 +1,6 @@
+defaults:
+  - basic_gnn
+
+_target_: genesis.models.GINE
+edge_dim: ${hparams.data.num_edge_features}
+train_eps: true
