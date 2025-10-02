@@ -16,8 +16,8 @@ data:
     usecols: ???
 
 tags:
-  - ${model.model._target_} # automatically tag with the chosen model architecture
   - ${hydra:runtime.choices.experiment} # automatically tag with the chosen experiment
+  - ${hydra:runtime.choices.model/model} # automatically tag with the chosen model architecture
   - ${hydra:runtime.choices.data/dataset/target} # automatically tag with the chosen target, if available
 
 seed: 12345

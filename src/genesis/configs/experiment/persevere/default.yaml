@@ -17,8 +17,8 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 tags:
-  - ${model.encoder._target_} # automatically tag with the chosen model architecture
   - ${hydra:runtime.choices.experiment} # automatically tag with the chosen experiment
+  - ${hydra:runtime.choices.model/encoder} # automatically tag with the chosen model architecture
   - ${hydra:runtime.choices.data/dataset/target} # automatically tag with the chosen target
 
 seed: 12345
