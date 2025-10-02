@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export LOG_DIR=$1
+LOG_DIR=${LOG_DIR:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 
 # Use the same hparams search config for the message passing GNNs (GCN, GIN, GAT), but optimize each model separately
 for model in gcn gin gat; do

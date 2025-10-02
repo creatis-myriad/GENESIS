@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export LOG_DIR=$1
+LOG_DIR=${LOG_DIR:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 
 # NOTE: Ignore conflicts on data splits (+data.on_conflict=ignore), because splits computed from different targets would
 # not match. This way, the splits computed from the first target will be used for all subsequent targets.
