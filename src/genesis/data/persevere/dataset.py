@@ -31,6 +31,7 @@ class PersevereDataset(InMemoryDataset):
         target_dtype: str | torch.dtype = torch.long,
         node_attrs_filter: list[str] | None = None,
         edge_attrs_filter: list[str] | None = None,
+        graph_attrs_filter: list[str] | None = None,
         json_to_nx_kwargs: dict[str, Any] | None = None,
     ) -> None:
         """Initializes a `PersevereDataset`.
@@ -48,6 +49,8 @@ class PersevereDataset(InMemoryDataset):
                 If `None`, defaults to keeping all node features.
             edge_attrs_filter: List of edge features to keep in the `Data` objects, from all available edge features.
                 If `None`, defaults to keeping all edge features.
+            graph_attrs_filter: List of graph features to keep in the `Data` objects, from all available graph features.
+                If `None`, defaults to keeping all graph features (except the target attribute).
             json_to_nx_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`.
         """
         self._line_graph = line_graph
@@ -58,6 +61,7 @@ class PersevereDataset(InMemoryDataset):
         self._nx_to_pyg_kwargs = {
             "group_node_attrs": edge_attrs_filter if line_graph else node_attrs_filter,
             "group_edge_attrs": node_attrs_filter if line_graph else edge_attrs_filter,
+            "group_graph_attrs": graph_attrs_filter,
         }
 
         super().__init__(

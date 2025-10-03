@@ -1,8 +1,8 @@
 # @package _global_
 
 defaults:
-  # To filter nodes/edges attributes to include in the dataset, use the following config group:
-  - /data/dataset/attrs_filter: null
+  # To filter graph attributes to include in the dataset, use the following config group:
+  - /data/dataset/graph_attrs_filter: spesi+cardiac_biomarkers+graph_biomarkers
   # To add transforms (or pre-transforms) to the dataset, use the following config group:
   - /data/dataset/transform: null
   - /data/dataset/transform@data.dataset.pre_transform: null
@@ -23,7 +23,6 @@ data:
       _args_:
         # Cast target to float for regression tasks, and long otherwise (binary/multiclass classification)
         - ${op.ternary:${op:eq,${hparams.data.task},regression}, float, long}
-    edge_attrs_filter: null
 
 hparams:
   # hparams.data.* values are meant to expose the constant properties of the `torch_geometric.data.Dataset` instance
@@ -34,9 +33,13 @@ hparams:
   # dataset or your own custom dataset.
   data:
     num_graphs: 24
-    # If no explicit filter of edge attributes is provided, the maximum number of edge features (8) is used
+    # If no explicit filter of edge attributes is provided, the maximum number of edge features (9) is used
     num_raw_edge_features: 9
+    num_raw_graph_features: 29
     num_filtered_edge_features: ${op:length_hint,${oc.select:data.dataset.edge_attrs_filter}, ${.num_raw_edge_features}}
-    num_edge_features: ${op.ternary:${data.dataset.line_graph}, 0, ${.num_filtered_edge_features}}
-    num_node_features: ${op.ternary:${data.dataset.line_graph}, ${.num_filtered_edge_features}, 0}
+    num_edge_features: ${op.ternary:${data.dataset.line_graph}, null, ${.num_filtered_edge_features}}
+    num_node_features: ${op.ternary:${data.dataset.line_graph}, ${.num_filtered_edge_features}, null}
+    # Infer the number of graph-level features from the selected graph attributes, and default to all but the target
+    # attribute if no filter is provided
+    num_graph_features: ${op:length_hint, ${oc.select:data.dataset.graph_attrs_filter}, ${op:sub,${.num_raw_graph_features},1}}
     task: ??? # To be set by the target config
