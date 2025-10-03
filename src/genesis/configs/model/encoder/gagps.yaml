@@ -1,0 +1,6 @@
+# GraphGPS configuration to use our proposed GAGPSConv extension to GPSConv layer, which adds support for Graph-level Attributes.
+
+defaults:
+  - gps
+
+graph_dim: ${oc.select:hparams.data.num_graph_features}
