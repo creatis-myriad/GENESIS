@@ -53,4 +53,4 @@ def test_persevere_dataset(
 
         # PyG Data attributes tests
         for attr in data.keys():  # noqa: SIM118
-            assert attr in ["x", "y", "edge_index", "edge_attr", "pos", "time", "num_nodes"]
+            assert attr in ["x", "y", "edge_index", "edge_attr", "graph_attr", "pos", "time", "num_nodes"]
