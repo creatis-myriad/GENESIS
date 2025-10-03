@@ -12,13 +12,15 @@ from genesis.utils import pylogger
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 
 
-def networkx_to_pyg(graph: nx.Graph, target_attr: str, target_dtype: torch.dtype, **from_networkx_kwargs) -> Data:
+def networkx_to_pyg(
+    graph: nx.Graph, target_attr: str | None = None, target_dtype: torch.dtype | None = None, **from_networkx_kwargs
+) -> Data:
     """Convert NetworkX `Graph` to PyG `Data`.
 
     Args:
         graph: NetworkX graph.
-        target_attr: Key of the graph attribute to use as target.
-        target_dtype: Data type of the target attribute.
+        target_attr: Key of the graph attribute to use as target. If `None`, `data.y` is not set.
+        target_dtype: Data type of the target attribute. If `None`, `data.y` uses the default tensor dtype.
         **from_networkx_kwargs: Node and edge filter lists to pass to `from_networkx`.
 
     Returns:
@@ -37,8 +39,10 @@ def networkx_to_pyg(graph: nx.Graph, target_attr: str, target_dtype: torch.dtype
     # Don't manage string attributes
     data = from_networkx(graph, **from_networkx_kwargs)
     data = _clean_data_attributes(data)
-    target_label = graph.graph[target_attr]
-    data.y = torch.tensor(target_label, dtype=target_dtype)
+    if target_attr:
+        target_label = graph.graph[target_attr]
+        data.y = torch.tensor(target_label, dtype=target_dtype)
+
     return data
 
 
