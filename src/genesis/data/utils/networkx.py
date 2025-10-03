@@ -301,6 +301,6 @@ def _clean_data_attributes(data: Data) -> Data:
         PyG `Data` object cleaned from non-essential attributes
     """
     for key in data.keys():  # noqa: SIM118
-        if key not in ["x", "y", "edge_index", "edge_attr"]:
+        if key not in ["x", "y", "edge_index", "edge_attr", "pos", "time", "num_nodes"]:
             delattr(data, key)
     return data
