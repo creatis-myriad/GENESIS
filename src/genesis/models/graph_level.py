@@ -1,9 +1,9 @@
-from collections.abc import Callable
 from typing import Literal
 
 import torch
 from torch import nn
 from torch_geometric.data import Batch
+from torch_geometric.nn import aggr
 
 from genesis.models import GraphLitModule
 
@@ -17,7 +17,7 @@ class GraphLevelLitModule(GraphLitModule):
         self,
         task: Literal["binary", "multiclass", "multilabel", "regression"],
         encoder: nn.Module,
-        readout: Callable[[torch.Tensor, torch.Tensor | None, int | None], torch.Tensor],
+        readout: aggr.Aggregation,
         head: nn.Module,
         *args,
         **kwargs,
@@ -36,9 +36,10 @@ class GraphLevelLitModule(GraphLitModule):
 
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
-        self.save_hyperparameters(ignore=["encoder", "head"])
+        self.save_hyperparameters(ignore=["encoder", "readout", "head"])
 
         self.encoder = encoder
+        self.readout = readout
         self.head = head
 
     def forward(self, data: Batch) -> torch.Tensor:
@@ -66,7 +67,7 @@ class GraphLevelLitModule(GraphLitModule):
 
         x = self.encoder(x, data.edge_index, **encoder_forward_kwargs)
         # Pass the batch size to readout operation to avoid CPU communication/graph breaks
-        x = self.hparams.readout(x, batch, batch_size)
+        x = self.readout(x, index=batch, dim_size=batch_size)
         x = self.head(x, batch=batch, batch_size=batch_size)
         if self.hparams.task == "binary":
             x = x.squeeze(-1)  # Flatten the last dim when only one value is predicted
