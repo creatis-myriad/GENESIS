@@ -16,6 +16,7 @@ num_node_features: ${oc.select:hparams.data.num_node_features}
 num_edge_features: ${oc.select:hparams.data.num_edge_features}
 num_pe_features: ${oc.select:hparams.data.num_pe_features}
 pe_attr: ${oc.select:hparams.data.pe_attr}
+num_classes: ${oc.select:hparams.data.num_classes}
 
 encoder:
   out_channels: null
