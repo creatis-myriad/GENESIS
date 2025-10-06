@@ -3,7 +3,7 @@
 LOG_DIR=${LOG_DIR:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 
 # Use the same hparams search config for the message passing GNNs (GCN, GAT, GIN and its virtual node variants), but optimize each model separately
-for experiment in gcn gat gin gin+vn; do
+for experiment in gcn gat gin gin+vn gin-vcn; do
   gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 logger=wandb trainer=gpu hparams_search=basic_gnn_risk_ESC-2014 experiment=persevere/$experiment >>"${LOG_DIR}/hparams_search_${experiment}_risk_ESC-2014.log" 2>&1
 done
 
