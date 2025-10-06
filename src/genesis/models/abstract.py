@@ -278,6 +278,7 @@ class GraphLitModule(MetricTrackingLitModule, ABC):
         num_edge_features: int | None = None,
         pe_attr: str | None = None,
         num_pe_features: int | None = None,
+        num_graph_features: int | None = None,
         num_classes: int | None = None,
         *args,
         **kwargs,
@@ -294,6 +295,8 @@ class GraphLitModule(MetricTrackingLitModule, ABC):
             num_pe_features: The number of positional encoding features in the input graph(s), if any.
                 If provided, it is used to generate an example input batch, useful for inspecting the model's
                 input/output shapes.
+            num_graph_features: The number of global features per graph in the input, if any. If provided, it is used to
+                generate an example input batch, useful for inspecting the model's input/output shapes.
             num_classes: The number of target classes for the prediction task. If provided, it is used to
                 generate an example input batch, useful for inspecting the model's input/output shapes.
             *args: Additional positional arguments to pass to the superclass.
@@ -307,6 +310,7 @@ class GraphLitModule(MetricTrackingLitModule, ABC):
             "num_edge_features": num_edge_features,
             "pe_attr": pe_attr,
             "num_pe_features": num_pe_features,
+            "num_graph_features": num_graph_features,
             "num_classes": num_classes,
         }
         data_hparams = required_data_hparams | optional_data_hparams
@@ -331,11 +335,15 @@ class GraphLitModule(MetricTrackingLitModule, ABC):
                         # If an attribute name is provided, PE features are stored in `data[pe_attr]`
                         pe_transform = AddRandomWalkPE(num_pe_features, attr_name=pe_attr)
 
+                custom_data_attrs = {}
+                if num_graph_features:
+                    custom_data_attrs["graph_attr"] = (1, num_graph_features)
                 fake_dataset = FakeDataset(
                     num_graphs=2 if self.task_level == "graph" else 1,
                     num_channels=num_node_features,
                     edge_dim=num_edge_features or 0,
                     num_classes=num_classes or 10,
+                    **custom_data_attrs,
                     transform=pe_transform,
                 )
                 self.example_input_array = Batch.from_data_list(list(fake_dataset))
