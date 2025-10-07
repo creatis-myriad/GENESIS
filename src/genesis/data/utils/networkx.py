@@ -7,6 +7,7 @@ import torch
 from torch_geometric.data import Data
 from torch_geometric.utils import from_networkx
 
+from genesis.data.data import GraphAttrData
 from genesis.utils import pylogger
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
@@ -50,14 +51,12 @@ def networkx_to_pyg(
         # By default, group all graph attributes except the target attribute
         group_graph_attrs = graph.graph.keys() - {target_attr}
     if group_graph_attrs:
+        # If graph attributes are present, convert/cast PyG `Data` to `GraphAttrData` to handle batching properly
+        data = GraphAttrData.from_dict(data.to_dict())
         data.graph_attr = torch.stack([getattr(data, graph_attr) for graph_attr in group_graph_attrs])
-        # Prepend graph dim so that when batching, `data.graph_attr` has shape [num_graphs, num_graph_attrs]
-        data.graph_attr = data.graph_attr.unsqueeze(0)
 
     # After having grouped requested graph attributes, remove leftover graph attributes from `data`
-    data = _clean_data_attributes(data)
-
-    return data
+    return _clean_data_attributes(data)
 
 
 def networkx_line_graph(graph: nx.Graph) -> nx.Graph:
