@@ -23,7 +23,6 @@ def test_persevere_dataset(
     """Test PersevereDataset with and without attribute filters and in line graph mode."""
     dataset = PersevereDataset(
         root=str(dataset_root),
-        force_reload=True,
         line_graph=line_graph,
         target_attr="target",
         node_attrs_filter=node_attrs_filter,

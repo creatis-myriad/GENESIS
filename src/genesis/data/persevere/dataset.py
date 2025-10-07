@@ -17,15 +17,17 @@ class PersevereDataset(InMemoryDataset):
 
     This dataset reconstructs the graphs from the JSON files, converts them to PyG Data objects, and groups them in a
     single dataset.
+
+    We bypass saving a processed version of the dataset to disk, instead processing the raw JSON on-the-fly when
+    initializing the dataset object. This is done to allow loading the dataset in parallel with different parameters
+    (e.g. targets, graph attributes), which would cause conflicting processed files if done using a standard
+    `InMemoryDataset`. This is feasible because loading the scale of JSON files used by PERSEVERE is inexpensive.
     """
 
     def __init__(
         self,
         root: str,
         transform: Callable | None = None,
-        pre_transform: Callable | None = None,
-        pre_filter: Callable | None = None,
-        force_reload: bool = False,
         line_graph: bool = True,
         target_attr: str = "risk_ESC-2014",
         target_dtype: str | torch.dtype = torch.long,
@@ -39,9 +41,6 @@ class PersevereDataset(InMemoryDataset):
         Args:
             root: Root directory where the dataset is saved.
             transform: PyG data transform, applies on-access transformation without altering stored data.
-            pre_transform: PyG data pre-transform, applies transformation before storing.
-            pre_filter: PyG data pre-filter, filters data before storing.
-            force_reload: PyG force reload, to update target/pre_transform/filter of dataset cached on disk.
             line_graph: Whether to convert graphs to their line graphs.
             target_attr: Key of the graph attribute to use as target.
             target_dtype: Data type of the target attribute.
@@ -53,6 +52,8 @@ class PersevereDataset(InMemoryDataset):
                 If `None`, defaults to keeping all graph features (except the target attribute).
             json_to_nx_kwargs: Keys for serialized attribute names to pass to `nx.node_link_graph`.
         """
+        super().__init__(root, transform)
+
         self._line_graph = line_graph
         self._target_attr = target_attr
         self._target_dtype = target_dtype
@@ -64,22 +65,6 @@ class PersevereDataset(InMemoryDataset):
             "group_graph_attrs": graph_attrs_filter,
         }
 
-        super().__init__(
-            root=root,
-            transform=transform,
-            pre_transform=pre_transform,
-            pre_filter=pre_filter,
-            force_reload=force_reload,
-        )
-        self.load(self.processed_paths[0])
-
-    @property
-    def processed_file_names(self) -> str:
-        """By default, processed data is saved in 'data.pt'."""
-        return "data.pt"
-
-    def process(self) -> None:
-        """Process the raw data and save it to data.pt."""
         data_list = [
             json_to_pyg(
                 json_path,
@@ -93,11 +78,4 @@ class PersevereDataset(InMemoryDataset):
             #  necessary to guarantee reproducibility of training/validation/test splits.
             for json_path in sorted(Path(self.raw_dir).glob("*.json"))
         ]
-
-        if self.pre_filter is not None:
-            data_list = [data for data in data_list if self.pre_filter(data)]
-
-        if self.pre_transform is not None:
-            data_list = [self.pre_transform(data) for data in data_list]
-
-        self.save(data_list, self.processed_paths[0])
+        self.data, self.slices = self.collate(data_list)

@@ -18,13 +18,6 @@ task_name: "hparams_search"
 # make sure this is the correct name of some metric logged in lightning module!
 optimized_metric: "val/acc/best"
 
-data:
-  dataset:
-    # Disable preprocessing and reloading dataset on each trial
-    # This limits all runs to use the same preprocessed dataset (e.g. cannot use different targets or positional encodings)
-    # but leads to much faster hyperparameter search by enabling parallel execution of trials
-    force_reload: False
-
 # here we define Optuna hyperparameter search
 # it optimizes for value returned from function with @hydra.main decorator
 # docs: https://hydra.cc/docs/next/plugins/optuna_sweeper
