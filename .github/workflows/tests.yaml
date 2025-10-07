@@ -33,6 +33,9 @@ jobs:
       - name: Run tests
         run: uv run --no-sync pytest
 #
+# Uncomment the following job to enable code coverage reporting to Codecov
+# Disabled here since the organization owning the repository has not enabled Codecov
+#
 #  code-coverage:
 #    runs-on: ubuntu-latest
 #
