@@ -27,14 +27,9 @@ def networkx_to_pyg(
     Returns:
         PyG `Data` representation of the NetworkX `Graph`.
     """
-    if not networkx_has_attributes(graph, element="nodes"):
-        from_networkx_kwargs["group_node_attrs"] = None
-    elif from_networkx_kwargs.get("group_node_attrs") is None:
+    if networkx_has_attributes(graph, "nodes") and from_networkx_kwargs.get("group_node_attrs") is None:
         from_networkx_kwargs["group_node_attrs"] = "all"
-
-    if not networkx_has_attributes(graph, element="edges"):
-        from_networkx_kwargs["group_edge_attrs"] = None
-    elif from_networkx_kwargs.get("group_edge_attrs") is None:
+    if networkx_has_attributes(graph, "edges") and from_networkx_kwargs.get("group_edge_attrs") is None:
         from_networkx_kwargs["group_edge_attrs"] = "all"
 
     # Catch `group_graph_attrs`, as it is not supported by `from_networkx` and we mimic the expected behavior here
