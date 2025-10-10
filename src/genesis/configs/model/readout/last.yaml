@@ -1,0 +1,2 @@
+_target_: genesis.models.gnn.agg.SelectAggregation
+mode: last
