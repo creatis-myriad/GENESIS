@@ -42,26 +42,10 @@ def edges_count(json_graph: dict) -> int:
 @pytest.fixture
 def node_features_count(json_graph: dict) -> int:
     """Count the number of node features."""
-    node_features, _ = extract_json_graph_features(json_graph)
-    return len(node_features)
+    return sum(1 for key in json_graph[NODES_KEY][0] if key != ID_KEY)
 
 
 @pytest.fixture
 def edge_features_count(json_graph: dict) -> int:
     """Count the number of edge features."""
-    _, edge_features = extract_json_graph_features(json_graph)
-    return len(edge_features)
-
-
-def extract_json_graph_features(json_graph: dict) -> tuple[list[str], list[str]]:
-    """Extract node and edge features from the JSON graph.
-
-    Args:
-        json_graph: JSON graph
-
-    Returns:
-        Node and edge features
-    """
-    node_features = [key for key in json_graph[NODES_KEY][0] if key != ID_KEY]
-    edge_features = [key for key in json_graph[EDGES_KEY][0] if key not in [SOURCE_KEY, TARGET_KEY]]
-    return node_features, edge_features
+    return sum(1 for key in json_graph[EDGES_KEY][0] if key not in [SOURCE_KEY, TARGET_KEY])

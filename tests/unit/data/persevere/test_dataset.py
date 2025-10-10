@@ -33,8 +33,11 @@ def test_persevere_dataset(
         },
     )
 
-    node_features_count = 1 if node_attrs_filter else node_features_count
-    edge_features_count = 1 if edge_attrs_filter else edge_features_count
+    if node_features_count and node_attrs_filter is not None:
+        node_features_count = len(node_attrs_filter)
+    if edge_features_count and edge_attrs_filter is not None:
+        edge_features_count = len(edge_attrs_filter)
+
     if line_graph:
         # Swap nodes and edges + decrease edges count to account for lost border edges
         node_features_count, edge_features_count = edge_features_count, node_features_count
@@ -43,13 +46,13 @@ def test_persevere_dataset(
 
     for data in dataset:
         # Nodes tests
-        if data.x is not None:
+        if nodes_count and node_features_count:
             assert data.x.shape == (nodes_count, node_features_count)
 
         # Edges tests
-        if data.edge_attr is not None:
+        if edges_count and edge_features_count and not line_graph:  # Line graph does not support edge features
             assert data.edge_attr.shape == (edges_count, edge_features_count)
 
         # PyG Data attributes tests
         for attr in data.keys():  # noqa: SIM118
-            assert attr in ["x", "y", "edge_index", "edge_attr", "graph_attr", "pos", "time", "num_nodes"]
+            assert attr in ["x", "y", "edge_index", "edge_attr", "graph_attr", "num_nodes"]
