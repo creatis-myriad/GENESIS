@@ -9,16 +9,19 @@ from .conftest import EDGES_KEY, NODES_KEY
 
 @pytest.mark.parametrize("node_attrs_filter", [None, ["node_feat1"]])
 @pytest.mark.parametrize("edge_attrs_filter", [None, ["edge_feat1"]])
+@pytest.mark.parametrize("graph_attrs_filter", [None, ["graph_feat1"]])
 @pytest.mark.parametrize("line_graph", [False, True])
 def test_persevere_dataset(
     node_attrs_filter: list[str] | None,
     edge_attrs_filter: list[str] | None,
+    graph_attrs_filter: list[str] | None,
     line_graph: bool,
     dataset_root: Path,
     nodes_count: int,
     edges_count: int,
     node_features_count: int,
     edge_features_count: int,
+    graph_features_count: int,
 ) -> None:
     """Test PersevereDataset with and without attribute filters and in line graph mode."""
     dataset = PersevereDataset(
@@ -27,6 +30,7 @@ def test_persevere_dataset(
         target_attr="target",
         node_attrs_filter=node_attrs_filter,
         edge_attrs_filter=edge_attrs_filter,
+        graph_attrs_filter=graph_attrs_filter,
         json_to_nx_kwargs={
             "nodes": NODES_KEY,
             "edges": EDGES_KEY,
@@ -37,6 +41,8 @@ def test_persevere_dataset(
         node_features_count = len(node_attrs_filter)
     if edge_features_count and edge_attrs_filter is not None:
         edge_features_count = len(edge_attrs_filter)
+    if graph_features_count and graph_attrs_filter is not None:
+        graph_features_count = len(graph_attrs_filter)
 
     if line_graph:
         # Swap nodes and edges + decrease edges count to account for lost border edges
@@ -52,6 +58,10 @@ def test_persevere_dataset(
         # Edges tests
         if edges_count and edge_features_count and not line_graph:  # Line graph does not support edge features
             assert data.edge_attr.shape == (edges_count, edge_features_count)
+
+        # Graph attributes tests
+        if graph_features_count:
+            assert data.graph_attr.shape == (graph_features_count,)
 
         # PyG Data attributes tests
         for attr in data.keys():  # noqa: SIM118

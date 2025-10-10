@@ -7,12 +7,15 @@ from _pytest.fixtures import FixtureRequest
 # Keys used in the JSON files
 NODES_KEY = "nodes"
 EDGES_KEY = "links"
+GRAPH_KEY = "graph"
 ID_KEY = "id"
 SOURCE_KEY = "source"
 TARGET_KEY = "target"
 
 
-@pytest.fixture(params=["node_edge_feats_dataset", "node_feats_dataset", "edge_feats_dataset"])
+@pytest.fixture(
+    params=["node_edge_feats_dataset", "node_feats_dataset", "edge_feats_dataset", "graph_node_feats_dataset"]
+)
 def dataset_root(request: FixtureRequest, shared_datadir: Path) -> Path:
     """Returns the root data resources directory for the specified dataset to test."""
     return shared_datadir / request.param
@@ -49,3 +52,9 @@ def node_features_count(json_graph: dict) -> int:
 def edge_features_count(json_graph: dict) -> int:
     """Count the number of edge features."""
     return sum(1 for key in json_graph[EDGES_KEY][0] if key not in [SOURCE_KEY, TARGET_KEY])
+
+
+@pytest.fixture
+def graph_features_count(json_graph: dict) -> int:
+    """Count the number of graph features."""
+    return sum(1 for key in json_graph[GRAPH_KEY] if key != TARGET_KEY)
