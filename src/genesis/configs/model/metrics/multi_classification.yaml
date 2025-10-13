@@ -1,6 +1,7 @@
 defaults:
   - metrics/acc
   - metrics/auroc
+  - metrics/f1
   - metrics/weighted_kappa
   - metrics/confusion_matrix
   # insert _self_, i.e. current config, before wrappers (instead of by default being the last item in the defaults list)
@@ -8,6 +9,7 @@ defaults:
   - _self_
   - wrappers/classwise@metrics.classwise_acc
   - wrappers/classwise@metrics.classwise_auroc
+  - wrappers/classwise@metrics.classwise_f1
 
 _target_: torchmetrics.MetricCollection
 # since MetricCollection does not recognize OmegaConf containers as their corresponding Python primitives
@@ -20,3 +22,6 @@ metrics:
   classwise_auroc:
     metric: ${..auroc}
     prefix: auroc/
+  classwise_f1:
+    metric: ${..f1}
+    prefix: f1/
