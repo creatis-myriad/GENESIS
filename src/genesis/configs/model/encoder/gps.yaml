@@ -1,0 +1,25 @@
+# Default GraphGPS configuration derives from hyperparameters selected for the ZINC dataset in the paper
+# "Recipe for a General, Powerful, Scalable Graph Transformer"
+# https://arxiv.org/abs/2205.12454
+# and detailed in the supplementary files and configuration files of the official implementation:
+# https://github.com/rampasek/GraphGPS/blob/main/configs/GPS/zinc-GPS.yaml
+
+defaults:
+  # Add positional encoding as transform on the dataset
+  - override /data/dataset/transform@_global_.data.dataset.transform: random_walk_pe
+
+_target_: genesis.models.GPS
+in_channels: ${hparams.data.num_node_features}
+hidden_channels: 64
+pe_dim: ${hparams.data.num_pe_features}
+pe_embed_dim: 8
+num_layers: 10
+edge_dim: ${oc.select:hparams.data.num_edge_features}
+out_channels: ${oc.select:hparams.data.num_classes,1}
+gps_kwargs:
+  heads: 4
+  attn_type: multihead
+  attn_kwargs:
+    dropout: 0.5
+mpnn_type: gine
+mpnn_kwargs: null
