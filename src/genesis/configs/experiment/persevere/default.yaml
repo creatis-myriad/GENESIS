@@ -31,11 +31,11 @@ trainer:
 callbacks:
   # Override default monitoring callbacks on loss to monitor accuracy instead
   model_checkpoint:
-    monitor: "val/acc"
+    monitor: "val/f1"
     mode: "max"
 
   early_stopping:
-    monitor: "val/acc"
+    monitor: "val/f1"
     patience: 50 # increase patience since the dataset is small
     mode: "max"
 
