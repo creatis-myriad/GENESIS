@@ -10,7 +10,7 @@ data = load_and_clean_clinical_data(
 
 # Compute binary targets from available data
 binary_targets = {
-    "nt-probnp_elevated": (elevated_nt_probnp := data["nt-probnp"] > 600),
+    "nt-probnp_elevated": (elevated_nt_probnp := data["nt-probnp"] >= 600),
     "troponin_elevated": (elevated_troponin := data["troponin"] > 14),
     "enzymes_elevated": elevated_nt_probnp | elevated_troponin,
     "risk_treated_elevated": data["risk_treated"] >= 2,
