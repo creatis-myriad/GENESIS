@@ -1,7 +1,7 @@
 # @package _global_
 
 # example hyperparameter optimization of some experiment with Optuna:
-# python train.py -m hparams_search=basic_gnn_risk_ESC-2014 model/encoder=<GNN_MODEL>
+# python train.py -m hparams_search=basic_gnn_risk_ESC-2014 experiment=persevere/<PERSEVERE_EXPERIMENT>
 
 defaults:
   - _persevere_optuna # inherit from base hparams PERSEVERE search config
