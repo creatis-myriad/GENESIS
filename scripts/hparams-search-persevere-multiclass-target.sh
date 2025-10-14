@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+TARGET=${1:-"risk_ESC-2014"}  # Default to "risk_ESC-2014" if TARGET is not set by the user
+LOG_DIR=${2:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
+
+# NOTE: Ignore conflicts on data splits (+data.on_conflict=ignore), because splits computed from different targets would
+# not match. This way, pre-computed splits will be used if available, otherwise splits will be computed for the target.
+
+# Use the same hparams search config for the message passing GNNs (GCN, GAT, GIN and its virtual node variants), but optimize each model separately
+for experiment in gcn gat gin gin+vn gin-vcn; do
+  gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 logger=wandb trainer=gpu hparams_search=persevere_basic_gnn experiment=persevere/$experiment data/dataset/target="$TARGET" +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${experiment}_${TARGET}.log" 2>&1
+done
+
+# Use a dedicated hparams search config for GPS, because it has different hyperparameters than the basic GNNs
+# NOTE: The number of parallel jobs is reduced to 4 to avoid CUDA out-of-memory errors, since GPS is more memory-intensive
+gnn-train logger=wandb trainer=gpu hydra/launcher=joblib hydra.launcher.n_jobs=4 hparams_search=persevere_gps data/dataset/target="$TARGET" +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_gps_${TARGET}.log" 2>&1
