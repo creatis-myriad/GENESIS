@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-LOG_DIR=${LOG_DIR:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
+LOG_DIR=${1:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 
 # Ablation study of primal/dual graph representation with models as similar as possible (GIN/GINE w/ positional encoding)
 # that handle the swapped node/edge features

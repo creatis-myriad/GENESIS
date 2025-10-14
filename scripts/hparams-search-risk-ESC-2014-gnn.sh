@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-LOG_DIR=${LOG_DIR:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
+LOG_DIR=${1:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 
 # Use the same hparams search config for the message passing GNNs (GCN, GAT, GIN and its virtual node variants), but optimize each model separately
 for experiment in gcn gat gin gin+vn gin-vcn; do
