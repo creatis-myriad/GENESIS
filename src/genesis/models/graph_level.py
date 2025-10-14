@@ -1,3 +1,4 @@
+import collections
 from typing import Literal
 
 import torch
@@ -6,6 +7,7 @@ from torch_geometric.data import Batch
 from torch_geometric.nn import aggr
 
 from genesis.models import GraphLitModule
+from genesis.models.gnn.transform import LearnableTransform
 
 
 class GraphLevelLitModule(GraphLitModule):
@@ -19,6 +21,7 @@ class GraphLevelLitModule(GraphLitModule):
         encoder: nn.Module,
         readout: aggr.Aggregation,
         head: nn.Module,
+        transforms: dict[str, LearnableTransform] | None = None,
         *args,
         **kwargs,
     ) -> None:
@@ -29,6 +32,8 @@ class GraphLevelLitModule(GraphLitModule):
             encoder: The GNN model used to encode the graph.
             readout: The readout operation to use to aggregate node features into a single graph-level representation.
             head: The prediction head used to make predictions based on the graph-level representation.
+            transforms: Transformations with learnable parameters (e.g. embedding) to apply to the input graphs before
+                passing them to the encoder.
             *args: Additional positional arguments to pass to the superclass.
             **kwargs: Additional keyword arguments to pass to the superclass.
         """
@@ -36,8 +41,11 @@ class GraphLevelLitModule(GraphLitModule):
 
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
-        self.save_hyperparameters(ignore=["encoder", "readout", "head"])
+        self.save_hyperparameters(ignore=["encoder", "readout", "head", "transforms"])
 
+        if transforms:
+            transforms = nn.Sequential(collections.OrderedDict(transforms))
+        self.transforms = transforms
         self.encoder = encoder
         self.readout = readout
         self.head = head
@@ -51,6 +59,8 @@ class GraphLevelLitModule(GraphLitModule):
         Returns:
             The predicted logits for the input graphs in the batch.
         """
+        data = self.transforms(data) if self.transforms is not None else data
+
         # Extract different inputs depending on the types of features supported by the encoder,
         # casting features to float as needed
         x, batch, batch_size = data.x.float(), data.batch, data.batch_size

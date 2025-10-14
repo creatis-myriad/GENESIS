@@ -1,0 +1,4 @@
+graph_attr_virtual_nodes:
+  _target_: genesis.models.gnn.transform.GraphAttributesVirtualNodes
+  graph_dim: ${hparams.data.num_graph_features}
+  embed_dim: ${model.encoder.in_channels}

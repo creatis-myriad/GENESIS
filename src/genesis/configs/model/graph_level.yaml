@@ -1,4 +1,5 @@
 defaults:
+  - transforms: null
   - encoder: gin
   - readout: sum
   - head: mlp
