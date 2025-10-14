@@ -2,7 +2,7 @@
 
 LOG_DIR=${1:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 
-# NOTE 1: Ignore conflicts on data splits (+data.on_conflict=ignore), because splits computed from different targets would
+# NOTE: Ignore conflicts on data splits (+data.on_conflict=ignore), because splits computed from different targets would
 # not match. This way, the splits computed from the first target will be used for all subsequent targets.
 
 # Multi-class classification risk prediction
