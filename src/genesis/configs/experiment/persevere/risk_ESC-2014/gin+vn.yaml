@@ -1,0 +1,18 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/risk_ESC-2014/gin+vn
+
+defaults:
+  - /experiment/persevere/risk_ESC-2014/_base
+  - override /model/encoder: gin+vn
+
+# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+# NOTE: Optimized hparams were copied from the base GIN config, without being finetuned for the added virtual nodes
+model:
+  encoder:
+    hidden_channels: 64
+    num_layers: 2
+    dropout: 0.34
+  optimizer:
+    weight_decay: 1.3e-5
