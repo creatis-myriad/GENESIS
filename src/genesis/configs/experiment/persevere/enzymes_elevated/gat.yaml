@@ -1,0 +1,17 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/enzymes_elevated/gat
+
+defaults:
+  - /experiment/persevere/enzymes_elevated/_base
+  - override /model/encoder: gat
+
+# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+model:
+  encoder:
+    hidden_channels: 16
+    num_layers: 9
+    dropout: 5e-3
+  optimizer:
+    weight_decay: 2.1e-4

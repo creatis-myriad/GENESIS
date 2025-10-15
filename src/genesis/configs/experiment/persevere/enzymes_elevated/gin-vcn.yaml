@@ -1,0 +1,23 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/enzymes_elevated/gin-vcn
+
+defaults:
+  - /experiment/persevere/enzymes_elevated/_base
+  - override /model/transforms: graph_attr_virtual_nodes
+  - override /model/encoder: gin
+  # Virtual column network (VCN) formulation of virtual nodes (Pham et al., 2017), proposes to use the final vector
+  # representation of virtual nodes as the graph representation, i.e. readout result.
+  # Since virtual nodes are appended at the end of the graph, after real nodes, we can extract them by taking the last
+  # node in the graph.
+  - override /model/readout: last
+
+# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+model:
+  encoder:
+    hidden_channels: 64
+    num_layers: 3
+    dropout: 0.13
+  optimizer:
+    weight_decay: 3.6e-5

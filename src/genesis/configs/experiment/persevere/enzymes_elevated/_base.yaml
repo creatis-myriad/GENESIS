@@ -1,0 +1,9 @@
+# @package _global_
+
+# Base experiment configuration for binary classification of whether blood biomarkers, i.e. enzymes, are elevated
+# on the PERSEVERE dataset.
+
+defaults:
+  - /experiment/persevere/default
+  - override /data/dataset/target: enzymes_elevated
+  - override /model/metrics: binary_classification
