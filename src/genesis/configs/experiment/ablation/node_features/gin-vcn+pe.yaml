@@ -6,7 +6,7 @@
 # Use the default GIN-VCN config (node features + virtual nodes initialized w/ graph-level features), modified to:
 # - add PE
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gin-vcn
+  - /experiment/persevere/enzymes_elevated/gin-vcn
   - override /data/dataset/transform@data.dataset.transform: random_walk_pe
 
 hparams:

@@ -8,7 +8,7 @@
 # - use GINE (instead of GIN) to support edge features
 # - add PE
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gin
+  - /experiment/persevere/enzymes_elevated/gin
   - override /data/dataset/transform@data.dataset.transform: random_walk_pe
   - override /model/encoder: gine
 

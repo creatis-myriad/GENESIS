@@ -5,7 +5,7 @@
 
 # Use the default GIN config (dual representation w/o positional encoding)
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gin
+  - /experiment/persevere/enzymes_elevated/gin
 
 logger:
   wandb:

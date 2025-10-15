@@ -7,7 +7,7 @@
 # - add PE
 # - remove original node features (i.e. use only PE as node features)
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gin-vcn
+  - /experiment/persevere/enzymes_elevated/gin-vcn
   - override /data/dataset/transform@data.dataset.transform: random_walk_pe
 
 hparams:

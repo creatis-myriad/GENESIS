@@ -6,7 +6,7 @@
 # Use the default GIN-VCN config (virtual node initialized w/ graph-level features + readout extracting the virtual node), modified to:
 # - change readout to average all node representations, instead of just taking the virtual node representation
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gin-vcn
+  - /experiment/persevere/enzymes_elevated/gin-vcn
   - override /model/readout: mean
 
 logger:

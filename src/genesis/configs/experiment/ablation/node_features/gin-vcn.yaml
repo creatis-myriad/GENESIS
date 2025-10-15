@@ -5,7 +5,7 @@
 
 # Use the default GIN-VCN config (node features + virtual nodes initialized w/ graph-level features)
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gin-vcn
+  - /experiment/persevere/enzymes_elevated/gin-vcn
 
 logger:
   wandb:

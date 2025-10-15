@@ -6,7 +6,7 @@
 # Use the default GIN config (dual representation w/o positional encoding), modified to:
 # - add PE
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gin
+  - /experiment/persevere/enzymes_elevated/gin
   - override /data/dataset/transform@data.dataset.transform: random_walk_pe
 
 hparams:
