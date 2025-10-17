@@ -47,7 +47,7 @@ def test_experiments(script: Path, testing_overrides: list[str]) -> None:
     command = [
         str(script),
         "-m",
-        "experiment=glob(*,exclude=tabular_baseline/*)",
+        "experiment=glob(*,exclude=tabular_baseline*)",
         "++trainer.fast_dev_run=true",
         *testing_overrides,
     ]
