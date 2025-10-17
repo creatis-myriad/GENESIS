@@ -1,0 +1,11 @@
+defaults:
+  # Split override of global package into another file because Hydra doesn't support multiple package scopes in a single file
+  # (see issues https://github.com/facebookresearch/hydra/issues/1983 and https://github.com/facebookresearch/hydra/issues/1913)
+  - _tabpfn_embedding_overrides
+
+_target_: genesis.data.transforms.tabpfn.TabPFNEmbedding
+# Path to a TabPFN model pre-fitted to the specific configuration of the dataset used (e.g. split, features, etc.)
+tabpfn_ckpt: ${paths.ckpt_dir}/${op:call,${op:methodcaller,upper},${hydra:runtime.choices.data/dataset}}/${hydra:runtime.choices.data/dataset/target}/tabpfn/${hydra:runtime.choices.data/dataset/graph_attrs_filter}/${hydra:runtime.choices.data/split}/${data.split_idx}/model.tabpfn_fit
+# If embeddings from multiple estimators used by TabPFN should be aggregated into a single embedding,
+# default to using the mean to reduce along the estimator dimension
+reduce_estimators: ${op.ternary:${hparams.data.agg_tabpfn_embeddings}, mean, null}
