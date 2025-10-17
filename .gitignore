@@ -41,10 +41,12 @@ coverage.xml
 *.h5
 *.tar
 *.tar.gz
+*.ckpt
 
 # Lightning-Hydra-Template
 src/**/configs/local/*
 !src/**/configs/local/example.yaml
 /data/
 /logs/
+/checkpoints/
 .env

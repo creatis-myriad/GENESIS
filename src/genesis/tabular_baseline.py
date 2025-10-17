@@ -4,7 +4,7 @@ from typing import Any
 import hydra
 import lightning as L  # noqa: N812
 from lightning import LightningDataModule
-from lightning.pytorch.loggers import Logger
+from lightning.pytorch.loggers import Logger, WandbLogger
 from omegaconf import DictConfig
 from rich.console import Console
 
@@ -70,9 +70,20 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
         val_metrics = model.score(datamodule=datamodule, subset="val")
         train_metrics.update(val_metrics)
 
-        ckpt_save_path = Path(cfg["ckpt_save_dirpath"]) / cfg["ckpt_save_filename"]
-        log.info(f"Saving trained model to {ckpt_save_path}!")
-        model.save(ckpt_save_path)
+        if cfg.get("ckpt_save_filename"):
+            ckpt_save_path = Path(cfg.ckpt_save_dirpath or cfg.paths.output_dir) / cfg.ckpt_save_filename
+            log.info(f"Saving trained model to {ckpt_save_path}!")
+            model.save(ckpt_save_path)
+            _log_model(logger, ckpt_save_path, aliases=["model"])
+
+        if cfg.get("ckpt_backbone_save_filename"):
+            ckpt_backbone_save_path = (
+                Path(cfg.ckpt_backbone_save_dirpath or cfg.paths.output_dir) / cfg.ckpt_backbone_save_filename
+            )
+            log.info(f"Saving trained model backbone to {ckpt_backbone_save_path}!")
+            model.save_backbone(ckpt_backbone_save_path)
+            print(ckpt_backbone_save_path)
+            _log_model(logger, ckpt_backbone_save_path, aliases=["backbone"])
 
     test_metrics = {}
     if cfg.get("test"):
@@ -87,6 +98,14 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     Console().print(metrics_table(metric_dict, cols_from_prefixes=["train", "val", "test"]))
 
     return metric_dict, object_dict
+
+
+def _log_model(logger: list[Logger], ckpt_path: Path, aliases: list[str] | None = None) -> None:
+    """Logs the model checkpoint to a WandB logger, if one is present and configured to log models."""
+    for logger_instance in logger:
+        if isinstance(logger_instance, WandbLogger) and logger_instance._log_model:
+            wandb_run = logger_instance.experiment
+            wandb_run.log_model(path=ckpt_path, aliases=aliases)
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="tabular_baseline.yaml")

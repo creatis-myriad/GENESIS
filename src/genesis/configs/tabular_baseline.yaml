@@ -46,6 +46,8 @@ test: False
 # directory and filename to use for checkpointing
 ckpt_save_dirpath: ${paths.output_dir}
 ckpt_save_filename: "model.pickle"
+ckpt_backbone_save_dirpath: ${ckpt_save_dirpath}
+ckpt_backbone_save_filename: null
 
 # simply provide checkpoint path to evaluate pre-fitted model
 ckpt_path: null

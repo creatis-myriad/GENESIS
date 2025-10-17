@@ -14,6 +14,14 @@ from torchmetrics import MetricCollection
 from genesis.data import split
 from genesis.utils.logging_utils import log_nonscalar_metrics, split_scalar_nonscalar_metrics
 
+try:
+    from tabpfn import TabPFNClassifier
+    from tabpfn.model_loading import save_fitted_tabpfn_model
+
+    _tabpfn_is_available = True
+except ImportError:
+    _tabpfn_is_available = False
+
 
 @runtime_checkable
 class BaseClassifier(Protocol):
@@ -210,6 +218,25 @@ class TabularEstimator:
         """
         with Path(ckpt).open("wb") as f:
             pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    def save_backbone(self, ckpt: Path | str) -> None:
+        """Save the backbone model to disk.
+
+        Args:
+            ckpt: Path to save the backbone model to.
+        """
+        if not _tabpfn_is_available:
+            raise ModuleNotFoundError(
+                "No module named 'tabpfn' found in your Python environment. Install it through 'baselines' extra when "
+                "installing the project, e.g. pip install genesis[baselines], or manually via 'pip install tabpfn'."
+            )
+
+        if isinstance(self.model, TabPFNClassifier):
+            # Use TabPFN's built-in saving function
+            save_fitted_tabpfn_model(self.model, ckpt)
+        else:
+            with Path(ckpt).open("wb") as f:
+                pickle.dump(self.model, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     @classmethod
     def load(cls, ckpt: Path | str) -> "TabularEstimator":
