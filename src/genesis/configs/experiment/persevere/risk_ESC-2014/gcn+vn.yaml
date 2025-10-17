@@ -1,0 +1,17 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/risk_ESC-2014/gcn+vn
+
+defaults:
+  - /experiment/persevere/risk_ESC-2014/_base
+  - override /model/encoder: gcn+vn
+
+# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+model:
+  encoder:
+    hidden_channels: 64
+    num_layers: 3
+    dropout: 7.1e-2
+  optimizer:
+    weight_decay: 3.7e-4

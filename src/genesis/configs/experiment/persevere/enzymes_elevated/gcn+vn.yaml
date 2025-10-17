@@ -1,0 +1,17 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/enzymes_elevated/gcn+vn
+
+defaults:
+  - /experiment/persevere/enzymes_elevated/_base
+  - override /model/encoder: gcn+vn
+
+# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+model:
+  encoder:
+    hidden_channels: 64
+    num_layers: 3
+    dropout: 0.27
+  optimizer:
+    weight_decay: 1.7e-4
