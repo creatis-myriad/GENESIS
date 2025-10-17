@@ -5,8 +5,17 @@ LOG_DIR=${1:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 # NOTE: Ignore conflicts on data splits (+data.on_conflict=ignore), because splits computed from different targets would
 # not match. This way, the splits computed from the first target will be used for all subsequent targets.
 
-# Multi-class classification risk prediction
-baseline-tabular -m logger=wandb test=True data/split=k_fold data/dataset/target=risk_ESC-2014 experiment=tabular_baseline/spesi,tabular_baseline/spesi+cardiac_biomarkers,tabular_baseline/spesi+graph_biomarkers,tabular_baseline/spesi+cardiac_biomarkers+graph_biomarkers +data.on_conflict=ignore model/metrics=multi_classification model/model=tabpfn,xgboost 'data.split_idx=range(10)' >>"${LOG_DIR}/persevere-tabular-multi_classification.log" 2>&1
-
-# Binary classification elevated bio-markers/risk prediction
-baseline-tabular -m logger=wandb test=True data/split=k_fold data/dataset/target=risk_ESC-2014_elevated,troponin_elevated,nt-probnp_elevated,enzymes_elevated experiment=tabular_baseline/spesi,tabular_baseline/spesi+cardiac_biomarkers,tabular_baseline/spesi+graph_biomarkers,tabular_baseline/spesi+cardiac_biomarkers+graph_biomarkers +data.on_conflict=ignore model/metrics=binary_classification model/model=tabpfn,xgboost 'data.split_idx=range(10)' >>"${LOG_DIR}/persevere-tabular-binary_classification.log" 2>&1
+# Fit and score tabular baselines (model/model) across multiple targets (experiments) and feature sets (data/dataset/usecols)
+# shellcheck disable=SC2016
+baseline-tabular -m \
+  logger=wandb \
+  test=True \
+  data/split=k_fold \
+  experiment=tabular_baseline/risk_ESC-2014,tabular_baseline/risk_ESC-2014_elevated,tabular_baseline/troponin_elevated,tabular_baseline/nt-probnp_elevated,tabular_baseline/enzymes_elevated \
+  data/dataset/usecols=spesi,spesi+cardiac_biomarkers,spesi+graph_biomarkers,spesi+cardiac_biomarkers+graph_biomarkers \
+  +data.on_conflict=ignore \
+  model/model=tabpfn,xgboost \
+  'data.split_idx=range(10)' \
+  'ckpt_backbone_save_dirpath="${paths.ckpt_dir}/${op:call,${op:methodcaller,upper},${hydra:runtime.choices.data/dataset}}/${hydra:runtime.choices.data/dataset/target}/${hydra:runtime.choices.model/model}/${hydra:runtime.choices.data/dataset/usecols}/${hydra:runtime.choices.data/split}/${data.split_idx}"' \
+  'ckpt_backbone_save_filename="${op.ternary:${op:eq,${hydra:runtime.choices.model/model},tabpfn},model.tabpfn_fit,null}"' \
+  >>"${LOG_DIR}/persevere-tabular.log" 2>&1
