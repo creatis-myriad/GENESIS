@@ -1,4 +1,5 @@
 defaults:
+  - usecols: ESC
   - imputer: null
   - _self_
   - target: risk_ESC-2014

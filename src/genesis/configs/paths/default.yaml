@@ -6,6 +6,9 @@ root_dir: ${oc.env:PROJECT_ROOT}
 # path to data directory
 data_dir: ${.root_dir}/data
 
+# path to checkpoints directory
+ckpt_dir: ${.root_dir}/checkpoints
+
 # path to logging directory
 log_dir: ${.root_dir}/logs
 

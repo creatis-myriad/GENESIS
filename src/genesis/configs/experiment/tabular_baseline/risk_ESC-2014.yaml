@@ -1,0 +1,9 @@
+# @package _global_
+
+# Tabular baseline configuration for multiclass classification of risk stratification according to the ESC-2014 guidelines
+# on the PERSEVERE dataset.
+
+defaults:
+  - /experiment/tabular_baseline
+  - override /data/dataset/target: risk_ESC-2014
+  - override /model/metrics: multi_classification
