@@ -16,7 +16,6 @@ from genesis.utils.logging_utils import log_nonscalar_metrics, split_scalar_nons
 
 try:
     from tabpfn import TabPFNClassifier
-    from tabpfn.model_loading import save_fitted_tabpfn_model
 
     _tabpfn_is_available = True
 except ImportError:
@@ -233,7 +232,7 @@ class TabularEstimator:
 
         if isinstance(self.model, TabPFNClassifier):
             # Use TabPFN's built-in saving function
-            save_fitted_tabpfn_model(self.model, ckpt)
+            self.model.save_fit_state(ckpt)
         else:
             with Path(ckpt).open("wb") as f:
                 pickle.dump(self.model, f, protocol=pickle.HIGHEST_PROTOCOL)
