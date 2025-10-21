@@ -1,0 +1,10 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=ablation/graph_level_features_embedding/gagps-tabpfn
+
+# Use the default GAGPS config, modified to:
+# - replace graph-level features with their TabPFN embedding
+defaults:
+  - /experiment/persevere/risk_ESC-2014/gagps
+  - override /data/dataset/transform@data.dataset.pre_transform: tabpfn_embedding
