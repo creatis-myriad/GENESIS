@@ -1,7 +1,7 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=ablation/node_features/gin-vcn
+# python train.py experiment=ablation/readout/gin-vcn
 
 # Use the default GIN-VCN config (virtual node initialized w/ graph-level features + readout extracting the virtual node)
 defaults:

@@ -1,7 +1,7 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=ablation/node_features/gin-vn-sum
+# python train.py experiment=ablation/readout/gin-vn-sum
 
 # Use the default GIN-VCN config (virtual node initialized w/ graph-level features + readout extracting the virtual node), modified to:
 # - change readout to sum all node representations, instead of just taking the virtual node representation
