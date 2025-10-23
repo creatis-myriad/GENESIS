@@ -27,16 +27,31 @@ def networkx_to_pyg(
     Returns:
         PyG `Data` representation of the NetworkX `Graph`.
     """
-    if networkx_has_attributes(graph, "nodes") and from_networkx_kwargs.get("group_node_attrs") is None:
+    # If node/edge attributes are not specified, default to including all available attributes
+    # Also default to "all" when empty lists are provided (i.e. attributes should be filtered out)
+    # as PyG fails on empty lists of attributes ("RuntimeError: torch.cat(): expected a non-empty list of Tensors")
+    # so we have to manually filter them out after conversion from NetworkX
+    remove_node_attrs = from_networkx_kwargs.get("group_node_attrs") == []
+    if networkx_has_attributes(graph, "nodes") and not from_networkx_kwargs.get("group_node_attrs"):
         from_networkx_kwargs["group_node_attrs"] = "all"
-    if networkx_has_attributes(graph, "edges") and from_networkx_kwargs.get("group_edge_attrs") is None:
+    remove_edge_attrs = from_networkx_kwargs.get("group_edge_attrs") == []
+    if networkx_has_attributes(graph, "edges") and not from_networkx_kwargs.get("group_edge_attrs"):
         from_networkx_kwargs["group_edge_attrs"] = "all"
 
     # Catch `group_graph_attrs`, as it is not supported by `from_networkx` and we mimic the expected behavior here
     group_graph_attrs = from_networkx_kwargs.pop("group_graph_attrs", None)
 
-    # Don't manage string attributes
     data = from_networkx(graph, **from_networkx_kwargs)
+
+    # If all node/edge attributes should be filtered out, handle it manually after PyG conversion
+    if data.x is not None and remove_node_attrs:
+        # If we remove node attributes, explicitly set `num_nodes` (while it can still be inferred) to avoid warning:
+        # "Unable to accurately infer 'num_nodes' from the attribute set"
+        data.num_nodes = data.num_nodes
+        data.x = None
+    if data.edge_attr is not None and remove_edge_attrs:
+        data.edge_attr = None
+
     if target_attr:
         target_label = graph.graph[target_attr]
         data.y = torch.tensor(target_label, dtype=target_dtype)

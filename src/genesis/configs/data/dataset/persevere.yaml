@@ -11,6 +11,9 @@ defaults:
 data:
   dataset:
     _target_: genesis.data.persevere.PersevereDataset
+    # Make sure that filters are converted to native list, since PyG sometimes expects native lists,
+    # i.e. in util function `from_networkx`, behavior changes silently if attrs are specifically Python native lists
+    _convert_: all
     root: ${paths.data_dir}/PERSEVERE
     line_graph: True
     target_attr: ??? # To be set by the target config
