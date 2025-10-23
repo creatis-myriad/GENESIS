@@ -3,7 +3,8 @@
 # to execute this experiment run:
 # python train.py experiment=ablation/readout/gin-vcn
 
-# Use the default GIN-VCN config (virtual node initialized w/ graph-level features + readout extracting the virtual node)
+# Use the default GIN-VCN config:
+# - readout extracting the output virtual node representation
 defaults:
   - /experiment/persevere/enzymes_elevated/gin-vcn
 
