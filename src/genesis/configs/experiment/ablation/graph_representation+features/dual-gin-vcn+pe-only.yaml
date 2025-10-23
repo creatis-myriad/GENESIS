@@ -14,6 +14,13 @@ hparams:
   data:
     pe_attr: null # Concatenate positional encoding to node features
 
+data:
+  dataset:
+    # Remove all features by filtering them using an empty list
+    # (not null/None, as this would default to include all available features)
+    # Since we are using the dual representation, we filter edge features as they will end up as node features
+    edge_attrs_filter: []
+
 logger:
   wandb:
     project: "GENESIS-ablation" # set a dedicated project for ablation studies
