@@ -1,13 +1,13 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=ablation/graph_representation+features/dual-gin-vcn+pe-only
+# python train.py experiment=ablation/graph_representation+features/dual-gat+gavn+pe-only
 
-# Use the default GIN-VCN config, modified to:
+# Use the default GAT-GraphAttrVN config, modified to:
 # - add PE
 # - remove original node features (i.e. use only PE as node features)
 defaults:
-  - /experiment/persevere/enzymes_elevated/gin-vcn
+  - /experiment/persevere/enzymes_elevated/gat+gavn
   - override /data/dataset/transform@data.dataset.transform: random_walk_pe
 
 hparams:

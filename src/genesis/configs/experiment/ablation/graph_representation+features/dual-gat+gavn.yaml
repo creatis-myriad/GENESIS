@@ -1,15 +1,15 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=ablation/graph_representation+features/dual-gin-vcn
+# python train.py experiment=ablation/graph_representation+features/dual-gat+gavn
 
-# Use the default GIN-VCN config:
+# Use the default GAT+GraphAttrVN config:
 # - dual representation
 # - node features
 # - no positional encoding
 # - virtual nodes initialized w/ graph-level features
 defaults:
-  - /experiment/persevere/enzymes_elevated/gin-vcn
+  - /experiment/persevere/enzymes_elevated/gat+gavn
 
 logger:
   wandb:

@@ -1,12 +1,12 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=ablation/readout/gat-vcn-sum
+# python train.py experiment=ablation/readout/gin+gavn-sum
 
-# Use the default GAT-VCN config, modified to:
+# Use the default GIN+GraphAttrVN config, modified to:
 # - change readout to sum all node representations
 defaults:
-  - /experiment/persevere/enzymes_elevated/gat-vcn
+  - /experiment/persevere/enzymes_elevated/gin+gavn
   - override /model/readout: sum
 
 logger:

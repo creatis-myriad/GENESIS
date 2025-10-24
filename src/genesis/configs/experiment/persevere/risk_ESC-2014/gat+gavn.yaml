@@ -1,18 +1,18 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=persevere/enzymes_elevated/gcn-vcn
+# python train.py experiment=persevere/risk_ESC-2014/gat+gavn
 
 defaults:
-  - /experiment/persevere/enzymes_elevated/_base
+  - /experiment/persevere/risk_ESC-2014/_base
   - override /model/transforms: graph_attr_virtual_nodes
-  - override /model/encoder: gcn
+  - override /model/encoder: gat
 
 # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
 model:
   encoder:
-    hidden_channels: 16
-    num_layers: 2
-    dropout: 3.2e-2
+    hidden_channels: 32
+    num_layers: 6
+    dropout: 8.5e-5
   optimizer:
-    weight_decay: 5.6e-5
+    weight_decay: 1.6e-5
