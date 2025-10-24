@@ -50,3 +50,17 @@ class SelectAggregation(aggr.Aggregation):
                 select = ptr[1:] - 1
 
         return x[select]
+
+
+class FirstAggregation(SelectAggregation):
+    """Wrapper to create `SelectAggregation` in 'first' mode w/o args, to make API compatible w/ other aggregations."""
+
+    def __init__(self) -> None:  # noqa: D107
+        super().__init__("first")
+
+
+class LastAggregation(SelectAggregation):
+    """Wrapper to create `SelectAggregation` in 'last' mode w/o args, to make API compatible w/ other aggregations."""
+
+    def __init__(self) -> None:  # noqa: D107
+        super().__init__("last")
