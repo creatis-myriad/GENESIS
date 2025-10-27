@@ -60,25 +60,32 @@ class GraphLevelLitModule(GraphLitModule):
             The predicted logits for the input graphs in the batch.
         """
         data = self.transforms(data) if self.transforms is not None else data
+        x = self._encoder_step(data, data.x.float())  # Ensure graph node features are float
+        x = self._readout_step(data, x)
+        return self._head_step(data, x)
 
+    def _encoder_step(self, data: Batch, x: torch.Tensor) -> torch.Tensor:
         # Extract different inputs depending on the types of features supported by the encoder,
         # casting features to float as needed
-        x, batch, batch_size = data.x.float(), data.batch, data.batch_size
         encoder_forward_kwargs = {}
         if self.encoder.supports_edge_attr:
             encoder_forward_kwargs["edge_attr"] = data.edge_attr.float() if data.edge_attr is not None else None
         if self.encoder.supports_edge_weight:
             encoder_forward_kwargs["edge_weight"] = data.edge_weight.float() if data.edge_weight is not None else None
         if self.encoder.supports_norm_batch:
-            encoder_forward_kwargs["batch"] = batch
-            encoder_forward_kwargs["batch_size"] = batch_size
+            encoder_forward_kwargs["batch"] = data.batch
+            encoder_forward_kwargs["batch_size"] = data.batch_size
         if getattr(self.encoder, "supports_pe", False):
             encoder_forward_kwargs["pe"] = getattr(data, self.hparams.pe_attr)
 
-        x = self.encoder(x, data.edge_index, **encoder_forward_kwargs)
+        return self.encoder(x, data.edge_index, **encoder_forward_kwargs)
+
+    def _readout_step(self, data: Batch, x: torch.Tensor) -> torch.Tensor:
         # Pass the batch size to readout operation to avoid CPU communication/graph breaks
-        x = self.readout(x, ptr=data.ptr, dim_size=batch_size)
-        x = self.head(x, batch=batch, batch_size=batch_size)
+        return self.readout(x, ptr=data.ptr, dim_size=data.batch_size)
+
+    def _head_step(self, data: Batch, x: torch.Tensor) -> torch.Tensor:
+        x = self.head(x, batch=data.batch, batch_size=data.batch_size)
         if self.hparams.task == "binary":
             x = x.squeeze(-1)  # Flatten the last dim when only one value is predicted
         return x
