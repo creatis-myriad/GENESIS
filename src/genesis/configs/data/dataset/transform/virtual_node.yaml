@@ -1,1 +1,1 @@
-_target_: torch_geometric.transforms.VirtualNode
+_target_: genesis.data.transforms.virtual_node.VirtualNodes
