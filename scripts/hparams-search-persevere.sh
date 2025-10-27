@@ -7,8 +7,10 @@ LOG_DIR=${2:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 # not match. This way, pre-computed splits will be used if available, otherwise splits will be computed for the target.
 
 # Use the same hparams search config for the message passing GNNs (GCN, GAT, GIN and their virtual node variants), but optimize each model separately
-for model in gcn gcn+vn gcn+gavn gat gat+vn gat+gavn gin gin+vn gin+gavn; do
-  gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 logger=wandb trainer=gpu hparams_search=persevere_basic_gnn experiment=persevere/"${TARGET}"/$model +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}_${TARGET}.log" 2>&1
+for model in gcn gat gin; do
+  for variant in "" +vn +gavn; do
+    gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 logger=wandb trainer=gpu hparams_search=persevere_basic_gnn experiment=persevere/"${TARGET}"/${model}${variant} +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}${variant}_${TARGET}.log" 2>&1
+  done
 done
 
 # Use a dedicated hparams search config for GPS, because it has different hyperparameters than the basic GNNs
