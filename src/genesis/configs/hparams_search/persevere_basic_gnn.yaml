@@ -13,6 +13,7 @@ hydra:
       model.encoder.hidden_channels: choice(16, 32, 64)
       model.encoder.num_layers: range(2, 11)
       model.encoder.dropout: interval(0.0, 0.6) # uniform sampling between 0.0 and 0.6
+      model.encoder.norm: choice(BatchNorm, InstanceNorm, GraphNorm)
       model.readout._target_: choice(torch_geometric.nn.SumAggregation, torch_geometric.nn.MeanAggregation, genesis.models.gnn.agg.LastAggregation)
       model.head.num_layers: range(1, 5)
       model.optimizer.weight_decay: tag(log, interval(1e-5,1e-3)) # log-uniform sampling between 1e-5 and 1e-3

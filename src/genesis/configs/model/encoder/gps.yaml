@@ -18,6 +18,8 @@ edge_dim: ${oc.select:hparams.data.num_edge_features}
 out_channels: ${oc.select:hparams.data.num_classes,1}
 gps_kwargs:
   heads: 4
+  dropout: 0
+  norm: batch_norm
   attn_type: multihead
   attn_kwargs:
     dropout: 0.5
