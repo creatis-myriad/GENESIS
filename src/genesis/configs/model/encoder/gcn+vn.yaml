@@ -1,4 +1,0 @@
-defaults:
-  - gcn
-  # Add virtual node as transform on the dataset
-  - override /data/dataset/transform@_global_.data.dataset.transform: virtual_node

@@ -5,7 +5,8 @@
 
 defaults:
   - /experiment/persevere/risk_ESC-2014/_base
-  - override /model/encoder: gcn+vn
+  - override /data/dataset/transform: virtual_node
+  - override /model/encoder: gcn
 
 # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
 model:
