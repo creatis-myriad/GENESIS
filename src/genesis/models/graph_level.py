@@ -75,6 +75,8 @@ class GraphLevelLitModule(GraphLitModule):
         if self.encoder.supports_norm_batch:
             encoder_forward_kwargs["batch"] = data.batch
             encoder_forward_kwargs["batch_size"] = data.batch_size
+        if getattr(self.encoder, "supports_batch", False):
+            encoder_forward_kwargs["batch"] = data.batch
         if getattr(self.encoder, "supports_pe", False):
             encoder_forward_kwargs["pe"] = getattr(data, self.hparams.pe_attr)
 
