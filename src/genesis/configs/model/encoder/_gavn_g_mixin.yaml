@@ -1,0 +1,9 @@
+# Extends the VN_G formulation of virtual nodes proposed in the paper:
+# "Understanding Virtual Nodes: Oversquashing and Node Heterogeneity"
+# https://arxiv.org/abs/2405.13526
+# with support for graph-level features used to initialize the virtual nodes
+
+defaults:
+  - _vn_g_mixin
+
+graph_dim: ${oc.select:hparams.data.num_graph_features}

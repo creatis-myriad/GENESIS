@@ -1,0 +1,5 @@
+# Implements the VN_G formulation of virtual nodes, extended to support graph-level features, on top of a GIN model
+
+defaults:
+  - gin+vn_g
+  - _gavn_g_mixin
