@@ -200,7 +200,7 @@ def enzymes_classification_overrides() -> list[str]:
     ]
 
 
-@pytest.fixture(scope="package", params=["gcn", "gat", "gin", "gps"])
+@pytest.fixture(scope="package", params=["gcn", "gcn+vn_g", "gat", "gat+vn_g", "gin", "gin+vn_g", "gps"])
 def graph_level_model_overrides(request: FixtureRequest) -> list[str]:
     """A pytest fixture for the overrides to use to specify the model for the tests.
 

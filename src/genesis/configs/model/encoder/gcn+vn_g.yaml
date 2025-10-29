@@ -1,0 +1,7 @@
+# Implements the VN_G formulation of virtual nodes on top of a GCN model
+
+defaults:
+  - gcn
+  - _vn_g
+
+_target_: genesis.models.GCN_VN_G

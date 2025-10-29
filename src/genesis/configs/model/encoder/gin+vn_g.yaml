@@ -1,0 +1,7 @@
+# Implements the VN_G formulation of virtual nodes on top of a GIN model
+
+defaults:
+  - gin
+  - _vn_g
+
+_target_: genesis.models.GIN_VN_G
