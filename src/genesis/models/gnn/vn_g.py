@@ -18,15 +18,14 @@ class VN_G_Mixin(nn.Module):  # noqa: N801
           https://github.com/pyg-team/pytorch_geometric/blob/76ff9c2ce18c8cebf52122b57e2aeadce9793d10/torch_geometric/nn/models/basic_gnn.py#L32-L386
     """
 
-    # VN_G formulation requires to know the batch vector to compute global update
-    supports_batch: Final[bool] = True
+    supports_batch: Final[bool] = True  # VN_G formulation requires to know the batch vector to compute global update
 
     def __init__(
         self,
         *args,
-        global_agg: str | Any = "MeanAggregation",
-        global_agg_kwargs: dict[str, Any] | None = None,
-        norm_weighting: bool = True,
+        global_mp_agg: str | Any = "MeanAggregation",
+        global_mp_agg_kwargs: dict[str, Any] | None = None,
+        global_norm_weighting: bool = True,
         global_dropout: float = 0.0,
         global_local_agg: Literal["mean", "sum"] = "sum",
         **kwargs,
@@ -35,10 +34,10 @@ class VN_G_Mixin(nn.Module):  # noqa: N801
 
         Args:
             *args: Additional positional arguments to pass to the class inheriting form `BasicGNN`.
-            global_agg: Aggregation to use across all real nodes to emulate message passing through a virtual node.
-            global_agg_kwargs: Arguments passed to the respective aggregation function defined by `global_agg`.
-            norm_weighting: Whether to normalize global node representations based on graph degrees before combining
-                them with local node representations.
+            global_mp_agg: Aggregation to use across all real nodes to emulate message passing through a virtual node.
+            global_mp_agg_kwargs: Arguments passed to the respective aggregation function defined by `global_agg`.
+            global_norm_weighting: Whether to normalize global node representations based on graph degrees before
+                combining them with local node representations.
             global_dropout: Dropout to apply to global node representations before combining them with local node
                 representations.
             global_local_agg: Aggregation to use to combine global and local node representations.
@@ -46,24 +45,33 @@ class VN_G_Mixin(nn.Module):  # noqa: N801
         """
         super().__init__(*args, **kwargs)
 
-        # Initialize learnable linear layer for each message passing layer
+        # Initialize learnable linear layer for local representations at each message passing layer
         # These layers never deal with input dimensions, since even the 1st one comes after the 1st GNN layer,
         # which has already projected node features to `hidden_channels`
-        self.global_linears = nn.ModuleList()
+        self.local_linears = nn.ModuleList()
         for _ in range(self.num_layers - 1):
-            self.global_linears.append(pyg_nn.Linear(self.hidden_channels, self.hidden_channels))
-        self.global_linears.append(pyg_nn.Linear(self.hidden_channels, self.out_channels))
+            self.local_linears.append(pyg_nn.Linear(self.hidden_channels, self.hidden_channels))
+        self.local_linears.append(pyg_nn.Linear(self.hidden_channels, self.out_channels))
 
-        # Initialize identical aggregation layer for each message passing layer
+        # Initialize identical copies of aggregation layer at each message passing layer
         # (in case aggregation contains learnable parameters)
-        self.global_aggs = nn.ModuleList()
-        global_agg = aggregation_resolver(global_agg, **(global_agg_kwargs or {}))
+        self.global_mp_aggs = nn.ModuleList()
+        global_mp_agg = aggregation_resolver(global_mp_agg, **(global_mp_agg_kwargs or {}))
         for _ in range(self.num_layers):
-            self.global_aggs.append(copy.deepcopy(global_agg))
+            self.global_mp_aggs.append(copy.deepcopy(global_mp_agg))
 
-        self.norm_weighting = norm_weighting
+        match global_local_agg:
+            case "mean":
+                self.global_local_agg = torch.mean
+            case "sum":
+                self.global_local_agg = torch.sum
+            case _:
+                raise NotImplementedError(
+                    f"Invalid `global_local_agg` value '{global_local_agg}'. Available options: 'mean', 'sum'."
+                )
+
+        self.global_norm_weighting = global_norm_weighting
         self.global_dropout = nn.Dropout(global_dropout)
-        self.global_local_agg = global_local_agg
 
     def forward(
         self,
@@ -78,8 +86,8 @@ class VN_G_Mixin(nn.Module):  # noqa: N801
     ) -> Tensor:
         """Forward pass.
 
-        The code was copied from `torch_geometric.nn.BasicGNN`'s `forward` method, and only modified to call the global
-        update function where relevant.
+        The code was copied from `torch_geometric.nn.BasicGNN`'s `forward` method, and only modified for global message
+        passing where indicated.
 
         References:
             - See documentation of the concrete implementation of PyG's `BasicGNN` for details regarding the arguments.
@@ -127,85 +135,88 @@ class VN_G_Mixin(nn.Module):  # noqa: N801
                     x = self.act(x)
                 x = self.dropout(x)
 
-                ##################################################
-                # ADDED CALL TO GLOBAL UPDATE AS DEFINED BY VN_G #
-                ##################################################
-                x_global = self._global_update(x, batch, i)
-                x = self._agg_global_local_updates(x, x_global)
+                ###############################################################################
+                # Added steps defined by VN_G:                                                #
+                # 1) Update virtual node through global message passing and aggregation       #
+                # 2) Update nodes representation by aggregating local and global node updates #
+                ###############################################################################
+                x_global = self.global_message_and_aggregate(x, batch, i)
+                x = self.agg_global_local_updates(x, x_global, batch)
+                ###############################################################################
+                #                           End custom code block                             #
+                ###############################################################################
 
                 if hasattr(self, "jk"):
                     xs.append(x)
 
-        ##################################################
-        # ADDED CALL TO GLOBAL UPDATE AS DEFINED BY VN_G #
-        ##################################################
-        # Normally, we call global update inside the layers loop, after activation/normalization/dropout but
-        # before storing layer output for jumping knowledge pooling.
-        # However, when jumping knowledge is not used, activation/normalization/dropout are skipped for the last layer.
-        # Therefore, when jumping knowledge is not used, we have to call the global update outside the layers loop to
-        # compute it on the last layer
+        ###############################################################################
+        # Added steps defined by VN_G:                                                #
+        # 1) Update virtual node through global message passing and aggregation       #
+        # 2) Update nodes representation by aggregating local and global node updates #
+        ###############################################################################
+        # Normally, we perform the global message passing + update inside the layers loop, after act/norm/dropout,
+        # but before storing layer output for jumping knowledge pooling.
+        # However, when jumping knowledge is not used, act/norm/dropout are skipped for the last layer.
+        # Therefore, when jumping knowledge is not used, we perform global message passing + update outside the layers
+        # loop to compute it for the last layer
         if self.jk_mode is None:
-            x_global = self._global_update(x, batch, self.num_layers - 1)
-            x = self._agg_global_local_updates(x, x_global)
+            x_global = self.global_message_and_aggregate(x, batch, self.num_layers - 1)
+            x = self.agg_global_local_updates(x, x_global, batch)
+        ###############################################################################
+        #                           End custom code block                             #
+        ###############################################################################
 
         x = self.jk(xs) if hasattr(self, "jk") else x
         x = self.lin(x) if hasattr(self, "lin") else x
 
         return x  # noqa: RET504
 
-    def _global_update(self, x: Tensor, batch: Tensor, layer_idx: int) -> Tensor:
-        """Global update of the VN_G formulation of virtual nodes.
+    def global_message_and_aggregate(self, x_local: Tensor, batch: Tensor, layer_idx: int) -> Tensor:
+        """Message passing step between updated local node representations and virtual node.
 
         Args:
-            x: (num_nodes, num_node_features), The node features from the local update step (i.e. message passing).
-            batch: (num_nodes,), The batch vector which assigns each element to a specific graph. Necessary to know how
-                nodes to aggregate into a global message per graph.
+            x_local: (num_nodes, node_channels), Local node representations, after the local message passing update.
+            batch: (num_nodes,), The batch vector which assigns each element to a specific graph.
             layer_idx: The index of the current message passing layer.
 
         Returns:
-            (num_nodes, num_node_features), The global update to combine to local node representations.
+            (num_graphs, node_channels), Updated virtual node representation for each graph.
         """
         # Extract layers to use from the module lists
-        global_linear = self.global_linears[layer_idx]
-        global_agg = self.global_aggs[layer_idx]
+        local_linear = self.local_linears[layer_idx]
+        agg = self.global_mp_aggs[layer_idx]
 
         # Linear transformation of updated local representations
-        x_global = global_linear(x)  # (num_nodes, num_node_features)
+        x_local = local_linear(x_local)  # (num_nodes, node_channels)
         # Global aggregation to emulate message passing through a virtual node connected to all other nodes
-        x_global = global_agg(x_global, index=batch)  # (num_nodes -> num_graphs, num_node_features)
+        x_global = agg(x_local, index=batch)  # (num_nodes -> num_graphs, node_channels)
         # Normalization of global representations based on graph degree
-        if self.norm_weighting:
+        if self.global_norm_weighting:
             _, graph_degrees = torch.unique_consecutive(batch, return_counts=True)  # (num_graphs,)
             deg_inv_sqrt = torch.pow(graph_degrees, -0.5)  # (num_graphs,)
-            x_global = deg_inv_sqrt.unsqueeze(-1) * x_global  # (num_graphs, num_node_features)
+            x_global = deg_inv_sqrt.unsqueeze(-1) * x_global  # (num_graphs, node_channels)
 
-        # Index by batch vector to broadcast aggregated values per graph to all the nodes in their respective graphs
-        x_global = x_global[batch]  # (num_graphs -> num_nodes, num_node_features)
+        return x_global
 
-        return self.global_dropout(x_global)
-
-    def _agg_global_local_updates(self, x_local: Tensor, x_global: Tensor) -> Tensor:
+    def agg_global_local_updates(self, x_local: Tensor, x_global: Tensor, batch: Tensor) -> Tensor:
         """Combine local and global updates, computed in separate steps, into one representation per node.
 
         Args:
-            x_local: (num_nodes, num_node_features), The local node representations.
-            x_global: (num_nodes, num_node_features), The global node representations.
+            x_local: (num_nodes, node_channels), Local node representations, after the local message passing update.
+            x_global: (num_graphs, node_channels), Global node representations, after the global message passing update.
+            batch: (num_nodes,), Batch vector which assigns each element to a specific graph.
 
         Returns:
-            (num_nodes, num_node_features), The updated node representations.
+            (num_nodes, node_channels), Final updated node representations.
         """
-        x = torch.stack([x_local, x_global])
-        match self.global_local_agg:
-            case "mean":
-                x = x.mean(dim=0)
-            case "sum":
-                x = x.sum(dim=0)
-            case _:
-                raise ValueError(
-                    f"Invalid `global_local_agg` value '{self.global_local_agg}'. Allowed values are 'mean' or 'sum'."
-                )
+        # Index by batch vector to broadcast aggregated values per graph to all the nodes in their respective graphs
+        x_global = x_global[batch]  # (num_graphs -> num_nodes, node_channels)
 
-        return x
+        # Apply dropout on the broadcasted global update, to obtain different dropout per node in the same graph
+        x_global = self.global_dropout(x_global)
+
+        x = torch.stack([x_local, x_global])
+        return self.global_local_agg(x, dim=0)
 
 
 class GCN_VN_G(VN_G_Mixin, pyg_nn.GCN):  # noqa: N801
