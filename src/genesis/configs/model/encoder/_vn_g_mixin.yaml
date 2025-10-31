@@ -3,7 +3,7 @@
 # https://arxiv.org/abs/2405.13526
 
 _target_: ??? # Choose a concrete class that combines the VN_G mixin with a model derived from PyG's `BasicGNN`
-global_mp_agg: MeanAggregation
+global_mp_agg: mean
 global_norm_weighting: true
 global_dropout: ${.dropout}
 global_local_agg: sum

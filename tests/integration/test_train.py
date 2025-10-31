@@ -81,15 +81,6 @@ def test_train_epoch_double_val_loop(cfg_train: DictConfig) -> None:
     train(cfg_train)
 
 
-XFAIL_HYDRA_CHOICES = {
-    (
-        ("model/encoder", "gin+vn_g"),
-        ("data/dataset", "mutag"),
-    ): "GIN+VN_G fails to train reliably and to improve validation metrics upon resuming training for 10 epochs after "
-    "the 1st on the MUTAG dataset.",
-}
-
-
 @pytest.mark.slow
 def test_train_resume(tmp_path: Path, cfg_train: DictConfig) -> None:
     """Run 1 epoch, finish, and resume for another epoch.
@@ -98,12 +89,6 @@ def test_train_resume(tmp_path: Path, cfg_train: DictConfig) -> None:
         tmp_path: The temporary logging path.
         cfg_train: A DictConfig containing a valid training configuration.
     """
-    hydra_choices = HydraConfig().get().runtime.choices
-    # Test if the current Hydra config matches any of the configs expected to fail
-    for conditions, reason in XFAIL_HYDRA_CHOICES.items():
-        if all(hydra_choices.get(param) == value for param, value in conditions):
-            pytest.xfail(reason)
-
     with open_dict(cfg_train):
         cfg_train.trainer.max_epochs = 1
 
