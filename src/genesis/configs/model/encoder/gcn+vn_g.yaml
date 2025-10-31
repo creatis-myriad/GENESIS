@@ -2,6 +2,6 @@
 
 defaults:
   - gcn
-  - _vn_g
+  - _vn_g_mixin
 
 _target_: genesis.models.GCN_VN_G

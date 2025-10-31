@@ -2,6 +2,6 @@
 
 defaults:
   - gat
-  - _vn_g
+  - _vn_g_mixin
 
 _target_: genesis.models.GAT_VN_G
