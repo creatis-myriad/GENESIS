@@ -1,10 +1,10 @@
 # @package _global_
 
 # example hyperparameter optimization of some experiment with Optuna:
-# python train.py -m hparams_search=persevere_gps experiment=persevere/<PERSEVERE_EXPERIMENT>
+# python train.py -m hparams_search=persevere_gps experiment=persevere/<PERSEVERE_GPS_EXPERIMENT>
 
 defaults:
-  - _persevere_optuna # inherit from base hparams PERSEVERE search config
+  - /hparams_search/_persevere_optuna # inherit from base hparams PERSEVERE search config
   - override /model/encoder: gps
 
 hydra:
@@ -18,6 +18,6 @@ hydra:
       model.encoder.gps_kwargs.norm: choice(BatchNorm, InstanceNorm, GraphNorm)
       model.encoder.gps_kwargs.attn_kwargs.dropout: interval(0.0, 0.6) # uniform sampling between 0.0 and 0.6
       model.encoder.gps_kwargs.heads: choice(1, 2, 4)
-      model.readout._target_: choice(torch_geometric.nn.SumAggregation, torch_geometric.nn.MeanAggregation, genesis.models.gnn.agg.LastAggregation)
+      model.readout._target_: choice(torch_geometric.nn.SumAggregation, torch_geometric.nn.MeanAggregation)
       model.head.num_layers: range(1, 5)
       model.optimizer.weight_decay: tag(log, interval(1e-5,1e-3)) # log-uniform sampling between 1e-5 and 1e-3

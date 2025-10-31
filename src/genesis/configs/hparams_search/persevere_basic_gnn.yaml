@@ -4,7 +4,7 @@
 # python train.py -m hparams_search=persevere_basic_gnn experiment=persevere/<PERSEVERE_EXPERIMENT>
 
 defaults:
-  - _persevere_optuna # inherit from base hparams PERSEVERE search config
+  - /hparams_search/_persevere_optuna # inherit from base hparams PERSEVERE search config
 
 hydra:
   sweeper:
