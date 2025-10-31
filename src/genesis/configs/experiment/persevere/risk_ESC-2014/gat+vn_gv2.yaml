@@ -1,0 +1,25 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/risk_ESC-2014/gat+vn_gv2
+
+defaults:
+  - /experiment/persevere/risk_ESC-2014/_base
+  - override /model/encoder: gat+vn_gv2
+
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: mean
+
+model:
+  encoder:
+    hidden_channels: 64
+    num_layers: 2
+    dropout: 0.01
+    norm: InstanceNorm
+    vn_g_kwargs:
+      norm_weightning: false
+      global_local_agg: sum
+  head:
+    num_layers: 1
+  optimizer:
+    weight_decay: 2.6e-4
