@@ -1,0 +1,25 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/enzymes_elevated/gin+vn_g
+
+defaults:
+  - /experiment/persevere/enzymes_elevated/_base
+  - override /model/encoder: gin+vn_g
+
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: mean
+
+model:
+  encoder:
+    hidden_channels: 16
+    num_layers: 9
+    dropout: 0.011
+    norm: BatchNorm
+    vn_g_kwargs:
+      norm_weightning: true
+      global_local_agg: sum
+  head:
+    num_layers: 1
+  optimizer:
+    weight_decay: 1.2e-4
