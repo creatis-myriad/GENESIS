@@ -1,0 +1,21 @@
+# @package _global_
+
+# example hyperparameter optimization of some experiment with Optuna:
+# python train.py -m hparams_search=persevere_vn_g experiment=persevere/<PERSEVERE_VN_G_EXPERIMENT>
+
+defaults:
+  - /hparams_search/persevere_basic_gnn # inherit from PERSEVERE search config for basic GNNs
+  # It is necessary to define a concrete combination of encoder + VN_G mixin (e.g. model/encoder=gcn+vn_g), but we can't
+  # set the '/model/encoder' config group missing here, because it would override the choice in the experiment config
+  # (hparams_search comes after experiments in the defaults list and override its values)
+
+hydra:
+  sweeper:
+    # Inherit from hyperparameter search space defined for basic GNNs, and modify it to:
+    # - add parameters specific to VN_G mixin
+    # - override hparams that are not relevant
+    params:
+      model.encoder.vn_g_kwargs.norm_weighting: choice(false, true)
+      model.encoder.vn_g_kwargs.global_local_agg: choice(mean, sum)
+      # Remove `LastAggregation` choice because it doesn't make sense here, as virtual nodes are not materialized in the graphs
+      model.readout._target_: choice(torch_geometric.nn.SumAggregation, torch_geometric.nn.MeanAggregation)
