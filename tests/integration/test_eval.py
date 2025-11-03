@@ -13,10 +13,6 @@ XFAIL_HYDRA_CHOICES = {
         ("data/dataset", "enzymes"),
     ): "GPS takes longer to train than other models, and usually fails to achieve >0% test accuracy with only "
     "1 training epoch on the ENZYMES dataset.",
-    (
-        ("model/encoder", "gin+vn_g"),
-        ("data/dataset", "enzymes"),
-    ): "GIN+VN_G achieve >0% test accuracy with only 1 training epoch on the ENZYMES dataset.",
 }
 
 
