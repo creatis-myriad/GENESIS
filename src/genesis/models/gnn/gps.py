@@ -32,6 +32,7 @@ class GPS(torch.nn.Module):
     supports_edge_attr: Final[bool]
     supports_norm_batch: Final[bool]
     supports_pe: Final[bool] = True
+    supports_batch: Final[bool] = True
 
     def __init__(
         self,
@@ -143,6 +144,7 @@ class GPS(torch.nn.Module):
         x: torch.Tensor,
         edge_index: Adj,
         pe: torch.Tensor,
+        batch: torch.Tensor,
         edge_attr: torch.Tensor | None = None,
         **kwargs,
     ) -> torch.Tensor:
@@ -152,6 +154,7 @@ class GPS(torch.nn.Module):
             x: Node features of shape `[num_nodes, in_channels]`.
             edge_index: Edge indices.
             pe: Positional encodings of shape `[num_nodes, pe_in_channels]`.
+            batch: Batch vector assigning each element to a specific graph of shape `[num_nodes]`.
             edge_attr: Edge features of shape `[num_edges, edge_in_channels]`, if any.
             **kwargs: Additional keyword arguments to pass to the `GPSConv` layers.
         """
@@ -163,5 +166,5 @@ class GPS(torch.nn.Module):
             kwargs["edge_attr"] = self.edge_lin(edge_attr)
 
         for conv in self.convs:
-            x = conv(x, edge_index, **kwargs)
+            x = conv(x, edge_index, batch, **kwargs)
         return x
