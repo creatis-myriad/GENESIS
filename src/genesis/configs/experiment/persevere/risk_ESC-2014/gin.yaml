@@ -7,11 +7,16 @@ defaults:
   - /experiment/persevere/risk_ESC-2014/_base
   - override /model/encoder: gin
 
-# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: sum
+
 model:
   encoder:
-    hidden_channels: 64
-    num_layers: 2
-    dropout: 0.34
+    hidden_channels: 32
+    num_layers: 3
+    dropout: 0.061
+    norm: BatchNorm
+  head:
+    num_layers: 3
   optimizer:
-    weight_decay: 1.3e-5
+    weight_decay: 1.2e-5

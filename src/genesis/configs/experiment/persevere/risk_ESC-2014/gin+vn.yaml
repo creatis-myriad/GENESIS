@@ -8,11 +8,16 @@ defaults:
   - override /data/dataset/transform: virtual_node
   - override /model/encoder: gin
 
-# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: mean
+
 model:
   encoder:
     hidden_channels: 64
     num_layers: 3
-    dropout: 0.073
+    dropout: 0.12
+    norm: BatchNorm
+  head:
+    num_layers: 3
   optimizer:
-    weight_decay: 6e-5
+    weight_decay: 2.6e-5

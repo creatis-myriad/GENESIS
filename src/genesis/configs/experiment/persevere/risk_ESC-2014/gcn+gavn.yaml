@@ -8,11 +8,16 @@ defaults:
   - override /model/transforms: graph_attr_virtual_nodes
   - override /model/encoder: gcn
 
-# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: sum
+
 model:
   encoder:
     hidden_channels: 32
     num_layers: 2
-    dropout: 5.7e-2
+    dropout: 0.13
+    norm: BatchNorm
+  head:
+    num_layers: 2
   optimizer:
-    weight_decay: 6.7e-5
+    weight_decay: 1.1e-5
