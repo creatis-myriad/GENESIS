@@ -154,17 +154,21 @@ class GPS(torch.nn.Module):
 
         Args:
             x: Node features of shape `[num_nodes, in_channels]`.
-            edge_index: Edge indices.
+            edge_index: Edge indices of shape `[2, num_edges]`.
             pe: Positional encodings of shape `[num_nodes, pe_in_channels]`.
             batch: Batch vector assigning each element to a specific graph of shape `[num_nodes]`.
             edge_attr: Edge features of shape `[num_edges, edge_in_channels]`, if any.
             **kwargs: Additional keyword arguments to pass to the `GPSConv` layers.
+
+        Returns:
+            Updated node features of shape `[num_nodes, out_channels or hidden_channels]`.
         """
         x_pe = self.pe_norm(pe)
         x = torch.cat((self.node_lin(x), self.pe_lin(x_pe)), 1)
         if edge_attr is not None:
             assert self.supports_edge_attr
-            # Pass `edge_attr` to MPNN layer only if supported, since otherwise layer won't expect an `edge_attr` kwarg
+            # Pass `edge_attr` to hybrid MPNN/GT layer only if supported,
+            # otherwise layer might not support an `edge_attr` kwarg
             kwargs["edge_attr"] = self.edge_lin(edge_attr)
 
         for conv in self.convs:
