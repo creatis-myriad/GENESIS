@@ -1,3 +1,4 @@
+import copy
 import itertools
 from typing import Any, Final, Literal
 
@@ -6,6 +7,7 @@ import torch.nn.functional as F  # noqa: N812
 from torch.nn import BatchNorm1d, Linear, ModuleList, ReLU, Sequential
 from torch_geometric.nn import GINConv, GINEConv, GPSConv, MessagePassing
 from torch_geometric.nn.attention import PerformerAttention
+from torch_geometric.nn.inits import reset
 from torch_geometric.typing import Adj
 from torch_geometric.utils import to_dense_batch
 
@@ -209,6 +211,35 @@ class GAGPSConv(GPSConv):
           https://github.com/pyg-team/pytorch_geometric/blob/76ff9c2ce18c8cebf52122b57e2aeadce9793d10/torch_geometric/nn/conv/gps_conv.py#L20-L185
     """
 
+    def __init__(self, *args, **kwargs) -> None:  # noqa: D107
+        super().__init__(*args, **kwargs)
+
+        if isinstance(self.attn, PerformerAttention):
+            raise ValueError(
+                "'PerformerAttention' is currently not supported for extension of GPSConv that supports graph-level "
+                "attributes."
+            )
+
+        # Init attention layers for both cross-attention directions (graph to node / node to graph),
+        # with a structure identical to GPSConv's self-attention (because the embedding size is the same)
+        self.graph2node_attn = copy.deepcopy(self.attn)
+        self.node2graph_attn = copy.deepcopy(self.attn)
+
+        self.graph_attr_mlp = copy.deepcopy(self.mlp)
+        self.norm4 = copy.deepcopy(self.norm1)
+        self.norm5 = copy.deepcopy(self.norm1)
+
+    def reset_parameters(self) -> None:
+        """Resets all learnable parameters of the module."""
+        super().reset_parameters()
+        self.graph2node_attn._reset_parameters()
+        self.node2graph_attn._reset_parameters()
+        reset(self.graph_attr_mlp)
+        if self.norm4 is not None:
+            self.norm4.reset_parameters()
+        if self.norm5 is not None:
+            self.norm5.reset_parameters()
+
     def forward(
         self,
         x: torch.Tensor,
@@ -246,37 +277,31 @@ class GAGPSConv(GPSConv):
         #                          Start custom code block                            #
         ###############################################################################
 
-        # 1) Concatenate graph-level features to dense data batch
-        h = torch.cat([graph_attr.unsqueeze(1), h], dim=1)  # (num_graphs, num_nodes_max+1, node_channels)
+        # Add sequence dimension to graph-level token
+        # (num_graphs, channels) -> (num_graphs, 1, channels)
+        graph_attr = graph_attr.unsqueeze(1)
 
-        # 2) Create different versions of the mask over the dense data batch
+        # 1) Update graph-level token using cross-attention with node tokens
+        h_graph_attr, _ = self.graph2node_attn(graph_attr, h, h, key_padding_mask=~mask, need_weights=False)
 
-        # 2.1) Mask that includes graph-level features token, to use when guiding the attention layer
-        graph_attr_mask = mask.new_ones((len(graph_attr), 1))  # (num_graphs, 1)
-        mask_incl_graph_attr = torch.cat([graph_attr_mask, mask], dim=1)  # (num_graphs, num_nodes_max+1)
+        # 2) Update node tokens using both self-attention and cross-attention with graph-level token
+        h_self, _ = self.attn(h, h, h, key_padding_mask=~mask, need_weights=False)
+        # No mask is needed in the cross-attention below since padded tokens (in `h`) appear only in the queries.
+        # Queries don't interact with each other, so padded queries don't affect the computations of non-padded queries.
+        # See this PyTorch issue's comment: https://github.com/pytorch/pytorch/issues/34453#issuecomment-1955116737
+        h_cross, _ = self.node2graph_attn(h, graph_attr, graph_attr, need_weights=False)
+        h = h_self + h_cross  # Combine self-attention between nodes and cross-attention with graph token
 
-        # 2.2) Mask that excludes graph-level features token, to use to extract updated node representations & match
-        #      input dimensionality
-        mask_excl_graph_attr = torch.cat([~graph_attr_mask, mask], dim=1)  # (num_graphs, num_nodes_max+1)
-
-        ###############################################################################
-        # The code below was already part of the original GPSConv impl., but had to   #
-        # be updated to use the new masks defined above.                              #
-        ###############################################################################
-        # 1) Update the mask guiding attention layer to include graph-level features token
-        if isinstance(self.attn, torch.nn.MultiheadAttention):
-            h, _ = self.attn(h, h, h, key_padding_mask=~mask_incl_graph_attr, need_weights=False)
-        elif isinstance(self.attn, PerformerAttention):
-            h = self.attn(h, mask=mask_incl_graph_attr)
-
-        # 2) Update the mask to extract updated node representations from dense data batch to exclude graph-level
-        #    features token
-        h = h[mask_excl_graph_attr]
+        # Remove sequence dimension from graph-level tokens
+        # i.e. (num_graphs, 1, channels) -> (num_graphs, channels)
+        graph_attr = graph_attr.squeeze(1)
+        h_graph_attr = h_graph_attr.squeeze(1)
 
         ###############################################################################
         #                           End custom code block                             #
         ###############################################################################
 
+        h = h[mask]
         h = F.dropout(h, p=self.dropout, training=self.training)
         h = h + x  # Residual connection.
         if self.norm2 is not None:
@@ -295,4 +320,30 @@ class GAGPSConv(GPSConv):
             else:
                 out = self.norm3(out)
 
-        return out
+        ###############################################################################
+        #                          Start custom code block                            #
+        ###############################################################################
+
+        # 1) Update graph-level features token after attention layer
+
+        # Since operations below manipulate graph-level features, i.e. one vector representation per graph,
+        # use a batch vector for norm layers where each vector is assigned to a different graph
+        graph_batch = torch.arange(len(graph_attr), device=graph_attr.device)
+
+        h_graph_attr = F.dropout(h_graph_attr, p=self.dropout, training=self.training)
+        h_graph_attr = h_graph_attr + graph_attr  # Residual connection.
+        if self.norm4 is not None:
+            if self.norm_with_batch:
+                h_graph_attr = self.norm4(h_graph_attr, batch=graph_batch)
+            else:
+                h_graph_attr = self.norm4(h_graph_attr)
+
+        h_graph_attr = h_graph_attr + self.graph_attr_mlp(h_graph_attr)
+        if self.norm5 is not None:
+            if self.norm_with_batch:
+                h_graph_attr = self.norm5(h_graph_attr, batch=graph_batch)
+            else:
+                h_graph_attr = self.norm5(h_graph_attr)
+
+        # 2) Additionally return updated graph-level features
+        return out, h_graph_attr
