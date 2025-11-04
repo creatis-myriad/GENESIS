@@ -138,6 +138,8 @@ class GPS(torch.nn.Module):
         self.edge_lin.reset_parameters()
         for conv in self.convs:
             conv.reset_parameters()
+        if self.supports_edge_attr:
+            self.edge_lin.reset_parameters()
 
     def forward(
         self,
