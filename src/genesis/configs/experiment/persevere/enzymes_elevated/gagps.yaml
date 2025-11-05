@@ -1,0 +1,21 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/enzymes_elevated/gagps
+
+defaults:
+  - /experiment/persevere/enzymes_elevated/_base
+  - override /model/encoder: gagps
+
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+#model:
+#  encoder:
+#    hidden_channels: 64
+#    pe_embed_dim: 4
+#    num_layers: 8
+#    gps_kwargs:
+#      heads: 1
+#      attn_kwargs:
+#        dropout: 0.56
+#  optimizer:
+#    weight_decay: 1.5e-5
