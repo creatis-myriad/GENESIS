@@ -28,7 +28,7 @@ head:
   hidden_channels: ${.in_channels}
   num_layers: 2
   dropout: ${oc.select:..encoder.dropout,0.5}
-  norm: batch_norm
+  norm: ${oc.select:..encoder.norm,batch_norm}
 
 criterion:
   # if task is `regression` -> `torch.nn.L1Loss`
