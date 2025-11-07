@@ -95,3 +95,11 @@ class GraphLevelLitModule(GraphLitModule):
         if self.hparams.task == "binary":
             x = x.squeeze(-1)  # Flatten the last dim when only one value is predicted
         return x
+
+
+class LateFusionGraphLevelLitModule(GraphLevelLitModule):
+    """A LightningModule that performs late fusion between GNN encoding and graph-level features."""
+
+    def _head_step(self, data: Batch, x: torch.Tensor) -> torch.Tensor:
+        x = torch.hstack((x, data.graph_attr))  # Concatenate graph-level features w/ graph encoding
+        return super()._head_step(data, x)

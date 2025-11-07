@@ -3,7 +3,7 @@ from .baselines.tabular_estimator import TabularEstimator
 from .gnn.gine import GINE
 from .gnn.gps import GPS
 from .gnn.vn_g import GAT_VN_G, GCN_VN_G, GIN_VN_G
-from .graph_level import GraphLevelLitModule
+from .graph_level import GraphLevelLitModule, LateFusionGraphLevelLitModule
 
 __all__ = [
     "GAT_VN_G",
@@ -13,6 +13,7 @@ __all__ = [
     "GPS",
     "GraphLevelLitModule",
     "GraphLitModule",
+    "LateFusionGraphLevelLitModule",
     "MetricTrackingLitModule",
     "TabularEstimator",
 ]
