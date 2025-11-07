@@ -1,0 +1,9 @@
+# Mixin that extends a basic GNN with the VN_G formulation of virtual nodes proposed in the paper:
+# "Understanding Virtual Nodes: Oversquashing and Node Heterogeneity"
+# https://arxiv.org/abs/2405.13526
+
+_target_: ??? # Choose a concrete class that combines the VN_G mixin with a model derived from PyG's `BasicGNN`
+vn_g_kwargs:
+  agg: mean
+  norm_weighting: true
+  global_local_agg: sum

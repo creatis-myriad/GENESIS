@@ -7,11 +7,16 @@ defaults:
   - /experiment/persevere/enzymes_elevated/_base
   - override /model/encoder: gat
 
-# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: sum
+
 model:
   encoder:
-    hidden_channels: 16
-    num_layers: 9
-    dropout: 5e-3
+    hidden_channels: 64
+    num_layers: 2
+    dropout: 0.014
+    norm: BatchNorm
+  head:
+    num_layers: 4
   optimizer:
-    weight_decay: 2.1e-4
+    weight_decay: 2.6e-5

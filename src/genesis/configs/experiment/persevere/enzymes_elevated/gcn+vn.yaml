@@ -5,13 +5,19 @@
 
 defaults:
   - /experiment/persevere/enzymes_elevated/_base
-  - override /model/encoder: gcn+vn
+  - override /data/dataset/transform: virtual_node
+  - override /model/encoder: gcn
 
-# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: mean
+
 model:
   encoder:
     hidden_channels: 64
-    num_layers: 3
-    dropout: 0.27
+    num_layers: 4
+    dropout: 0.047
+    norm: BatchNorm
+  head:
+    num_layers: 5
   optimizer:
-    weight_decay: 1.7e-4
+    weight_decay: 3.5e-5

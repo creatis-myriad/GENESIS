@@ -9,10 +9,10 @@ from genesis.train import train
 
 XFAIL_HYDRA_CHOICES = {
     (
-        ("model/encoder", "gps"),
+        ("model/encoder", "gcn+vn_gv2"),
         ("data/dataset", "enzymes"),
-    ): "GPS takes longer to train than other models, and usually fails to achieve >0% test accuracy with only "
-    "1 training epoch on the ENZYMES dataset.",
+    ): "Because of unlucky random (but reproducible) initialization, gcn+vn_gv2 fails to achieve >0% test accuracy "
+    "with only 1 training epoch on the ENZYMES dataset.",
 }
 
 

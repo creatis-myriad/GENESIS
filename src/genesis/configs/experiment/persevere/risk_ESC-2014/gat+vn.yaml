@@ -5,13 +5,19 @@
 
 defaults:
   - /experiment/persevere/risk_ESC-2014/_base
-  - override /model/encoder: gat+vn
+  - override /data/dataset/transform: virtual_node
+  - override /model/encoder: gat
 
-# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: last
+
 model:
   encoder:
     hidden_channels: 32
-    num_layers: 9
-    dropout: 2.7e-3
+    num_layers: 3
+    dropout: 0.021
+    norm: BatchNorm
+  head:
+    num_layers: 5
   optimizer:
-    weight_decay: 8.2e-4
+    weight_decay: 4.8e-4
