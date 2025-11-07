@@ -1,4 +1,5 @@
 import collections
+import inspect
 from typing import Literal
 
 import torch
@@ -84,7 +85,12 @@ class GraphLevelLitModule(GraphLitModule):
                 data.graph_attr.float() if data.get("graph_attr") is not None else None
             )
 
-        return self.encoder(x, data.edge_index, **encoder_forward_kwargs)
+        encoder_params = inspect.signature(self.encoder.forward).parameters
+        if "edge_index" in encoder_params:
+            x = self.encoder(x, data.edge_index, **encoder_forward_kwargs)
+        else:  # Do not pass edge_index if not expected by the encoder, e.g. baseline MLP on nodes individually
+            x = self.encoder(x, **encoder_forward_kwargs)
+        return x
 
     def _readout_step(self, data: Batch, x: torch.Tensor) -> torch.Tensor:
         # Pass the batch size to readout operation to avoid CPU communication/graph breaks
