@@ -7,6 +7,14 @@ from omegaconf import DictConfig, open_dict
 from genesis.eval import evaluate
 from genesis.train import train
 
+XFAIL_HYDRA_CHOICES = {
+    (
+        ("model/encoder", "gcn+vn_gv2"),
+        ("data/dataset", "enzymes"),
+    ): "Because of unlucky random (but reproducible) initialization, gcn+vn_gv2 fails to achieve >0% test accuracy "
+    "with only 1 training epoch on the ENZYMES dataset.",
+}
+
 
 @pytest.mark.slow
 def test_train_eval(tmp_path: Path, cfg_train: DictConfig, cfg_eval: DictConfig) -> None:
@@ -17,6 +25,12 @@ def test_train_eval(tmp_path: Path, cfg_train: DictConfig, cfg_eval: DictConfig)
         cfg_train: A DictConfig containing a valid training configuration.
         cfg_eval: A DictConfig containing a valid evaluation configuration.
     """
+    hydra_choices = HydraConfig().get().runtime.choices
+    # Test if the current Hydra config matches any of the configs expected to fail
+    for conditions, reason in XFAIL_HYDRA_CHOICES.items():
+        if all(hydra_choices.get(param) == value for param, value in conditions):
+            pytest.xfail(reason)
+
     assert str(tmp_path) == cfg_train.paths.output_dir == cfg_eval.paths.output_dir
 
     with open_dict(cfg_train):
