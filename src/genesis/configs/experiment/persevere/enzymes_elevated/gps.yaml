@@ -19,5 +19,3 @@ model:
         dropout: 0.56
   optimizer:
     weight_decay: 1.5e-5
-
-weighted_loss: true
