@@ -24,4 +24,5 @@ gps_kwargs:
   attn_kwargs:
     dropout: 0.5
 mpnn_type: gine
-mpnn_kwargs: null
+mpnn_kwargs:
+  train_eps: true
