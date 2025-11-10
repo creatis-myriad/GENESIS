@@ -68,11 +68,11 @@ class GraphLevelLitModule(GraphLitModule):
         # Extract different inputs depending on the types of features supported by the encoder,
         # casting features to float as needed
         encoder_forward_kwargs = {}
-        if self.encoder.supports_edge_attr:
+        if getattr(self.encoder, "supports_edge_attr", False):
             encoder_forward_kwargs["edge_attr"] = data.edge_attr.float() if data.edge_attr is not None else None
-        if self.encoder.supports_edge_weight:
+        if getattr(self.encoder, "supports_edge_weight", False):
             encoder_forward_kwargs["edge_weight"] = data.edge_weight.float() if data.edge_weight is not None else None
-        if self.encoder.supports_norm_batch:
+        if getattr(self.encoder, "supports_batchnorm", False):
             encoder_forward_kwargs["batch"] = data.batch
             encoder_forward_kwargs["batch_size"] = data.batch_size
         if getattr(self.encoder, "supports_batch", False):
