@@ -91,7 +91,10 @@ class GraphLevelLitModule(GraphLitModule):
         return self.readout(x, ptr=data.ptr, dim_size=data.batch_size)
 
     def _head_step(self, data: Batch, x: torch.Tensor) -> torch.Tensor:
-        x = self.head(x, batch=data.batch, batch_size=data.batch_size)
+        # After the readout step, each graph as been reduced to one vector representation,
+        # i.e. each element in the batch comes from a different graph, so we have to update the batch vector
+        batch = torch.arange(data.batch_size, device=x.device)
+        x = self.head(x, batch=batch, batch_size=data.batch_size)
         if self.hparams.task == "binary":
             x = x.squeeze(-1)  # Flatten the last dim when only one value is predicted
         return x
