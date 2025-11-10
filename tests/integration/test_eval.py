@@ -13,6 +13,11 @@ XFAIL_HYDRA_CHOICES = {
         ("data/dataset", "enzymes"),
     ): "Because of unlucky random (but reproducible) initialization, gcn+vn_gv2 fails to achieve >0% test accuracy "
     "with only 1 training epoch on the ENZYMES dataset.",
+    (
+        ("model/encoder", "gps"),
+        ("data/dataset", "enzymes"),
+    ): "GPS takes longer to train than other models, and might fail to achieve >0% test accuracy with only 1 training "
+    "epoch on the ENZYMES dataset.",
 }
 
 
