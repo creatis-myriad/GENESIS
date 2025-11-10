@@ -30,7 +30,7 @@ class GPS(torch.nn.Module):
     # Add indicators of supported params in forward pass, for compatibility with PyG's `BasicGNN`
     supports_edge_weight: Final[bool] = False
     supports_edge_attr: Final[bool]
-    supports_norm_batch: Final[bool]
+    supports_norm_batch: Final[bool] = False
     supports_pe: Final[bool] = True
     supports_batch: Final[bool] = True
 
@@ -94,7 +94,6 @@ class GPS(torch.nn.Module):
             self.convs.append(conv)
 
         self.supports_edge_attr = bool(edge_dim)
-        self.supports_norm_batch = self.convs[0].norm_with_batch
 
     def init_conv(self, in_channels: int, out_channels: int, **kwargs) -> torch.nn.Module:  # noqa: D102
         return GPSConv(in_channels, self.init_mpnn(in_channels, out_channels, **self._mpnn_kwargs), **kwargs)
