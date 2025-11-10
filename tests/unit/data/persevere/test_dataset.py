@@ -62,7 +62,7 @@ def test_persevere_dataset(
 
     # If dataset initialization should fail, check the expected exception was raised
     if not isinstance(dataset_init_expectation, nullcontext):
-        assert e.type is dataset_init_expectation.expected_exception
+        assert e.type in dataset_init_expectation.expected_exceptions
         if exc_msg:
             assert exc_msg in str(e.value)
         return  # Stop test here if dataset initialization failed as expected
