@@ -22,6 +22,7 @@ dependencies = [
     "networkx>=3.4.2,<4",
     "pandas>=2.2.3,<3",
     "plotly>=6.2.0,<7",
+    "pulp>=3.3.0,<4",
     "pyvis>=0.3.2,<1",
     "rich>=14,<15",
     "rootutils>=1.0.7,<2",
