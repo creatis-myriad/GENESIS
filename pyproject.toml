@@ -34,7 +34,7 @@ all = [
     "genesis[wandb,baselines,totalsegmentator]",    # Adjust this entry when adding new extras
 ]
 wandb = [
-    "wandb>=0.22,<0.23",
+    "wandb>=0.23,<0.24",
 ]
 baselines = [
     "tabpfn>=2.1.3,<3",
