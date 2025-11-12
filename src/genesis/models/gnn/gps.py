@@ -1,6 +1,6 @@
 import copy
 import itertools
-from typing import Any, Final, Literal
+from typing import Any, Final, Literal, overload
 
 import torch
 import torch.nn.functional as F  # noqa: N812
@@ -156,6 +156,30 @@ class GPS(torch.nn.Module):
         if self.supports_graph_attr:
             self.graph_lin.reset_parameters()
 
+    @overload
+    def forward(
+        self,
+        x: torch.Tensor,
+        edge_index: Adj,
+        pe: torch.Tensor,
+        batch: torch.Tensor,
+        edge_attr: torch.Tensor | None = None,
+        graph_attr: None = None,
+        **kwargs,
+    ) -> torch.Tensor: ...
+
+    @overload
+    def forward(
+        self,
+        x: torch.Tensor,
+        edge_index: Adj,
+        pe: torch.Tensor,
+        batch: torch.Tensor,
+        edge_attr: torch.Tensor | None = None,
+        graph_attr: torch.Tensor = None,
+        **kwargs,
+    ) -> tuple[torch.Tensor, torch.Tensor]: ...
+
     def forward(
         self,
         x: torch.Tensor,
@@ -165,7 +189,7 @@ class GPS(torch.nn.Module):
         edge_attr: torch.Tensor | None = None,
         graph_attr: torch.Tensor | None = None,
         **kwargs,
-    ) -> torch.Tensor:
+    ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """Performs a forward pass through the model.
 
         Args:
@@ -179,6 +203,8 @@ class GPS(torch.nn.Module):
 
         Returns:
             Updated node features of shape `[num_nodes, out_channels or hidden_channels]`.
+            If `graph_attr` is provided, additionally returns updated graph features of shape
+            `[num_graphs, out_channels or hidden_channels]`.
         """
         x_pe = self.pe_norm(pe)
         x = torch.cat((self.node_lin(x), self.pe_lin(x_pe)), 1)
@@ -200,7 +226,10 @@ class GPS(torch.nn.Module):
                 # otherwise layer might not support a `graph_attr` kwarg
                 # And if passed, update `graph_attr` at each layer
                 x, graph_attr = conv(x, edge_index, batch, graph_attr, **kwargs)
-        return x
+
+        if graph_attr is None:
+            return x
+        return x, graph_attr
 
 
 class GAGPSConv(GPSConv):

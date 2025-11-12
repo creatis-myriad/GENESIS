@@ -1,6 +1,6 @@
 import collections
 import inspect
-from typing import Literal
+from typing import Any, Literal
 
 import torch
 from torch import nn
@@ -65,7 +65,7 @@ class GraphLevelLitModule(GraphLitModule):
         x = self._readout_step(data, x)
         return self._head_step(data, x)
 
-    def _encoder_step(self, data: Batch, x: torch.Tensor) -> torch.Tensor:
+    def _encoder_step(self, data: Batch, x: torch.Tensor) -> Any:
         # Extract different inputs depending on the types of features supported by the encoder,
         # casting features to float as needed
         encoder_forward_kwargs = {}
@@ -92,7 +92,7 @@ class GraphLevelLitModule(GraphLitModule):
             x = self.encoder(x, **encoder_forward_kwargs)
         return x
 
-    def _readout_step(self, data: Batch, x: torch.Tensor) -> torch.Tensor:
+    def _readout_step(self, data: Batch, x: Any) -> torch.Tensor:
         # Pass the batch size to readout operation to avoid CPU communication/graph breaks
         return self.readout(x, ptr=data.ptr, dim_size=data.batch_size)
 
@@ -103,6 +103,40 @@ class GraphLevelLitModule(GraphLitModule):
         x = self.head(x, batch=batch, batch_size=data.batch_size)
         if self.hparams.task == "binary":
             x = x.squeeze(-1)  # Flatten the last dim when only one value is predicted
+        return x
+
+
+class GAGPSGraphLevelLitModule(GraphLevelLitModule):
+    """A LightningModule customized for GAGPS model to perform readout given both node and graph level features."""
+
+    def __init__(self, *args, features_for_readout: Literal["node", "graph"], **kwargs) -> None:
+        """Initializes a `GAGPSGraphLevelLitModule`.
+
+        Args:
+            *args: Additional positional arguments to pass to the superclass.
+            features_for_readout: The type of features returned by the encoder to use for readout:
+                - 'node': Nodes encodings.
+                - 'graph': Graph-level features encodings.
+            **kwargs: Additional keyword arguments to pass to the superclass.
+        """
+        super().__init__(*args, **kwargs)
+        self.features_for_readout = features_for_readout
+
+    def _readout_step(self, data: Batch, x: Any) -> torch.Tensor:
+        node_enc, graph_enc = x  # Separate encodings of node and graph level features
+        match self.features_for_readout:
+            case "node":
+                # When using node encodings, use the readout aggregation just like for classic GNNs
+                x = self.readout(node_enc, ptr=data.ptr, dim_size=data.batch_size)
+            case "graph":
+                # When using graph-level features encodings, return them directly because they already correspond to a
+                # vector representation for each graph
+                x = graph_enc
+            case _:
+                raise ValueError(
+                    f"Invalid `features_for_readout` '{self.features_for_readout}'. "
+                    f"Allowed values are 'node' or 'graph'."
+                )
         return x
 
 

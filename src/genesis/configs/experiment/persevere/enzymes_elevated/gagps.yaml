@@ -5,9 +5,13 @@
 
 defaults:
   - /experiment/persevere/enzymes_elevated/_base
+  - override /model: graph_level_gagps
   - override /model/encoder: gagps
 
   # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  # TODO Update hparams
+#  - override /model/readout: sum
+#
 #model:
 #  encoder:
 #    hidden_channels: 64
@@ -15,7 +19,12 @@ defaults:
 #    num_layers: 8
 #    gps_kwargs:
 #      heads: 1
+#      dropout: 0.56
+#      norm: BatchNorm
 #      attn_kwargs:
 #        dropout: 0.56
+#  features_for_readout: node
+#  head:
+#    num_layers: 4
 #  optimizer:
 #    weight_decay: 1.5e-5

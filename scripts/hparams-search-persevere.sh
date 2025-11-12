@@ -22,10 +22,10 @@ for model in gcn gat gin; do
   done
 done
 
-# Use a dedicated hparams search config for GPS and its variants, because they have different hyperparameters than the basic GNNs
+# Use dedicated hparams search configs for GPS and its variants, because they have different hyperparameters
 for model in gps gagps; do
   gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu logger=wandb \
-    hparams_search=persevere_gps experiment=persevere/"${TARGET}"/${model} \
+    hparams_search=persevere_${model} experiment=persevere/"${TARGET}"/${model} \
     +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}_${TARGET}.log" 2>&1
 done
 
