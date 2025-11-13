@@ -1,0 +1,6 @@
+_target_: genesis.data.transforms.features.ConcatFeatures
+attrs:
+  x: node
+  graph_attr: graph
+level: node
+concat_attr: x
