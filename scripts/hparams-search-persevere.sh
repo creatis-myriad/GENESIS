@@ -8,7 +8,7 @@ LOG_DIR=${2:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 
 # Use the same hparams search config for the message passing GNNs (GCN, GAT, GIN and their virtual node variants), but optimize each model separately
 for model in gcn gat gin; do
-  for variant in "" +vn +gavn +galf; do
+  for variant in "" +vn +gaef +galf +gavn; do
     gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 logger=wandb trainer=gpu hparams_search=persevere_basic_gnn experiment=persevere/"${TARGET}"/${model}${variant} +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}${variant}_${TARGET}.log" 2>&1
   done
 
