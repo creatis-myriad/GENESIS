@@ -11,6 +11,11 @@ for model in gcn gat gin; do
   for variant in "" +vn +gavn +galf; do
     gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 logger=wandb trainer=gpu hparams_search=persevere_basic_gnn experiment=persevere/"${TARGET}"/${model}${variant} +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}${variant}_${TARGET}.log" 2>&1
   done
+
+  # Use a dedicated hparams search config for VN_G variants, because they have different hyperparameters than the basic GNNs or their other variants
+  for variant in +vn_g +vn_gv2; do
+    gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 logger=wandb trainer=gpu hparams_search=persevere_vn_g experiment=persevere/"${TARGET}"/${model}${variant} +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}${variant}_${TARGET}.log" 2>&1
+  done
 done
 
 # Use a dedicated hparams search config for GPS, because it has different hyperparameters than the basic GNNs
