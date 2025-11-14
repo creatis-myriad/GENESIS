@@ -17,7 +17,7 @@ model:
     dropout: 3.9e-3
     norm: BatchNorm
     vn_g_kwargs:
-      norm_weightning: false
+      norm_weighting: false
       global_local_agg: sum
   head:
     num_layers: 2
