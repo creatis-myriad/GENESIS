@@ -62,6 +62,14 @@ class VN_G_Mixin(nn.Module):  # noqa: N801
         if graph_dim and self.supports_graph_attr:
             self.graph_attr_lin = pyg_nn.Linear(graph_dim, self.hidden_channels)
 
+    def reset_parameters(self) -> None:
+        """Resets all learnable parameters of the mixin and the main module."""
+        super().reset_parameters()
+        for vn_g_layer in self.vn_g_message_passing_layers:
+            vn_g_layer.reset_parameters()
+        if hasattr(self, "graph_attr_lin"):
+            self.graph_attr_lin.reset_parameters()
+
     def forward(
         self,
         x: Tensor,
@@ -235,6 +243,11 @@ class VN_G_MessagePassing(nn.Module):  # noqa: N801
 
         self.norm_weighting = norm_weighting
 
+    def reset_parameters(self) -> None:
+        """Resets all learnable parameters of the module."""
+        self.local_linear.reset_parameters()
+        self.agg.reset_parameters()
+
     def forward(self, x_local: Tensor, batch: Tensor) -> Tensor:
         """Perform global message passing through the virtual node to compute updated node representations.
 
@@ -312,6 +325,14 @@ class VN_Gv2_MessagePassing(VN_G_MessagePassing):  # noqa: N801
 
         # Initialize learnable weights to update nodes' global representations
         self.global_linear = pyg_nn.Linear(in_channels, out_channels)
+
+    def reset_parameters(self) -> None:
+        """Resets all learnable parameters of the module."""
+        # NOTE: Do not call `super.reset_parameters()` because it resets `self.agg`'s parameters, which this child
+        # overrides to be masked function instead of an `Aggregation` instance.
+        # Therefore, make sure that we also reset here the parameters still relevant from the parent.
+        self.local_linear.reset_parameters()
+        self.global_linear.reset_parameters()
 
     def forward(self, x_local: Tensor, x_global: Tensor, batch: Tensor) -> tuple[Tensor, Tensor]:
         """Perform global message passing through the virtual node to compute updated node/global representations.
