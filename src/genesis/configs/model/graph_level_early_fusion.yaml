@@ -1,0 +1,11 @@
+# Use the base graph-level module to implement late fusion of graph-level features, with very slight changes:
+# 1) Update the GNN input channels to expect a concatenation of graph encoding and graph-level features.
+defaults:
+  - graph_level
+
+num_node_features: ${op:add, ${oc.select:hparams.data.num_node_features,0}, ${oc.select:hparams.data.num_graph_features,0} }
+
+encoder:
+  # Copy the interpolation expression from the generic GNN config, but update `num_node_features` to refer to the param
+  # overridden by the model and summed with `num_graph_features`, rather than the dataset hparams value
+  in_channels: ${op:add, ${..num_node_features}, ${op.ternary:${oc.select:hparams.data.pe_attr}, 0, ${oc.select:hparams.data.num_pe_features,0}} }

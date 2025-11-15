@@ -1,0 +1,24 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/risk_ESC-2014/gcn+gaef
+
+defaults:
+  - /experiment/persevere/risk_ESC-2014/_base
+  - override /data/dataset/transform: concat_global_features
+  - override /model: graph_level_early_fusion
+  - override /model/encoder: gcn
+
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: last
+
+model:
+  encoder:
+    hidden_channels: 32
+    num_layers: 2
+    dropout: 0.084
+    norm: BatchNorm
+  head:
+    num_layers: 1
+  optimizer:
+    weight_decay: 7e-4

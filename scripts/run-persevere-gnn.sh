@@ -13,9 +13,9 @@ targets_configs=(
   [nt-probnp_elevated]="enzymes_elevated"
 )
 models=(
-  "gcn" "gcn+vn" "gcn+vn_g" "gcn+galf" "gcn+gavn" "gcn+vn_gv2"
-  "gat" "gat+vn" "gat+vn_g" "gat+galf" "gat+gavn" "gat+vn_gv2"
-  "gin" "gin+vn" "gin+vn_g" "gin+galf" "gin+gavn" "gin+vn_gv2"
+  "gcn" "gcn+vn" "gcn+vn_g" "gcn+gaef" "gcn+galf" "gcn+gavn" "gcn+vn_gv2"
+  "gat" "gat+vn" "gat+vn_g" "gat+gaef" "gat+galf" "gat+gavn" "gat+vn_gv2"
+  "gin" "gin+vn" "gin+vn_g" "gin+gaef" "gin+galf" "gin+gavn" "gin+vn_gv2"
   "gps"
 )
 

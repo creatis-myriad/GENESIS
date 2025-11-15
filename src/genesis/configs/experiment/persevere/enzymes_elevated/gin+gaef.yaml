@@ -1,0 +1,24 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/enzymes_elevated/gin+gaef
+
+defaults:
+  - /experiment/persevere/enzymes_elevated/_base
+  - override /data/dataset/transform: concat_global_features
+  - override /model: graph_level_early_fusion
+  - override /model/encoder: gin
+
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: sum
+
+model:
+  encoder:
+    hidden_channels: 32
+    num_layers: 10
+    dropout: 0.022
+    norm: BatchNorm
+  head:
+    num_layers: 2
+  optimizer:
+    weight_decay: 1e-4
