@@ -26,3 +26,11 @@ done
 gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu logger=wandb \
   hparams_search=persevere_gps experiment=persevere/"${TARGET}"/gps \
   +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_gps_${TARGET}.log" 2>&1
+
+# Separate loop for MLP baseline, since its variants are different from other GNNs
+model=mlp
+for variant in "" +gaef +galf; do
+  gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu logger=wandb \
+    hparams_search=persevere_basic_gnn experiment=persevere/"${TARGET}"/${model}${variant} \
+    +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}${variant}_${TARGET}.log" 2>&1
+done
