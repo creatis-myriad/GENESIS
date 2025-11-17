@@ -1,5 +1,8 @@
 # @package _global_
 
+# Abstract dataset config to reduce repetition in configs for datasets implemented using the TUDataset API,
+# e.g. MUTAG, ENZYMES.
+
 data:
   dataset:
     _target_: torch_geometric.datasets.TUDataset
