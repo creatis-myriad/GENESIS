@@ -22,15 +22,13 @@ models=(
 
 for target in "${!targets_configs[@]}"; do # Loop over targets and associated
   experiment_config_group=${targets_configs[${target}]}
-  for group in "${!models[@]}"; do  # Loop over model groups
-    for model in ${models[${group}]}; do  # Loop over specific models
-      # NOTE: Ignore conflicts on data splits (+data.on_conflict=ignore), because splits computed from different targets would
-      # not match. This way, the splits computed from the first target will be used for all subsequent targets.
-      gnn-train -m hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu \
-        logger=wandb logger.wandb.log_model=True test=True \
-        experiment=persevere/"${experiment_config_group}"/"${model}" \
-        data/dataset/target="${target}" data/split=k_fold +data.on_conflict=ignore 'data.split_idx=range(10)' \
-        >>"${LOG_DIR}/persevere-gnn-${target}-${model}.log" 2>&1
-    done
+  for model in "${models[@]}"; do  # Loop over models
+    # NOTE: Ignore conflicts on data splits (+data.on_conflict=ignore), because splits computed from different targets would
+    # not match. This way, the splits computed from the first target will be used for all subsequent targets.
+    gnn-train -m hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu \
+      logger=wandb logger.wandb.log_model=True test=True \
+      experiment=persevere/"${experiment_config_group}"/"${model}" \
+      data/dataset/target="${target}" data/split=k_fold +data.on_conflict=ignore 'data.split_idx=range(10)' \
+      >>"${LOG_DIR}/persevere-gnn-${target}-${model}.log" 2>&1
   done
 done
