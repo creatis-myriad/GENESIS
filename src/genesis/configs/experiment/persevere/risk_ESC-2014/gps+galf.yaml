@@ -9,21 +9,20 @@ defaults:
   - override /model/encoder: gps
 
   # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
-  # TODO Update hparams
-#  - override /model/readout: sum
-#
-#model:
-#  encoder:
-#    hidden_channels: 16
-#    pe_embed_dim: 4
-#    num_layers: 5
-#    gps_kwargs:
-#      heads: 4
-#      dropout: 0.47
-#      norm: BatchNorm
-#      attn_kwargs:
-#        dropout: 0.47
-#  head:
-#    num_layers: 3
-#  optimizer:
-#    weight_decay: 4.9e-4
+  - override /model/readout: sum
+
+model:
+  encoder:
+    hidden_channels: 64
+    pe_embed_dim: 8
+    num_layers: 2
+    gps_kwargs:
+      heads: 2
+      dropout: 0.25
+      norm: InstanceNorm
+      attn_kwargs:
+        dropout: 0.32
+  head:
+    num_layers: 3
+  optimizer:
+    weight_decay: 6e-5

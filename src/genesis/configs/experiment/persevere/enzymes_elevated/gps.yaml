@@ -7,15 +7,21 @@ defaults:
   - /experiment/persevere/enzymes_elevated/_base
   - override /model/encoder: gps
 
-# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: mean
+
 model:
   encoder:
-    hidden_channels: 64
+    hidden_channels: 32
     pe_embed_dim: 4
     num_layers: 8
     gps_kwargs:
-      heads: 1
+      heads: 2
+      dropout: 0.047
+      norm: BatchNorm
       attn_kwargs:
-        dropout: 0.56
+        dropout: 0.096
+  head:
+    num_layers: 3
   optimizer:
-    weight_decay: 1.5e-5
+    weight_decay: 4.5e-4

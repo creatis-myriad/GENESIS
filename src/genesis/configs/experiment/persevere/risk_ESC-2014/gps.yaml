@@ -7,15 +7,21 @@ defaults:
   - /experiment/persevere/risk_ESC-2014/_base
   - override /model/encoder: gps
 
-# Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: sum
+
 model:
   encoder:
     hidden_channels: 16
     pe_embed_dim: 4
-    num_layers: 5
+    num_layers: 8
     gps_kwargs:
-      heads: 4
+      heads: 2
+      dropout: 0.055
+      norm: BatchNorm
       attn_kwargs:
-        dropout: 0.47
+        dropout: 0.18
+  head:
+    num_layers: 2
   optimizer:
-    weight_decay: 4.9e-4
+    weight_decay: 6.3e-5

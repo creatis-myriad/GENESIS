@@ -9,22 +9,21 @@ defaults:
   - override /model/encoder: gagps
 
   # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
-  # TODO Update hparams
   - override /model/readout: sum
 
 model:
   encoder:
     hidden_channels: 16
-    pe_embed_dim: 4
+    pe_embed_dim: 8
     num_layers: 5
     gps_kwargs:
-      heads: 4
-      dropout: 0.47
+      heads: 1
+      dropout: 0.35
       norm: BatchNorm
       attn_kwargs:
-        dropout: 0.47
+        dropout: 0.21
   features_for_readout: node
   head:
-    num_layers: 3
+    num_layers: 2
   optimizer:
-    weight_decay: 4.9e-4
+    weight_decay: 5.5e-4
