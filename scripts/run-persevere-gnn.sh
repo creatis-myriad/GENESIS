@@ -13,11 +13,13 @@ targets_configs=(
   [nt-probnp_elevated]="enzymes_elevated"
 )
 models=(
-  "mlp" "mlp+gaef" "mlp+galf"
-  "gcn" "gcn+vn" "gcn+vn_g" "gcn+gaef" "gcn+galf" "gcn+gavn" "gcn+vn_gv2"
-  "gat" "gat+vn" "gat+vn_g" "gat+gaef" "gat+galf" "gat+gavn" "gat+vn_gv2"
-  "gin" "gin+vn" "gin+vn_g" "gin+gaef" "gin+galf" "gin+gavn" "gin+vn_gv2"
-  "gps"
+  "mlp" "gcn" "gat" "gin" "gps"
+  "gcn+vn" "gat+vn" "gin+vn"
+  "gcn+vn_g" "gat+vn_g" "gin+vn_g"
+  "mlp+gaef" "gcn+gaef" "gat+gaef" "gin+gaef"
+  "mlp+galf" "gcn+galf" "gat+galf" "gin+galf"
+  "gcn+gavn" "gat+gavn" "gin+gavn"
+  "gcn+vn_gv2" "gat+vn_gv2" "gin+vn_gv2"
 )
 
 for target in "${!targets_configs[@]}"; do # Loop over targets and associated
