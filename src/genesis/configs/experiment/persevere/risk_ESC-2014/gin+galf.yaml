@@ -16,7 +16,7 @@ model:
     hidden_channels: 32
     num_layers: 8
     dropout: 0.17
-    norm: InstanceNorm
+    norm: BatchNorm
   head:
     num_layers: 3
   optimizer:
