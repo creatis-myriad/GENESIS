@@ -28,6 +28,8 @@ class PersevereDataset(InMemoryDataset):
         self,
         root: str,
         transform: Callable | None = None,
+        pre_transform: Callable | None = None,
+        pre_filter: Callable | None = None,
         line_graph: bool = True,
         target_attr: str = "risk_ESC-2014",
         target_dtype: str | torch.dtype = torch.long,
@@ -41,6 +43,8 @@ class PersevereDataset(InMemoryDataset):
         Args:
             root: Root directory where the dataset is saved.
             transform: PyG data transform, applies on-access transformation without altering stored data.
+            pre_transform: PyG data pre-transform, applies transformation once when the dataset is loaded.
+            pre_filter: PyG data pre-filter, filters data once when the dataset is loaded.
             line_graph: Whether to convert graphs to their line graphs.
             target_attr: Key of the graph attribute to use as target.
             target_dtype: Data type of the target attribute.
@@ -78,4 +82,11 @@ class PersevereDataset(InMemoryDataset):
             #  necessary to guarantee reproducibility of training/validation/test splits.
             for json_path in sorted(Path(self.raw_dir).glob("*.json"))
         ]
+
+        if pre_filter is not None:
+            data_list = [data for data in data_list if pre_filter(data)]
+
+        if pre_transform is not None:
+            data_list = [pre_transform(data) for data in data_list]
+
         self.data, self.slices = self.collate(data_list)

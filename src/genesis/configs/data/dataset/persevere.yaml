@@ -5,6 +5,7 @@ defaults:
   - /data/dataset/graph_attrs_filter: spesi+cardiac_biomarkers+graph_biomarkers
   # To add transforms (or pre-transforms) to the dataset, use the following config group:
   - /data/dataset/transform: null
+  - /data/dataset/transform@data.dataset.pre_transform: null
   - _self_
   - /data/dataset/target: risk_ESC-2014
 
