@@ -1,10 +1,11 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=persevere/enzymes_elevated/gps
+# python train.py experiment=persevere/enzymes_elevated/gps+galf
 
 defaults:
   - /experiment/persevere/enzymes_elevated/_base
+  - override /model: graph_level_late_fusion
   - override /model/encoder: gps
 
   # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
@@ -12,16 +13,16 @@ defaults:
 
 model:
   encoder:
-    hidden_channels: 32
-    pe_embed_dim: 4
-    num_layers: 8
+    hidden_channels: 64
+    pe_embed_dim: 8
+    num_layers: 2
     gps_kwargs:
       heads: 2
-      dropout: 0.047
+      dropout: 0.01
       norm: BatchNorm
       attn_kwargs:
-        dropout: 0.096
+        dropout: 0.058
   head:
-    num_layers: 3
+    num_layers: 2
   optimizer:
-    weight_decay: 4.5e-4
+    weight_decay: 5.3e-5

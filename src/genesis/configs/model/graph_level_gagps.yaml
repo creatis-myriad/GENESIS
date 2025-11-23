@@ -1,0 +1,8 @@
+# Use the base graph-level module for GPS with support for graph-level features, with slight changes:
+# 1) Change the module class to `LateFusionGraphLevelLitModule`, which adapts the readout to handle receiving encodings
+#    of both node and graph level features.
+defaults:
+  - graph_level
+
+_target_: genesis.models.GAGPSGraphLevelLitModule
+features_for_readout: node

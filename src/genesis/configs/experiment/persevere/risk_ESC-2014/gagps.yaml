@@ -1,11 +1,12 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=persevere/risk_ESC-2014/gps
+# python train.py experiment=persevere/risk_ESC-2014/gagps
 
 defaults:
   - /experiment/persevere/risk_ESC-2014/_base
-  - override /model/encoder: gps
+  - override /model: graph_level_gagps
+  - override /model/encoder: gagps
 
   # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
   - override /model/readout: sum
@@ -13,15 +14,16 @@ defaults:
 model:
   encoder:
     hidden_channels: 16
-    pe_embed_dim: 4
-    num_layers: 8
+    pe_embed_dim: 8
+    num_layers: 5
     gps_kwargs:
-      heads: 2
-      dropout: 0.055
+      heads: 1
+      dropout: 0.35
       norm: BatchNorm
       attn_kwargs:
-        dropout: 0.18
+        dropout: 0.21
+  features_for_readout: node
   head:
     num_layers: 2
   optimizer:
-    weight_decay: 6.3e-5
+    weight_decay: 5.5e-4

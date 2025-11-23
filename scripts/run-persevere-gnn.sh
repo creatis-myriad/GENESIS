@@ -17,9 +17,10 @@ models=(
   "gcn+vn" "gat+vn" "gin+vn"
   "gcn+vn_g" "gat+vn_g" "gin+vn_g"
   "mlp+gaef" "gcn+gaef" "gat+gaef" "gin+gaef"
-  "mlp+galf" "gcn+galf" "gat+galf" "gin+galf"
+  "mlp+galf" "gcn+galf" "gat+galf" "gin+galf" "gps+galf"
   "gcn+gavn" "gat+gavn" "gin+gavn"
   "gcn+vn_gv2" "gat+vn_gv2" "gin+vn_gv2"
+  "gagps"
 )
 
 for target in "${!targets_configs[@]}"; do # Loop over targets and associated
