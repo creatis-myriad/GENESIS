@@ -1,5 +1,7 @@
 # @package _global_
 
+# NOTICE: MUTAG is a dataset unrelated to the subject of the paper, but useful as a small dataset for CI testing
+
 defaults:
   - _tu_dataset
   # To add transforms (or pre-transforms) to the dataset, use the following config group:

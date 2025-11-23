@@ -13,24 +13,25 @@ targets_configs=(
   [nt-probnp_elevated]="enzymes_elevated"
 )
 models=(
-  "mlp" "mlp+gaef" "mlp+galf"
-  "gcn" "gcn+vn" "gcn+vn_g" "gcn+gaef" "gcn+galf" "gcn+gavn" "gcn+vn_gv2"
-  "gat" "gat+vn" "gat+vn_g" "gat+gaef" "gat+galf" "gat+gavn" "gat+vn_gv2"
-  "gin" "gin+vn" "gin+vn_g" "gin+gaef" "gin+galf" "gin+gavn" "gin+vn_gv2"
-  "gps" "gps+galf" "gagps"
+  "mlp" "gcn" "gat" "gin" "gps"
+  "gcn+vn" "gat+vn" "gin+vn"
+  "gcn+vn_g" "gat+vn_g" "gin+vn_g"
+  "mlp+gaef" "gcn+gaef" "gat+gaef" "gin+gaef"
+  "mlp+galf" "gcn+galf" "gat+galf" "gin+galf" "gps+galf"
+  "gcn+gavn" "gat+gavn" "gin+gavn"
+  "gcn+vn_gv2" "gat+vn_gv2" "gin+vn_gv2"
+  "gagps"
 )
 
 for target in "${!targets_configs[@]}"; do # Loop over targets and associated
   experiment_config_group=${targets_configs[${target}]}
-  for group in "${!models[@]}"; do  # Loop over model groups
-    for model in ${models[${group}]}; do  # Loop over specific models
-      # NOTE: Ignore conflicts on data splits (+data.on_conflict=ignore), because splits computed from different targets would
-      # not match. This way, the splits computed from the first target will be used for all subsequent targets.
-      gnn-train -m hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu \
-        logger=wandb logger.wandb.log_model=True test=True \
-        experiment=persevere/"${experiment_config_group}"/"${model}" \
-        data/dataset/target="${target}" data/split=k_fold +data.on_conflict=ignore 'data.split_idx=range(10)' \
-        >>"${LOG_DIR}/persevere-gnn-${target}-${model}.log" 2>&1
-    done
+  for model in "${models[@]}"; do  # Loop over models
+    # NOTE: Ignore conflicts on data splits (+data.on_conflict=ignore), because splits computed from different targets would
+    # not match. This way, the splits computed from the first target will be used for all subsequent targets.
+    gnn-train -m hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu \
+      logger=wandb logger.wandb.log_model=True test=True \
+      experiment=persevere/"${experiment_config_group}"/"${model}" \
+      data/dataset/target="${target}" data/split=k_fold +data.on_conflict=ignore 'data.split_idx=range(10)' \
+      >>"${LOG_DIR}/persevere-gnn-${target}-${model}.log" 2>&1
   done
 done

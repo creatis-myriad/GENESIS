@@ -1,5 +1,4 @@
 import copy
-from typing import Any
 
 import torch
 from torch import Tensor
@@ -29,13 +28,16 @@ class VirtualNodes(BaseTransform):
         super().__init__()
         self.num = num
 
-    def forward(self, data: Data, init_values: Tensor = None) -> Any:
+    def forward(self, data: Data, init_values: Tensor = None) -> Data:
         """Appends virtual node(s) (i.e. connected to all nodes) with optional initialization, otherwise zero-filled.
 
         Args:
             data: The input graph to which to add virtual node(s).
             init_values: ([`num`,] `features`), Optional initial features of the virtual node(s) to add.
                 If `None`, virtual node will be zero-filled.
+
+        Returns:
+            Input graph with virtual node(s) added.
         """
         if init_values is None:
             num_virtual_nodes = self.num or 1  # Default to adding one virtual node if no initial features are provided
