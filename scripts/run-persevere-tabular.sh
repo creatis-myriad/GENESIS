@@ -11,7 +11,7 @@ baseline-tabular -m \
   logger=wandb \
   test=True \
   data/split=k_fold \
-  experiment=tabular_baseline/risk_ESC-2014,tabular_baseline/risk_ESC-2014_elevated,tabular_baseline/troponin_elevated,tabular_baseline/nt-probnp_elevated,tabular_baseline/enzymes_elevated \
+  experiment=tabular_baseline/risk_ESC-2014,tabular_baseline/risk_ESC-2014_elevated,tabular_baseline/enzymes_elevated \
   data/dataset/usecols=spesi,spesi+cardiac_biomarkers,spesi+graph_biomarkers,spesi+cardiac_biomarkers+graph_biomarkers \
   +data.on_conflict=ignore \
   model/model=tabpfn,xgboost \

@@ -10,8 +10,6 @@ targets_configs=(
   # Targets for which optimized hparams are not available,
   # in which case we default to optimized hparams from a compatible target
   [risk_ESC-2014_elevated]="risk_ESC-2014"
-  [troponin_elevated]="enzymes_elevated"
-  [nt-probnp_elevated]="enzymes_elevated"
 )
 declare -A targets_overrides
 targets_overrides=(
