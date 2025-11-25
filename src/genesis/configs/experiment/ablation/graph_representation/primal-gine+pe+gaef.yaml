@@ -1,15 +1,20 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=ablation/graph_representation+features/primal-gine+gavn+pe
+# python train.py experiment=ablation/graph_representation/primal-gine+pe+gaef
 
-# Use the default GIN+GraphAttrVN config, modified to:
+# Use the default GIN+GAEF config, consisting of:
+# - dual representation
+# - node features
+# - no positional encoding
+# - graph-level features concatenated to node features before the GNN encoder
+# modified to:
 # - use primal representation (i.e. not line graph)
 # - use GINE (instead of GIN) to support edge features
 # - add PE
 defaults:
-  - /experiment/persevere/enzymes_elevated/gin+gavn
-  - override /data/dataset/transform@data.dataset.transform: random_walk_pe
+  - /experiment/persevere/risk_ESC-2014/gin+gaef
+  - override /data/dataset/transform@data.dataset.pre_transform: random_walk_pe+concat_global_features
   - override /model/encoder: gine
 
 hparams:
@@ -20,7 +25,3 @@ hparams:
 data:
   dataset:
     line_graph: False # Use the primal representation
-
-logger:
-  wandb:
-    project: "GENESIS-ablation" # set a dedicated project for ablation studies

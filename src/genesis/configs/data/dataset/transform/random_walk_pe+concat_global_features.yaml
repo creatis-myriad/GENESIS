@@ -1,0 +1,14 @@
+defaults:
+  - _pe
+
+_target_: torch_geometric.transforms.Compose
+transforms:
+  - _target_: torch_geometric.transforms.AddRandomWalkPE
+    walk_length: ${hparams.data.num_pe_features}
+    attr_name: ${hparams.data.pe_attr}
+  - _target_: genesis.data.transforms.features.ConcatFeatures
+    attrs:
+      x: node
+      graph_attr: graph
+    level: node
+    concat_attr: x
