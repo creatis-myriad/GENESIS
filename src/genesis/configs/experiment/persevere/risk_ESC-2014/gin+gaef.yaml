@@ -5,7 +5,7 @@
 
 defaults:
   - /experiment/persevere/risk_ESC-2014/_base
-  - override /data/dataset/transform: concat_global_features
+  - override /data/dataset/transform@data.dataset.pre_transform: concat_global_features
   - override /model: graph_level_early_fusion
   - override /model/encoder: gin
 
