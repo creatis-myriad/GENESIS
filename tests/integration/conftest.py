@@ -179,6 +179,7 @@ def mutag_classification_overrides() -> list[str]:
         # Data overrides
         "data=split_lightning_dataset",
         "data/dataset=mutag",
+        "data.dataset.force_reload=True",
         # Specify the metrics here, since they depend on the data task
         "model/metrics=binary_classification",
     ]
@@ -195,6 +196,7 @@ def enzymes_classification_overrides() -> list[str]:
         # Data overrides
         "data=split_lightning_dataset",
         "data/dataset=enzymes",
+        "data.dataset.force_reload=True",
         # Specify the metrics here, since they depend on the data task
         "model/metrics=multi_classification",
     ]

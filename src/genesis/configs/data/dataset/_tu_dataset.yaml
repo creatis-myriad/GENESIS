@@ -8,6 +8,7 @@ data:
     _target_: torch_geometric.datasets.TUDataset
     root: ${paths.data_dir}
     name: ${op:call,${op:methodcaller,upper},${hydra:runtime.choices.data/dataset}}
+    force_reload: False
     use_node_attr: False
     use_edge_attr: False
     cleaned: False
