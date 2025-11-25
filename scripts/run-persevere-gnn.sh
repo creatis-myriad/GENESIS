@@ -20,11 +20,14 @@ targets_overrides=(
 models=(
   "mlp" "gcn" "gat" "gin" "gps"
   "gcn+vn" "gat+vn" "gin+vn"
-  "gcn+vn_g" "gat+vn_g" "gin+vn_g"
+  # Different formulation of virtual nodes, with heterogeneous message passing between real and virtual nodes
+#  "gcn+vn_g" "gat+vn_g" "gin+vn_g"
   "mlp+gaef" "gcn+gaef" "gat+gaef" "gin+gaef"
   "mlp+galf" "gcn+galf" "gat+galf" "gin+galf" "gps+galf"
   "gcn+gavn" "gat+gavn" "gin+gavn"
-  "gcn+vn_gv2" "gat+vn_gv2" "gin+vn_gv2"
+  # Different formulation of virtual nodes initialized with graph attributes, with heterogeneous message passing between
+  # real and virtual nodes
+#  "gcn+vn_gv2" "gat+vn_gv2" "gin+vn_gv2"
   "gagps"
 )
 
