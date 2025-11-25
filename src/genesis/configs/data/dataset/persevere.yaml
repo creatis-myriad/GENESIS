@@ -1,12 +1,14 @@
 # @package _global_
 
 defaults:
+  # Place _self_ before filters and transforms in the defaults list, in case they override dataset hparams,
+  # e.g. modify number of graphs, features, etc.
+  - _self_
   # To filter graph attributes to include in the dataset, use the following config group:
   - /data/dataset/graph_attrs_filter: spesi+cardiac_biomarkers+graph_biomarkers
   # To add transforms (or pre-transforms) to the dataset, use the following config group:
   - /data/dataset/transform: null
   - /data/dataset/transform@data.dataset.pre_transform: null
-  - _self_
   - /data/dataset/target: risk_ESC-2014
 
 data:
