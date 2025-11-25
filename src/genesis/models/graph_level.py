@@ -8,7 +8,7 @@ from torch_geometric.data import Batch
 from torch_geometric.nn import aggr
 
 from genesis.models import GraphLitModule
-from genesis.models.gnn.transform import LearnableTransform
+from genesis.models.gnn.transforms import LearnableTransform
 
 
 class GraphLevelLitModule(GraphLitModule):
