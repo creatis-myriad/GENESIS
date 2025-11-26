@@ -18,7 +18,7 @@ targets_overrides=(
   [risk_ESC-2014_elevated]="model/metrics=binary_classification"
 )
 models=(
-  "mlp" "gcn" "gat" "gin" "gps"
+  "mlp" "gcn" "gat" "gin"
   "gcn+vn" "gat+vn" "gin+vn"
   # Different formulation of virtual nodes, with heterogeneous message passing between real and virtual nodes
 #  "gcn+vn_g" "gat+vn_g" "gin+vn_g"
@@ -28,7 +28,8 @@ models=(
   # Different formulation of virtual nodes initialized with graph attributes, with heterogeneous message passing between
   # real and virtual nodes
 #  "gcn+vn_gv2" "gat+vn_gv2" "gin+vn_gv2"
-  "gagps"
+  "gps"
+  "gps+gaef" "gagps"
 )
 
 for target in "${!targets_configs[@]}"; do # Loop over targets and associated hparams to use

@@ -32,7 +32,7 @@ for model in gps gagps; do
   # These variants are not relevant for the GAGPS extension, since it is designed to support graph attributes out of the box.
   if [[ $model == "gps" ]]; then
     # shellcheck disable=SC2043
-    for variant in +galf; do
+    for variant in +gaef +galf; do
       gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu logger=wandb \
         hparams_search=persevere_${model} experiment=persevere/"${TARGET}"/${model}${variant} \
         +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}${variant}_${TARGET}.log" 2>&1
