@@ -1,0 +1,48 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=ablation/graph_representation/primal-gps+ftxa
+
+# Use the default GPS+FTxA config, consisting of:
+# - dual representation
+# - node features, no edge features
+# - positional encoding
+# modified to:
+# - use primal representation (i.e. not line graph)
+# - add PE as node features (to avoid empty node features), but also keep a separate PE copy to respect GPS encoder API
+#   which expects PE as its own argument
+#
+# NOTE: GPS implicitly uses GINE (instead of GIN) when edge features are available. So there is no need to change
+#       encoder to account for edge features
+
+defaults:
+  - /experiment/persevere/risk_ESC-2014/gps+ftxa
+  - /data/dataset/transform/_pe # Load base PE config
+  # Make sure no parts of other pre-transforms remain when redefining pre-transforms below
+  - override /data/dataset/transform@data.dataset.pre_transform: null
+
+data:
+  dataset:
+    line_graph: False # Use the primal representation
+    # Add positional encoding in its own field + concatenate to node features
+    pre_transform:
+      _target_: torch_geometric.transforms.Compose
+      transforms:
+        - _target_: torch_geometric.transforms.AddRandomWalkPE
+          walk_length: ${hparams.data.num_pe_features}
+          attr_name: pe
+        - _target_: genesis.data.transforms.features.ConcatFeatures
+          attrs:
+            pe: node
+          level: node
+          concat_attr: x
+
+model:
+  encoder:
+    # Ensure positional encoding is added to the node features to compute input dimension of the first GNN layer.
+    # This would not be done under the default config, since it only does this when PE does not have its own attribute.
+    in_channels: ${op:add, ${hparams.data.num_node_features}, ${oc.select:hparams.data.num_pe_features,0} }
+
+hparams:
+  data:
+    num_node_features: 0 # No node features in primal representation, since all features are on edges
