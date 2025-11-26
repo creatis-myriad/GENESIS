@@ -11,7 +11,7 @@
 # modified to:
 # - use primal representation (i.e. not line graph)
 # - use GINE (instead of GIN) to support edge features
-# - add PE
+# - add PE (making sure not to override the transform to concatenate graph-level features to node features)
 defaults:
   - /experiment/persevere/risk_ESC-2014/gin+gaef
   - override /data/dataset/transform@data.dataset.pre_transform: random_walk_pe+concat_global_features

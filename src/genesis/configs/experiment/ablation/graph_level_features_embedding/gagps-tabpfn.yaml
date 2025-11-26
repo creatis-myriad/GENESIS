@@ -5,6 +5,8 @@
 
 # Use the default GAGPS config, modified to:
 # - replace graph-level features with their TabPFN embedding
+# - move `random_walk_pe` from pre_transform to transform, to come after `tabpfn_embedding` in the pipeline
 defaults:
   - /experiment/persevere/risk_ESC-2014/gagps
   - override /data/dataset/transform@data.dataset.pre_transform: tabpfn_embedding
+  - override /data/dataset/transform: random_walk_pe
