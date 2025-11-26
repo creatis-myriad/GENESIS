@@ -1,0 +1,40 @@
+# @package _global_
+
+# Base experiment configuration for graph-level GINE model on the ZINC dataset.
+# Meant to set common hparams for the dataset+model, to be extended by child configs to override with mutually exclusive
+# transforms, which Hydra's additive config composition would prevent from overriding if a default were defined here.
+
+defaults:
+  - /experiment/generalization/zinc/_base
+  # Use the default config, but define hparams tuned for the dataset+model reported in the paper that introduced the
+  # ZINC dataset:
+  # Dwivedi et al. 2023, "Benchmarking Graph Neural Networks", http://jmlr.org/papers/v24/22-0567.html
+
+  - override /model/encoder: gine
+  - override /model/optimizer: adamw # identical to Adam when weight decay is set to 0, as is the case here
+  - override /model/scheduler: reduce_lr_on_plateau
+  - override /model/readout: sum
+
+trainer:
+  max_epochs: 1000
+
+data:
+  batch_size: 128
+
+model:
+  encoder:
+    hidden_channels: 110
+    num_layers: 4
+    dropout: 0.0
+    norm: BatchNorm
+    jk: cat # pool output node representations from intermediate representations at every MPNN layer
+  head:
+    num_layers: 2
+
+  optimizer:
+    lr: 0.001
+    weight_decay: 0.0
+  scheduler:
+    factor: 0.5
+    patience: 10
+    min_lr: 1e-5
