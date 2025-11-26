@@ -1,0 +1,46 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=generalization/zinc/gps
+
+defaults:
+  - /experiment/generalization/zinc/_base
+  # Use the default config, but define hparams tuned for the dataset+model reported in the supplementary materials of
+  # the paper that introduced GPS:
+  # Rampášek et al. 2022, "Recipe for a General, Powerful, Scalable Graph Transformer",
+  # https://papers.nips.cc/paper_files/paper/2022/file/5d4834a159f1547b267a05a4e2b7cf5e-Supplemental-Conference.pdf
+
+  - override /model/encoder: gps
+  - override /model/optimizer: adamw
+  - override /model/scheduler: linear_warmup_cosine_annealing
+  - override /model/readout: sum
+
+trainer:
+  max_epochs: 2000
+
+data:
+  batch_size: 32
+
+model:
+  encoder:
+    hidden_channels: 64
+    pe_embed_dim: 28
+    num_layers: 10
+    gps_kwargs:
+      heads: 4
+      dropout: 0.0
+      norm: BatchNorm
+      attn_kwargs:
+        dropout: 0.5
+  head:
+    num_layers: 2
+
+  optimizer:
+    lr: 0.001
+    weight_decay: 1e-5
+  scheduler:
+    num_warmup_epochs: 50
+
+hparams:
+  data:
+    num_pe_features: 20
