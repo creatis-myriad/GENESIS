@@ -31,14 +31,14 @@ models=(
   "gagps"
 )
 
-for target in "${!targets_configs[@]}"; do # Loop over targets and associated
+for target in "${!targets_configs[@]}"; do # Loop over targets and associated hparams to use
   experiment_config_group=${targets_configs[${target}]}
   for model in "${models[@]}"; do  # Loop over models
     # NOTE: Ignore conflicts on data splits (+data.on_conflict=ignore), because splits computed from different targets would
     # not match. This way, the splits computed from the first target will be used for all subsequent targets.
     # shellcheck disable=SC2086
     gnn-train -m hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu \
-      logger=wandb logger.wandb.log_model=True test=True \
+      logger=wandb test=True \
       experiment=persevere/"${experiment_config_group}"/"${model}" \
       ${targets_overrides[${target}]} \
       data/dataset/target="${target}" data/split=k_fold +data.on_conflict=ignore 'data.split_idx=range(10)' \
