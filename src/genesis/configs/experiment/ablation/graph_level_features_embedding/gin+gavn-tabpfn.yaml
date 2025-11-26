@@ -1,0 +1,10 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=ablation/graph_level_features_embedding/gin+gavn-tabpfn
+
+# Use the default GIN+GAVN config, modified to:
+# - replace graph-level features with their TabPFN embedding
+defaults:
+  - /experiment/persevere/risk_ESC-2014/gin+gavn
+  - override /data/dataset/transform@data.dataset.pre_transform: tabpfn_embedding
