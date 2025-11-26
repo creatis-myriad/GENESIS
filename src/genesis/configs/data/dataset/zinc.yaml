@@ -1,0 +1,39 @@
+# @package _global_
+
+# NOTICE: ZINC is a dataset unrelated to the subject of the paper, but useful as a larger dataset to test methods' generalizability.
+
+defaults:
+  # Place _self_ before filters and transforms in the defaults list, in case they override dataset hparams,
+  # e.g. modify number of graphs, features, etc.
+  - _self_
+  # To add transforms (or pre-transforms) to the dataset, use the following config group:
+  - /data/dataset/transform: null
+  - /data/dataset/transform@data.dataset.pre_transform: null
+
+data:
+  dataset:
+    _target_: torch_geometric.datasets.ZINC
+    root: ${paths.data_dir}/ZINC
+    # Use the smaller subset by default, to remain consistent with standardized benchmark defined in the paper
+    # "Benchmarking Graph Neural Networks"
+    # https://jmlr.org/papers/v24/22-0567.html
+    subset: True
+    force_reload: False
+
+hparams:
+  # hparams.data.* values are meant to expose the constant properties of the `torch_geometric.data.Dataset` instance
+  # to make them available during the resolution of the configuration, using the same names.
+  # This is done to allow for automatic interpolation of data-processing components (e.g. stratified splits)
+  # and model architecture components (e.g. input/output dimensions) during the resolution of the configuration.
+  # Therefore, it is important to provide the values available for your dataset, whether it is a PyTorch Geometric
+  # dataset or your own custom dataset.
+  data:
+    # MUTAG dataset contains 135 graphs in the cleaned version, and 188 graphs in the original version
+    num_graphs: ${op.ternary:${data.dataset.subset}, 12000, 249456}
+    num_node_features: 1
+    num_edge_features: 1
+    task: regression
+    node_features_cardinalities: # Atom (i.e. node) metadata, used to encode node features
+      - 28 # atom type
+    edge_features_cardinalities: # Bond (i.e. edge) metadata, used to encode edge features
+      - 4 # bond type
