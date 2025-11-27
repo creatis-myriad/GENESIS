@@ -25,6 +25,7 @@ dependencies = [
     "pyvis>=0.3.2,<1",
     "rich>=14,<15",
     "rootutils>=1.0.7,<2",
+    "rtdl-revisiting-models>=0.0.2,<0.1",
     "scikit-learn>=1.6.1,<2",
     "torch-geometric>=2.7,<2.8",
     "torchmetrics[visual]>=1.8,<1.9",

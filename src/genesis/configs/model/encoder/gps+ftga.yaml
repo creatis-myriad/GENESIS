@@ -1,0 +1,16 @@
+# GraphGPS configuration to use our proposed GAGPSConv extension to GPSConv layer, which adds support for Graph-level Attributes.
+
+defaults:
+  - gps
+
+graph_attr_embedding:
+  _target_: torch.nn.Sequential
+  _args_:
+    - _target_: genesis.models.tabular.embedding.FeatureTokenizer
+      # Number of continuous graph-level features is the number of features minus the categorical ones
+      n_num_features: ${op:sub,${hparams.data.num_graph_features},${op:length_hint,${.cat_cardinalities}}}
+      # Cardinality (i.e. number of classes) of each categorical graph-level feature
+      cat_cardinalities: ${hparams.data.graph_cat_features_cardinalities}
+      d_token: ${....hidden_channels}
+    - _target_: genesis.models.tabular.embedding.CLSToken
+      d_token: ${..0.d_token}

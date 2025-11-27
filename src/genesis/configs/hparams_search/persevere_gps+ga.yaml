@@ -13,3 +13,5 @@ hydra:
     # - add parameters specific to GPS with support for graph-level attributes
     params:
       model.features_for_readout: choice(node, graph)
+      # Add `LastAggregation` to extract CLS token in GPS+FTGA, which is appended to the end of graph-level tokens
+      model.readout._target_: choice(torch_geometric.nn.SumAggregation, torch_geometric.nn.MeanAggregation, genesis.models.gnn.agg.LastAggregation)
