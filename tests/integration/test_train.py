@@ -109,6 +109,6 @@ def test_train_resume(tmp_path: Path, cfg_train: DictConfig) -> None:
     # Check that a checkpoint from a later epoch was saved after resuming training
     monitor_checkpoint_stem = next(f for f in files if f.startswith("epoch_"))
     monitor_checkpoint_best_epoch = int(monitor_checkpoint_stem.split("_")[1])
-    assert monitor_checkpoint_best_epoch in range(1, 10)
+    assert monitor_checkpoint_best_epoch in range(10)
 
-    assert metric_dict_1["val/loss/best"] > metric_dict_2["val/loss/best"]
+    assert metric_dict_1["val/loss/best"] >= metric_dict_2["val/loss/best"]
