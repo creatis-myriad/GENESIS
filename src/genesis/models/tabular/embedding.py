@@ -190,3 +190,44 @@ class CLSToken(nn.Module):
         """
         expanded_cls = self.expand(*x.shape[:-2], 1)
         return torch.cat([x, expanded_cls], dim=-2)
+
+
+class PositionalEncoding(nn.Module):
+    """Positional encoding layer.
+
+    Examples:
+        >>> batch_size = 2
+        >>> n_tokens = 3
+        >>> d_token = 4
+        >>> pe = PositionalEncoding(n_tokens, d_token)
+        >>> x = torch.randn(batch_size, n_tokens, d_token)
+        >>> x = pe(x)
+        >>> x.shape # (batch_size, n_tokens, d_token)
+        torch.Size([2, 3, 4])
+    """
+
+    def __init__(self, n_tokens: int, d_token: int) -> None:
+        """Initializes `PositionalEncoding` instance.
+
+        Args:
+            n_tokens: Length of tokens sequence.
+            d_token: Dimensionality of each token.
+        """
+        super().__init__()
+        self.positional_encoding = nn.Parameter(torch.empty(n_tokens, d_token))
+        self.reset_parameters()
+
+    def reset_parameters(self) -> None:
+        """Initializes the weights using a normal distribution."""
+        nn.init.trunc_normal_(self.positional_encoding, std=0.2)
+
+    def forward(self, x: Tensor) -> Tensor:
+        """Forward pass that adds positional encoding to the input tensor.
+
+        Args:
+            x: (N, S, `d_model`), Input tensor.
+
+        Returns:
+            (N, S, `d_model`), Tensor with added positional encoding.
+        """
+        return x + self.positional_encoding[None, ...]
