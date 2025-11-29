@@ -5,7 +5,7 @@
 
 defaults:
   - /experiment/persevere/enzymes_elevated/_base
-  - override /model: graph_level_gagps
+  - override /model: graph_level_gps+ga
   - override /model/encoder: gagps
 
   # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search

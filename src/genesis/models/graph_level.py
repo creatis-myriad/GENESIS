@@ -106,11 +106,11 @@ class GraphLevelLitModule(GraphLitModule):
         return x
 
 
-class GAGPSGraphLevelLitModule(GraphLevelLitModule):
-    """A LightningModule customized for GAGPS model to perform readout given both node and graph level features."""
+class GPSGraphLevelLitModule(GraphLevelLitModule):
+    """A LightningModule customized for GPS with graph attributes, to readout from either node or graph attributes."""
 
     def __init__(self, *args, features_for_readout: Literal["node", "graph"], **kwargs) -> None:
-        """Initializes a `GAGPSGraphLevelLitModule`.
+        """Initializes a `GPSGraphLevelLitModule`.
 
         Args:
             *args: Additional positional arguments to pass to the superclass.

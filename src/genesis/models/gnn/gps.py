@@ -4,6 +4,7 @@ from typing import Any, Final, Literal, overload
 
 import torch
 import torch.nn.functional as F  # noqa: N812
+from torch import nn
 from torch.nn import BatchNorm1d, Linear, ModuleList, ReLU, Sequential
 from torch_geometric.nn import GINConv, GINEConv, GPSConv, MessagePassing
 from torch_geometric.nn.attention import PerformerAttention
@@ -51,7 +52,7 @@ class GPS(torch.nn.Module):
         pe_embed_dim: int,
         num_layers: int,
         edge_dim: int | None = None,
-        graph_dim: int | None = None,
+        graph_attr_embedding: nn.Module | None = None,
         out_channels: int | None = None,
         gps_kwargs: dict[str, Any] | None = None,
         mpnn_type: Literal["gine", "gatedgcn", "pna"] = "gine",
@@ -68,7 +69,7 @@ class GPS(torch.nn.Module):
             pe_embed_dim: Number of features to embed the positional encodings to.
             num_layers: Number of `GPSConv` layers to use.
             edge_dim: Number of input edge features. If `None`, edge features are not used.
-            graph_dim: Number of input graph features. If `None`, graph features are not used.
+            graph_attr_embedding: Module to embed graph-level features to one or more tokens of size `hidden_channels`.
             out_channels: Number of output features. If `None`, the number of output features is equal to
                 `hidden_channels`.
             gps_kwargs: Additional keyword arguments to pass to `GPSConv` layers.
@@ -91,13 +92,13 @@ class GPS(torch.nn.Module):
             )
 
         self.supports_edge_attr = bool(edge_dim)
-        self.supports_graph_attr = bool(graph_dim)
+        self.supports_graph_attr = graph_attr_embedding is not None
 
         self.pe_norm = BatchNorm1d(pe_dim)
         self.pe_lin = Linear(pe_dim, pe_embed_dim)
         self.node_lin = Linear(in_channels, hidden_channels - pe_embed_dim)
         self.edge_lin = Linear(edge_dim, hidden_channels) if edge_dim else None
-        self.graph_lin = Linear(graph_dim, hidden_channels) if graph_dim else None
+        self.graph_attr_embedding = graph_attr_embedding
 
         self._mpnn_type = mpnn_type
         self._mpnn_kwargs = mpnn_kwargs or {}
@@ -154,7 +155,7 @@ class GPS(torch.nn.Module):
         if self.supports_edge_attr:
             self.edge_lin.reset_parameters()
         if self.supports_graph_attr:
-            self.graph_lin.reset_parameters()
+            self.graph_attr_embedding.reset_parameters()
 
     @overload
     def forward(
@@ -216,7 +217,7 @@ class GPS(torch.nn.Module):
 
         if graph_attr is not None:
             assert self.supports_graph_attr
-            graph_attr = self.graph_lin(graph_attr)
+            graph_attr = self.graph_attr_embedding(graph_attr)
 
         for conv in self.convs:
             if graph_attr is None:
@@ -306,9 +307,10 @@ class GAGPSConv(GPSConv):
         #                          Start custom code block                            #
         ###############################################################################
 
-        # Add sequence dimension to graph-level token
-        # (num_graphs, channels) -> (num_graphs, 1, channels)
-        graph_attr = graph_attr.unsqueeze(1)
+        if unique_graph_attr := graph_attr.ndim == 2:
+            # If not already present, add sequence dimension to graph-level embedding
+            # (num_graphs, channels) -> (num_graphs, 1, channels)
+            graph_attr = graph_attr.unsqueeze(1)
 
         # 1) Update graph-level token using cross-attention with node tokens
         h_graph_attr, _ = self.graph2node_attn(graph_attr, h, h, key_padding_mask=~mask, need_weights=False)
@@ -321,10 +323,11 @@ class GAGPSConv(GPSConv):
         h_cross, _ = self.node2graph_attn(h, graph_attr, graph_attr, need_weights=False)
         h = h_self + h_cross  # Combine self-attention between nodes and cross-attention with graph token
 
-        # Remove sequence dimension from graph-level tokens
-        # i.e. (num_graphs, 1, channels) -> (num_graphs, channels)
-        graph_attr = graph_attr.squeeze(1)
-        h_graph_attr = h_graph_attr.squeeze(1)
+        if unique_graph_attr:
+            # Remove sequence dimension from graph-level tokens if there is only one embedding
+            # i.e. (num_graphs, 1, channels) -> (num_graphs, channels)
+            graph_attr = graph_attr.squeeze(1)
+            h_graph_attr = h_graph_attr.squeeze(1)
 
         ###############################################################################
         #                           End custom code block                             #
