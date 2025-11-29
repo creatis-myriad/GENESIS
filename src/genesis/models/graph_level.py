@@ -129,9 +129,17 @@ class GPSGraphLevelLitModule(GraphLevelLitModule):
                 # When using node encodings, use the readout aggregation just like for classic GNNs
                 x = self.readout(node_enc, ptr=data.ptr, dim_size=data.batch_size)
             case "graph":
-                # When using graph-level features encodings, return them directly because they already correspond to a
-                # vector representation for each graph
-                x = graph_enc
+                # When using graph-level features encodings, if a sequence of tokens is returned, pool them
+                if graph_enc.ndim == 3:
+                    num_graphs, num_graph_tokens, feat = graph_enc.shape
+                    # Generate `ptr` for graph-level tokens by:
+                    # 1) creating a range from 0 to num_graphs (inclusive)
+                    # 2) multiplying it by the number of tokens per graph
+                    ptr = torch.arange(num_graphs + 1, device=graph_enc.device) * num_graph_tokens
+                    x = self.readout(graph_enc.view(-1, feat), ptr=ptr, dim_size=num_graphs)
+                else:
+                    # Otherwise, return them directly because they correspond to a vector representation for each graph
+                    x = graph_enc
             case _:
                 raise ValueError(
                     f"Invalid `features_for_readout` '{self.features_for_readout}'. "

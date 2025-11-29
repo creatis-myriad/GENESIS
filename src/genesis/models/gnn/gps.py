@@ -356,14 +356,22 @@ class GAGPSConv(GPSConv):
         #                          Start custom code block                            #
         ###############################################################################
 
-        # 1) Update graph-level features token after attention layer
+        # Update graph-level features tokens after attention layer
 
-        # Since operations below manipulate graph-level features, i.e. one vector representation per graph,
-        # use a batch vector for norm layers where each vector is assigned to a different graph
-        graph_batch = torch.arange(len(graph_attr), device=graph_attr.device)
+        # Extract dimensions of graph-level features
+        num_graphs = len(graph_attr)
+        num_graph_tokens = graph_attr.shape[1] if graph_attr.ndim == 3 else 1
+        d_token = graph_attr.shape[-1]
+
+        # Operations below, notably norm layers, expect 2D tensors + a batch vector indicating graph assignments.
+        # To represent graph-level features this way, we:
+        # 1) combine the sequence dimension of graph-level tokens with the batch dimension
+        h_graph_attr = h_graph_attr.reshape(-1, d_token)
+        # 2) create a batch assignment vector for graph-level tokens along this new flattened dimension
+        graph_batch = torch.arange(num_graphs, device=graph_attr.device).repeat_interleave(num_graph_tokens)
 
         h_graph_attr = F.dropout(h_graph_attr, p=self.dropout, training=self.training)
-        h_graph_attr = h_graph_attr + graph_attr  # Residual connection.
+        h_graph_attr = h_graph_attr + graph_attr.view(-1, d_token)  # Residual connection
         if self.norm4 is not None:
             if self.norm_with_batch:
                 h_graph_attr = self.norm4(h_graph_attr, batch=graph_batch)
@@ -377,5 +385,8 @@ class GAGPSConv(GPSConv):
             else:
                 h_graph_attr = self.norm5(h_graph_attr)
 
-        # 2) Additionally return updated graph-level features
+        # Restore the dense batch format of graph-level features
+        h_graph_attr = h_graph_attr.view_as(graph_attr)
+
+        # Additionally return updated graph-level features
         return out, h_graph_attr
