@@ -1,0 +1,29 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/risk_ESC-2014/gps+ftga
+
+defaults:
+  - /experiment/persevere/risk_ESC-2014/_base
+  - override /model: graph_level_gps+ga
+  - override /model/encoder: gps+ftga
+
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: sum
+
+model:
+  encoder:
+    hidden_channels: 64
+    pe_embed_dim: 4
+    num_layers: 10
+    gps_kwargs:
+      heads: 1
+      dropout: 0.13
+      norm: GraphNorm
+      attn_kwargs:
+        dropout: 0.011
+  features_for_readout: node
+  head:
+    num_layers: 2
+  optimizer:
+    weight_decay: 4.7e-4
