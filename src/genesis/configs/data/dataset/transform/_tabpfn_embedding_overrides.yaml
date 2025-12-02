@@ -3,8 +3,8 @@
 hparams:
   data:
     agg_tabpfn_embeddings: true
-    # If embeddings from the multiple estimators used by TabPFN (default: 6) should be reduced to a single embedding,
+    # If embeddings from the multiple estimators used by TabPFN (default: 8) should be reduced to a single embedding,
     # the size of the global is equal to the embedding size (default: 192).
     # Otherwise, the embeddings are concatenated along the feature dimension, so the size of the global features equals
-    # `embedding size (192) * num estimators (6)`.
-    num_graph_features: ${op.ternary:${.agg_tabpfn_embeddings}, 192, ${op:mul,192,6}}
+    # `embedding size (192) * num estimators (8)`.
+    num_graph_features: ${op.ternary:${.agg_tabpfn_embeddings}, 192, ${op:mul,192,8}}
