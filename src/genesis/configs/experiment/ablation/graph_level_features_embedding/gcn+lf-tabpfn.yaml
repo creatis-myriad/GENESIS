@@ -1,10 +1,10 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=ablation/graph_level_features_embedding/gcn+galf-tabpfn
+# python train.py experiment=ablation/graph_level_features_embedding/gcn+lf-tabpfn
 
-# Use the default GCN+GALF config, modified to:
+# Use the default GCN+LF config, modified to:
 # - replace global features with their TabPFN embedding
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gcn+galf
+  - /experiment/persevere/risk_ESC-2014/gcn+lf
   - override /data/dataset/transform@data.dataset.pre_transform: tabpfn_embedding

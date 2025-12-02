@@ -1,23 +1,23 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=persevere/enzymes_elevated/mlp+galf
+# python train.py experiment=persevere/risk_ESC-2014/gin+lf
 
 defaults:
-  - /experiment/persevere/enzymes_elevated/_base
+  - /experiment/persevere/risk_ESC-2014/_base
   - override /model: graph_level_late_fusion
-  - override /model/encoder: mlp
+  - override /model/encoder: gin
 
   # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
   - override /model/readout: mean
 
 model:
   encoder:
-    hidden_channels: 16
-    num_layers: 4
-    dropout: 0.028
+    hidden_channels: 32
+    num_layers: 8
+    dropout: 0.17
     norm: BatchNorm
   head:
     num_layers: 3
   optimizer:
-    weight_decay: 1.8e-5
+    weight_decay: 2.3e-4

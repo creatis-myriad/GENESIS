@@ -1,7 +1,7 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=persevere/risk_ESC-2014/gat+gaef
+# python train.py experiment=persevere/risk_ESC-2014/gat+ef
 
 defaults:
   - /experiment/persevere/risk_ESC-2014/_base

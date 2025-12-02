@@ -1,9 +1,9 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=ablation/graph_representation/primal-gine+pe+gaef
+# python train.py experiment=ablation/graph_representation/primal-gine+pe+ef
 
-# Use the default GIN+GAEF config, consisting of:
+# Use the default GIN+EF config, consisting of:
 # - dual representation
 # - node features
 # - no positional encoding
@@ -13,7 +13,7 @@
 # - use GINE (instead of GIN) to support edge features
 # - add PE (making sure not to override the transform to concatenate global features to node features)
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gin+gaef
+  - /experiment/persevere/risk_ESC-2014/gin+ef
   - override /data/dataset/transform@data.dataset.pre_transform: random_walk_pe+concat_global_features
   - override /model/encoder: gine
 

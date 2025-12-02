@@ -8,7 +8,7 @@ LOG_DIR=${2:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 
 # Use the same hparams search config for the message passing GNNs (GCN, GAT, GIN) and their variants, but optimize each configuration separately
 for model in gcn gat gin; do
-  for variant in "" +vn +gaef +galf +gavn; do
+  for variant in "" +vn +ef +lf +gavn; do
     gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu logger=wandb \
       hparams_search=persevere_basic_gnn experiment=persevere/"${TARGET}"/${model}${variant} \
       +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}${variant}_${TARGET}.log" 2>&1
@@ -27,8 +27,8 @@ declare -A gps_hparams_search_configs
 # Associative mapping between GPS (variant) and the hparams search config to use
 gps_hparams_search_configs=(
   [gps]="persevere_gps"
-  [gps+gaef]="persevere_gps"
-  [gps+galf]="persevere_gps"
+  [gps+ef]="persevere_gps"
+  [gps+lf]="persevere_gps"
   [gagps]="persevere_gps+ga"
   [gps+ftga]="persevere_gps+ga"
 )
@@ -40,7 +40,7 @@ done
 
 # Separate loop for MLP baseline, since its variants are different from other GNNs
 model=mlp
-for variant in "" +gaef +galf; do
+for variant in "" +ef +lf; do
   gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu logger=wandb \
     hparams_search=persevere_basic_gnn experiment=persevere/"${TARGET}"/${model}${variant} \
     +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}${variant}_${TARGET}.log" 2>&1
