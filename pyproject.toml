@@ -204,6 +204,7 @@ minversion = "9.0"
 strict = true
 testpaths = [
     "tests/",
+    "src/genesis/", # to run doctests
 ]
 
 [tool.coverage.run]
