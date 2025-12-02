@@ -46,4 +46,5 @@ hparams:
     # Infer the number of graph-level features from the selected graph attributes, and default to all but the target
     # attribute if no filter is provided
     num_graph_features: ${op:length_hint, ${oc.select:data.dataset.graph_attrs_filter}, ${op:sub,${.num_raw_graph_features},1}}
+    graph_cat_features_cardinalities: ??? # To be set by the graph_attrs_filter config
     task: ??? # To be set by the target config

@@ -5,7 +5,9 @@
 
 defaults:
   - /hparams_search/_persevere_optuna # inherit from base hparams PERSEVERE search config
-  - override /model/encoder: gps
+  # It is necessary to select one of the variants of the GPS encoder, but we can't set a default '/model/encoder' here,
+  # because it would override the choice in the experiment config (hparams_search comes after experiments in the
+  # defaults list and override its values)
 
 hydra:
   sweeper:

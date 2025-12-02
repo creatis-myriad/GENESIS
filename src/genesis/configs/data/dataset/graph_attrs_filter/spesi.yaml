@@ -1,7 +1,19 @@
-- spesi
-- history_cancer
-- history_cpd
-- heart_rate
-- systolic_bp
-- spO2
-- age
+# @package _global_
+
+data:
+  dataset:
+    graph_attrs_filter:
+      - spesi
+      - history_cancer
+      - history_cpd
+      - heart_rate
+      - systolic_bp
+      - spO2
+      - age
+
+hparams:
+  data:
+    graph_cat_features_cardinalities:
+      0: 6 # spesi
+      1: 2 # history_cancer
+      2: 2 # history_cpd

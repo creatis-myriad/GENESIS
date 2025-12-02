@@ -23,21 +23,19 @@ for model in gcn gat gin; do
 done
 
 # Use dedicated hparams search configs for GPS and its extensions/variants, because they have different hyperparameters
-for model in gps gagps; do
+declare -A gps_hparams_search_configs
+# Associative mapping between GPS (variant) and the hparams search config to use
+gps_hparams_search_configs=(
+  [gps]="persevere_gps"
+  [gps+gaef]="persevere_gps"
+  [gps+galf]="persevere_gps"
+  [gagps]="persevere_gps+ga"
+  [gps+ftga]="persevere_gps+ga"
+)
+for model in "${!gps_hparams_search_configs[@]}"; do
   gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu logger=wandb \
-    hparams_search=persevere_${model} experiment=persevere/"${TARGET}"/${model} \
+    hparams_search="${gps_hparams_search_configs[${model}]}" experiment=persevere/"${TARGET}"/"${model}" \
     +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}_${TARGET}.log" 2>&1
-
-  # Support for graph attributes through early/late fusion variants can also be combined with the base GPS model.
-  # These variants are not relevant for the GAGPS extension, since it is designed to support graph attributes out of the box.
-  if [[ $model == "gps" ]]; then
-    # shellcheck disable=SC2043
-    for variant in +gaef +galf; do
-      gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu logger=wandb \
-        hparams_search=persevere_${model} experiment=persevere/"${TARGET}"/${model}${variant} \
-        +data.on_conflict=ignore >>"${LOG_DIR}/hparams_search_${model}${variant}_${TARGET}.log" 2>&1
-    done
-  fi
 done
 
 # Separate loop for MLP baseline, since its variants are different from other GNNs

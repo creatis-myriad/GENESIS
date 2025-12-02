@@ -3,4 +3,7 @@
 defaults:
   - gps
 
-graph_dim: ${oc.select:hparams.data.num_graph_features}
+graph_attr_embedding:
+  _target_: torch.nn.Linear
+  in_features: ${hparams.data.num_graph_features}
+  out_features: ${..hidden_channels}
