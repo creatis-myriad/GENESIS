@@ -1,7 +1,7 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=ablation/graph_level_features_embedding/gcn+ef-tabpfn
+# python train.py experiment=ablation/global_features_embedding/gcn+ef-tabpfn
 
 # Use the default GCN+EF config, modified to:
 # - replace global features with their TabPFN embedding
