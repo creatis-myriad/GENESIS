@@ -24,8 +24,8 @@ class GPS(torch.nn.Module):
     configurable under the default configuration of `GINEConv` message-passing layer and multihead attention.
 
     Notes:
-        - If graph-level features are provided, this implementation uses our proposed GAGPSConv extension of the GPSConv
-          layer, which adds support for Graph-level Attributes.
+        - If global features are provided, this implementation uses our proposed GAGPSConv extension of the GPSConv
+          layer, which adds support for Global Attributes.
         - Also adapted to be a more generic encoder (as the reference impl. focused on graph-level tasks). To use for
           graph-level tasks, use as the encoder of a `genesis.models.GraphLevelLitModule`.
 
@@ -69,7 +69,7 @@ class GPS(torch.nn.Module):
             pe_embed_dim: Number of features to embed the positional encodings to.
             num_layers: Number of `GPSConv` layers to use.
             edge_dim: Number of input edge features. If `None`, edge features are not used.
-            graph_attr_embedding: Module to embed graph-level features to one or more tokens of size `hidden_channels`.
+            graph_attr_embedding: Module to embed global features to one or more tokens of size `hidden_channels`.
             out_channels: Number of output features. If `None`, the number of output features is equal to
                 `hidden_channels`.
             gps_kwargs: Additional keyword arguments to pass to `GPSConv` layers.
@@ -199,7 +199,7 @@ class GPS(torch.nn.Module):
             pe: Positional encodings of shape `[num_nodes, pe_in_channels]`.
             batch: Batch vector assigning each element to a specific graph of shape `[num_nodes]`.
             edge_attr: Edge features of shape `[num_edges, edge_in_channels]`, if any.
-            graph_attr: Graph-level features of shape `[graph_dim]`, if any.
+            graph_attr: global features of shape `[graph_dim]`, if any.
             **kwargs: Additional keyword arguments to pass to the `GPSConv` layers.
 
         Returns:
@@ -234,7 +234,7 @@ class GPS(torch.nn.Module):
 
 
 class GAGPSConv(GPSConv):
-    """Extension of the GPSConv layer to handle Graph-level Attributes.
+    """Extension of the GPSConv layer to handle Global Attributes.
 
     References:
         - Implementation copies parts of PyG's `GPSConv`:
@@ -246,7 +246,7 @@ class GAGPSConv(GPSConv):
 
         if isinstance(self.attn, PerformerAttention):
             raise ValueError(
-                "'PerformerAttention' is currently not supported for extension of GPSConv that supports graph-level "
+                "'PerformerAttention' is currently not supported for extension of GPSConv that supports global "
                 "attributes."
             )
 
@@ -281,7 +281,7 @@ class GAGPSConv(GPSConv):
         """Runs the forward pass of the module.
 
         The code was copied from `torch_geometric.nn.GPSConv`'s `forward` method, and only modified where indicated to
-        include graph-level features in global self-attention.
+        include global features in global self-attention.
 
         Notes:
             - `GPSConv` leaves the `batch` arg optional, but in practice it is required to properly group graphs as
@@ -308,7 +308,7 @@ class GAGPSConv(GPSConv):
         ###############################################################################
 
         if unique_graph_attr := graph_attr.ndim == 2:
-            # If not already present, add sequence dimension to graph-level embedding
+            # If not already present, add sequence dimension to graph-level tokens
             # (num_graphs, channels) -> (num_graphs, 1, channels)
             graph_attr = graph_attr.unsqueeze(1)
 
@@ -356,15 +356,15 @@ class GAGPSConv(GPSConv):
         #                          Start custom code block                            #
         ###############################################################################
 
-        # Update graph-level features tokens after attention layer
+        # Update global features tokens after attention layer
 
-        # Extract dimensions of graph-level features
+        # Extract dimensions of global features
         num_graphs = len(graph_attr)
         num_graph_tokens = graph_attr.shape[1] if graph_attr.ndim == 3 else 1
         d_token = graph_attr.shape[-1]
 
         # Operations below, notably norm layers, expect 2D tensors + a batch vector indicating graph assignments.
-        # To represent graph-level features this way, we:
+        # To represent global features this way, we:
         # 1) combine the sequence dimension of graph-level tokens with the batch dimension
         h_graph_attr = h_graph_attr.reshape(-1, d_token)
         # 2) create a batch assignment vector for graph-level tokens along this new flattened dimension
@@ -385,8 +385,8 @@ class GAGPSConv(GPSConv):
             else:
                 h_graph_attr = self.norm5(h_graph_attr)
 
-        # Restore the dense batch format of graph-level features
+        # Restore the dense batch format of global features
         h_graph_attr = h_graph_attr.view_as(graph_attr)
 
-        # Additionally return updated graph-level features
+        # Additionally return updated global features
         return out, h_graph_attr

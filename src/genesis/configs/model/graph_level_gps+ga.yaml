@@ -1,4 +1,4 @@
-# Use the base graph-level module for GPS with support for graph-level features, with slight changes:
+# Use the base graph-level module for GPS with support for Global Attributes, with slight changes:
 # 1) Change the module class to `GPSGraphLevelLitModule`, which adapts the readout to handle receiving encodings
 #    of both node and graph level features.
 defaults:

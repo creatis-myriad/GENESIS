@@ -1,7 +1,7 @@
-# Use the base graph-level module to implement late fusion of graph-level features, with very slight changes:
-# 1) Update the prediction head input channels to expect a concatenation of graph encoding and graph-level features,
+# Use the base graph-level module to implement late fusion of global features, with very slight changes:
+# 1) Update the prediction head input channels to expect a concatenation of graph encoding and global features,
 # 2) Change the module class to `LateFusionGraphLevelLitModule`, which implements the concatenation of graph encoding
-#    and graph-level features right before the prediction head
+#    and global features right before the prediction head
 defaults:
   - graph_level
 

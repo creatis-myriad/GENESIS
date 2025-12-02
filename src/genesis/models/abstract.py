@@ -347,7 +347,7 @@ class GraphLitModule(MetricTrackingLitModule, ABC):
                     **custom_data_attrs,
                     transform=pe_transform,
                 )
-                # Clip graph-level features between 0 and 1, to match range of binary features, in case they are used as
+                # Clip global features between 0 and 1, to match range of binary features, in case they are used as
                 # categorical features to lookup embeddings in some models (e.g. GPS with Feature Tokenizer)
                 if hasattr(fake_dataset, "graph_attr"):
                     # Update the underlying data (and not the view obtained when accessing the attribute on the dataset)

@@ -34,8 +34,8 @@ class VN_G_Mixin(nn.Module):  # noqa: N801
         Args:
             *args: Additional positional arguments to pass to the class inheriting form `BasicGNN`.
             v2: If true, will make use of `VN_Gv2_MessagePassing` rather than `VN_G_MessagePassing`.
-            graph_dim: Graph-level feature dimensionality (in case there are any). Only use in case `v2` is `True`,
-                since only v2 supports graph-level features.
+            graph_dim: Global features dimensionality (in case there are any). Only used in case `v2` is `True`, since
+                only v2 supports global features.
             vn_g_kwargs: Additional keyword arguments to pass to the VN_G message passing layers' constructor.
             **kwargs: Additional keyword arguments to pass to the class inheriting form `BasicGNN`.
         """
@@ -57,8 +57,8 @@ class VN_G_Mixin(nn.Module):  # noqa: N801
             vn_g_message_passing_cls(self.hidden_channels, self.out_channels, **vn_g_kwargs)
         )
 
-        # Add an initial layer to project graph-level features dimensionality to hidden dimensionality,
-        # if graph-level features are provided and supported by the model
+        # Add an initial layer to project global features dimensionality to hidden dimensionality,
+        # if global features are provided and supported by the model
         if graph_dim and self.supports_graph_attr:
             self.graph_attr_lin = pyg_nn.Linear(graph_dim, self.hidden_channels)
 
@@ -96,26 +96,26 @@ class VN_G_Mixin(nn.Module):  # noqa: N801
                 "'trim_to_layer' functionality does not yet support trimming of both 'edge_weight' and 'edge_attr'"
             )
 
-        #########################################################################################
-        # Added steps to support graph-level features in VN_Gv2:                                #
-        # IF graph-level features are provided:                                                 #
-        #   Initialize global state by project graph-level features them to node dimensionality #
-        # ELSE                                                                                  #
-        #   Initialize global state with zeros                                                  #
-        #########################################################################################
+        #######################################################################################
+        # Added steps to support global features in VN_Gv2:                                   #
+        # IF global features are provided:                                                    #
+        #   Initialize global state by projecting global features them to node dimensionality #
+        # ELSE                                                                                #
+        #   Initialize global state with zeros                                                #
+        #######################################################################################
         if hasattr(self, "graph_attr_lin"):
             if graph_attr is None:
                 raise ValueError(
-                    f"{self.__class__.__name__} has been configured to expect graph-level features, but no "
+                    f"{self.__class__.__name__} has been configured to expect global features, but no "
                     f"`graph_attr` has been provided to the forward pass."
                 )
             x_global = self.graph_attr_lin(graph_attr)  # (num_graphs, num_graph_features -> node_channels)
         elif self.v2:
             num_graphs = torch.unique_consecutive(batch).numel()
             x_global = x.new_zeros((num_graphs, self.hidden_channels))  # (num_graphs, node_channels)
-        #########################################################################################
-        #                                  End custom code block                                #
-        #########################################################################################
+        #######################################################################################
+        #                                  End custom code block                              #
+        #######################################################################################
 
         xs: list[Tensor] = []
         assert len(self.convs) == len(self.norms)
@@ -281,7 +281,7 @@ class VN_G_MessagePassing(nn.Module):  # noqa: N801
 
 
 class VN_Gv2_MessagePassing(VN_G_MessagePassing):  # noqa: N801
-    """Update to the VN_G formulation of virtual nodes, with explicit VN and support for graph-level features."""
+    """Update to the VN_G formulation of virtual nodes, with explicit VN and support for global features."""
 
     def __init__(
         self,

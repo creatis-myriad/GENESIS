@@ -7,7 +7,7 @@
 # - dual representation
 # - node features, no edge features
 # - no positional encoding
-# - graph-level features concatenated after readout
+# - global features concatenated after readout
 # modified to:
 # - use primal representation (i.e. not line graph)
 # - use GINE (instead of GIN) to support node features having become edge features

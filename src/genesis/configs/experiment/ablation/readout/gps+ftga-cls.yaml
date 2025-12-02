@@ -10,4 +10,4 @@ defaults:
   - override /model/readout: last # Extract the CLS token appended at the end of global tokens
 
 model:
-  features_for_readout: graph # Use graph-level representations (instead of node representations) as readout input
+  features_for_readout: graph # Use global features representations (instead of node representations) as readout input

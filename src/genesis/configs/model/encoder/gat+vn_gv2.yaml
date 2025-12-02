@@ -1,4 +1,4 @@
-# Implements the VN_G formulation of virtual nodes, extended to support graph-level features, on top of a GAT model
+# Implements the VN_G formulation of virtual nodes, extended to support global features, on top of a GAT model
 
 defaults:
   - gat+vn_g

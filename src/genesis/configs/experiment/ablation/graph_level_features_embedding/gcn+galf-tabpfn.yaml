@@ -4,7 +4,7 @@
 # python train.py experiment=ablation/graph_level_features_embedding/gcn+galf-tabpfn
 
 # Use the default GCN+GALF config, modified to:
-# - replace graph-level features with their TabPFN embedding
+# - replace global features with their TabPFN embedding
 defaults:
   - /experiment/persevere/risk_ESC-2014/gcn+galf
   - override /data/dataset/transform@data.dataset.pre_transform: tabpfn_embedding

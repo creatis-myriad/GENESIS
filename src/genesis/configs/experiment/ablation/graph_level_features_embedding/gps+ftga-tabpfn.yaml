@@ -4,7 +4,7 @@
 # python train.py experiment=ablation/graph_level_features_embedding/gps+ftga-tabpfn
 
 # Use the default GPS+FTGA config, modified to:
-# - replace graph-level features with their TabPFN embedding
+# - replace global features with their TabPFN embedding
 # - move `random_walk_pe` from pre_transform to transform, to come after `tabpfn_embedding` in the pipeline
 defaults:
   - /experiment/persevere/risk_ESC-2014/gps+ftga

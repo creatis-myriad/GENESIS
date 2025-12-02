@@ -43,7 +43,7 @@ hparams:
     num_filtered_edge_features: ${op:length_hint,${oc.select:data.dataset.edge_attrs_filter}, ${.num_raw_edge_features}}
     num_edge_features: ${op.ternary:${data.dataset.line_graph}, null, ${.num_filtered_edge_features}}
     num_node_features: ${op.ternary:${data.dataset.line_graph}, ${.num_filtered_edge_features}, null}
-    # Infer the number of graph-level features from the selected graph attributes, and default to all but the target
+    # Infer the number of global features from the selected graph attributes, and default to all but the target
     # attribute if no filter is provided
     num_graph_features: ${op:length_hint, ${oc.select:data.dataset.graph_attrs_filter}, ${op:sub,${.num_raw_graph_features},1}}
     task: ??? # To be set by the target config

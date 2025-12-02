@@ -22,8 +22,8 @@ class ConcatFeatures(BaseTransform):
                 determine how to reshape them for the concatenation.
             level: At which level to project/aggregate the features before concatenating them.
             concat_attr: Attribute name where to save the concatenated features.
-            node_agg: When concatenating node features to graph-level features, which aggregation operation to use to
-                reduce across the node dimensionality. Ignored for other features.
+            node_agg: When concatenating node features to global features, which aggregation operation to use to reduce
+                across the node dimensionality. Ignored for other features.
         """
         if level not in ["graph", "node"]:
             raise ValueError(

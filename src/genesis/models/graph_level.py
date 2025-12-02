@@ -116,7 +116,7 @@ class GPSGraphLevelLitModule(GraphLevelLitModule):
             *args: Additional positional arguments to pass to the superclass.
             features_for_readout: The type of features returned by the encoder to use for readout:
                 - 'node': Nodes encodings.
-                - 'graph': Graph-level features encodings.
+                - 'graph': Global features encodings.
             **kwargs: Additional keyword arguments to pass to the superclass.
         """
         super().__init__(*args, **kwargs)
@@ -126,10 +126,10 @@ class GPSGraphLevelLitModule(GraphLevelLitModule):
         node_enc, graph_enc = x  # Separate encodings of node and graph level features
         match self.features_for_readout:
             case "node":
-                # When using node encodings, use the readout aggregation just like for classic GNNs
+                # When using nodes encodings, use the readout aggregation just like for classic GNNs
                 x = self.readout(node_enc, ptr=data.ptr, dim_size=data.batch_size)
             case "graph":
-                # When using graph-level features encodings, if a sequence of tokens is returned, pool them
+                # When using global features encodings, if a sequence of tokens is returned, pool them
                 if graph_enc.ndim == 3:
                     num_graphs, num_graph_tokens, feat = graph_enc.shape
                     # Generate `ptr` for graph-level tokens by:
@@ -149,8 +149,8 @@ class GPSGraphLevelLitModule(GraphLevelLitModule):
 
 
 class LateFusionGraphLevelLitModule(GraphLevelLitModule):
-    """A LightningModule that performs late fusion between GNN encoding and graph-level features."""
+    """A LightningModule that performs late fusion between GNN encoding and global features."""
 
     def _head_step(self, data: Batch, x: torch.Tensor) -> torch.Tensor:
-        x = torch.hstack((x, data.graph_attr))  # Concatenate graph-level features w/ graph encoding
+        x = torch.hstack((x, data.graph_attr))  # Concatenate global features w/ graph encoding
         return super()._head_step(data, x)

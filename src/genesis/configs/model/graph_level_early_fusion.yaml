@@ -1,5 +1,5 @@
-# Use the base graph-level module to implement late fusion of graph-level features, with very slight changes:
-# 1) Update the GNN input channels to expect a concatenation of graph encoding and graph-level features.
+# Use the base graph-level module to implement late fusion of global features, with very slight changes:
+# 1) Update the GNN input channels to expect a concatenation of graph encoding and global features.
 defaults:
   - graph_level
 

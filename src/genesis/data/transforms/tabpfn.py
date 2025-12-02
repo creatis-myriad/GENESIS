@@ -15,7 +15,7 @@ except ImportError:
 
 
 class TabPFNEmbedding(BaseTransform):
-    """Replaces graph-level features by their embedding obtained from a pre-fitted TabPFN model."""
+    """Replaces global features by their embedding obtained from a pre-fitted TabPFN model."""
 
     def __init__(self, tabpfn_ckpt: Path, reduce_estimators: Literal["mean"] | None = "mean") -> None:
         """Initializes a `TabPFNVirtualNodes` instance.
@@ -38,13 +38,13 @@ class TabPFNEmbedding(BaseTransform):
         self.reduce_estimators = reduce_estimators
 
     def forward(self, data: Data) -> Data:
-        """Replaces graph-level features by their embedding obtained from a pre-fitted TabPFN model.
+        """Replaces global features by their embedding obtained from a pre-fitted TabPFN model.
 
         Args:
-            data: The input graph for which to embed graph-level features.
+            data: The input graph for which to embed global features.
 
         Returns:
-            Input graph with TabPFN-embedded graph-level features.
+            Input graph with TabPFN-embedded global features.
         """
         # Convert input to numpy array and add samples dimension
         tabpfn_x = data.graph_attr.unsqueeze(0).cpu().numpy()
@@ -72,6 +72,6 @@ class TabPFNEmbedding(BaseTransform):
                 case None:
                     tabpfn_embedding = tabpfn_embedding.view(-1)
 
-        # Update the graph-level features with the TabPFN embedding
+        # Update the global features with the TabPFN embedding
         data.graph_attr = tabpfn_embedding
         return data

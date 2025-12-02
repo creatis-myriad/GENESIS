@@ -1,7 +1,7 @@
 # Updates the VN_G formulation of virtual nodes proposed in the paper:
 # "Understanding Virtual Nodes: Oversquashing and Node Heterogeneity"
 # https://arxiv.org/abs/2405.13526
-# to explicit virtual node, and to support initializing it with graph-level features
+# to explicit virtual node, and to support initializing it with global features
 
 defaults:
   - _vn_g_mixin

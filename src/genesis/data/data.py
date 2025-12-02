@@ -4,10 +4,10 @@ from torch_geometric.data import Data
 
 
 class GraphAttrData(Data):
-    """`Data` class that batches `graph_attr` along a new batch dimension, to properly handle graph-level features.
+    """`Data` class that batches `graph_attr` along a new batch dimension, to properly handle global features.
 
-    This is a workaround for the fact that natively PyG's `Data` class concatenates graph-level features along the
-    feature dimension when batching, i.e. [num_examples * num_features] rather than [num_examples, num_features].
+    This is a workaround for the fact that natively PyG's `Data` class concatenates global features along the feature
+    dimension when batching, i.e. [num_examples * num_features] rather than [num_examples, num_features].
 
     References:
         - This is the recommended way to implement this behavior, as per PyG docs:
