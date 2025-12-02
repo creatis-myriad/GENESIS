@@ -1,29 +1,29 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=persevere/enzymes_elevated/gagps
+# python train.py experiment=persevere/enzymes_elevated/gps+ftxa
 
 defaults:
   - /experiment/persevere/enzymes_elevated/_base
   - override /model: graph_level_gps+ga
-  - override /model/encoder: gagps
+  - override /model/encoder: gps+ftxa
 
   # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
-  - override /model/readout: sum
+  - override /model/readout: mean
 
 model:
   encoder:
-    hidden_channels: 16
+    hidden_channels: 32
     pe_embed_dim: 4
-    num_layers: 8
+    num_layers: 10
     gps_kwargs:
-      heads: 1
-      dropout: 9.2e-3
+      heads: 4
+      dropout: 0.091
       norm: BatchNorm
       attn_kwargs:
-        dropout: 0.3
+        dropout: 0.29
   features_for_readout: graph
   head:
-    num_layers: 2
+    num_layers: 1
   optimizer:
-    weight_decay: 7.4e-5
+    weight_decay: 8.3e-4

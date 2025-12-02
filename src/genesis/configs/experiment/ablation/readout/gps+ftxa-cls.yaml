@@ -1,12 +1,12 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=ablation/readout/gps+ftga-cls
+# python train.py experiment=ablation/readout/gps+ftxa-cls
 
-# Use the default GPS+FTGA config, modified to:
+# Use the default GPS+FTxA config, modified to:
 # - use CLS token from global tokens as global graph representation, instead of readout over node representations
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gps+ftga
+  - /experiment/persevere/risk_ESC-2014/gps+ftxa
   - override /model/readout: last # Extract the CLS token appended at the end of global tokens
 
 model:

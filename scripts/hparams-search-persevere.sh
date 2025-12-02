@@ -29,8 +29,8 @@ gps_hparams_search_configs=(
   [gps]="persevere_gps"
   [gps+ef]="persevere_gps"
   [gps+lf]="persevere_gps"
-  [gagps]="persevere_gps+ga"
-  [gps+ftga]="persevere_gps+ga"
+  [gps+xa]="persevere_gps+ga"
+  [gps+ftxa]="persevere_gps+ga"
 )
 for model in "${!gps_hparams_search_configs[@]}"; do
   gnn-train hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu logger=wandb \

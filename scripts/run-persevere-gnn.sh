@@ -29,7 +29,7 @@ models=(
   # real and virtual nodes
 #  "gcn+vn_gv2" "gat+vn_gv2" "gin+vn_gv2"
   "gps"
-  "gps+ef" "gagps" "gps+ftga"
+  "gps+ef" "gps+xa" "gps+ftxa"
 )
 
 for target in "${!targets_configs[@]}"; do # Loop over targets and associated hparams to use
