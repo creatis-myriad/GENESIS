@@ -9,10 +9,10 @@ LOG_DIR=${1:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 # shellcheck disable=SC2016
 baseline-tabular -m hydra/launcher=joblib hydra.launcher.n_jobs=10 \
   logger=wandb test=True \
-  experiment=tabular_baseline/risk_ESC-2014 \
+  experiment=tabular_baseline/death_30-days \
   data/dataset/usecols=spesi,cardiac_biomarkers,graph_biomarkers,spesi+cardiac_biomarkers,spesi+graph_biomarkers,spesi+cardiac_biomarkers+graph_biomarkers \
   model/model=tabpfn,xgboost \
-  data/split=k_fold data.on_conflict=ignore \
+  data/split=k_fold data.on_conflict=raise \
   'data.split_idx=range(10)' \
   'ckpt_backbone_save_dirpath="${paths.ckpt_dir}/${op:call,${op:methodcaller,upper},${hydra:runtime.choices.data/dataset}}/${hydra:runtime.choices.data/dataset/target}/${hydra:runtime.choices.model/model}/${hydra:runtime.choices.data/dataset/usecols}/${hydra:runtime.choices.data/split}/${data.split_idx}"' \
   'ckpt_backbone_save_filename="${op.ternary:${op:eq,${hydra:runtime.choices.model/model},tabpfn},model.tabpfn_fit,null}"' \
