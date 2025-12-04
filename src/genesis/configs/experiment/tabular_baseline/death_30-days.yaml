@@ -1,0 +1,9 @@
+# @package _global_
+
+# Tabular baseline configuration for binary classification of whether PERSEVERE subjects died within 30 days of being
+# admitted for pulmonary embolism.
+
+defaults:
+  - /experiment/tabular_baseline
+  - override /data/dataset/target: death_30-days
+  - override /model/metrics: binary_classification
