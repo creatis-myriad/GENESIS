@@ -20,7 +20,7 @@ class CSVDataset(Dataset):
         target_attr: str | None = None,
         imputer: _BaseImputer | None = None,
         impute_cols: list[str] | None = None,
-        drop_na: bool = False,
+        drop_na: bool | list[str] = False,
         **read_csv_kwargs,
     ) -> None:
         """Initializes a `CSVDataset`.
@@ -33,7 +33,10 @@ class CSVDataset(Dataset):
                 remaining missing values will be dropped.
             impute_cols: Columns for which to complete missing values. If None, default to all columns except the target
                 attribute. Can be made to impute the target by explicitly including it in the list.
-            drop_na: If True and imputer is not provided, drop all rows with any missing value.
+            drop_na: If imputer is not provided, determines whether to drop rows with any missing value.
+                If a list, subset of columns in which to consider missing values.
+                Otherwise, if True, missing values in any column will lead to the row being dropped.
+                If False, no rows are dropped.
             **read_csv_kwargs: Additional keyword arguments to pass to `pandas.read_csv`.
         """
         self.root = Path(src).parent
@@ -51,7 +54,7 @@ class CSVDataset(Dataset):
 
         # Otherwise, drop missing values if requested
         elif drop_na:
-            self.data.dropna(inplace=True)
+            self.data.dropna(inplace=True, subset=drop_na if isinstance(drop_na, list) else None)
 
     @property
     def x(self) -> pd.DataFrame:
