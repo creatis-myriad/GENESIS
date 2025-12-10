@@ -9,7 +9,7 @@ import torch
 from filelock import FileLock
 from lightning import LightningDataModule
 from lightning.pytorch.trainer.states import TrainerFn
-from torch.utils.data import IterableDataset
+from torch.utils.data import ConcatDataset, IterableDataset
 from torch_geometric.data import Dataset
 from torch_geometric.data.lightning.datamodule import kwargs_repr
 from torch_geometric.loader import DataLoader
@@ -31,11 +31,11 @@ class LightningDataset(LightningDataModule, ABC):
     Therefore, we use a callable that returns the dataset to only instantiate the dataset in the `prepare_data` hook.
     """
 
-    def __init__(self, dataset: Callable[[], Dataset], has_val: bool, has_test: bool, **kwargs) -> None:
+    def __init__(self, dataset: Callable[..., Dataset], has_val: bool, has_test: bool, **kwargs) -> None:
         """Initializes a `LightningDataset`.
 
         Args:
-            dataset: A callable that returns the dataset. See the class docstring for why this is a callable.
+            dataset: A callable that returns the dataset. See the class docstring for why this must be a callable.
             has_val: Whether the dataset has a validation set.
             has_test: Whether the dataset has a test set.
             **kwargs: Additional keyword arguments to pass to `torch_geometric.loader.DataLoader`.
@@ -60,11 +60,12 @@ class LightningDataset(LightningDataModule, ABC):
 
         self.kwargs = kwargs
 
+        # Properties to cache the datasets after they have been created once in `setup`,
+        # to avoid re-creating them on each call
         self.train_dataset = None
         self.val_dataset = None
         self.test_dataset = None
         self.pred_dataset = None
-        self._splits = None  # Cache the splits to avoid recomputing them on each call to `setup`
 
     def __repr__(self) -> str:  # noqa: D105
         kwargs = kwargs_repr(
@@ -84,39 +85,39 @@ class LightningDataset(LightningDataModule, ABC):
         self._dataset_init()
 
     def setup(self, stage: TrainerFn) -> None:
-        """Set up the train, val, test or predict datasets according to the stage, splitting into subsets if needed.
+        """Set up the train, val, test or predict datasets according to the stage.
 
         Args:
             stage: The stage of the trainer to set up the datasets for.
         """
-        # Instantiate the PyG dataset again, this time to assign it. Avoids downloading the data again since PyG
-        # datasets cache their data under their root directory
-        dataset = self._dataset_init()
+        # On accessing each dataset, check if they have already been created and cached,
+        # and avoid re-creating them if so
+        if stage in (TrainerFn.FITTING, TrainerFn.PREDICTING):
+            if self.train_dataset is None:
+                self.train_dataset = self.get_dataset_split(TRAIN_SET)
+            if self.val_dataset is None and self.val_dataloader is not None:
+                self.val_dataset = self.get_dataset_split(VAL_SET)
+        if stage in (TrainerFn.TESTING, TrainerFn.PREDICTING):  # noqa: SIM102
+            if self.test_dataset is None and self.test_dataloader is not None:
+                self.test_dataset = self.get_dataset_split(TEST_SET)
 
         if stage == TrainerFn.PREDICTING:
-            self.pred_dataset = dataset
-
-        else:
-            # Split the dataset into train, val, and test sets
-            if self._splits is None:
-                self._splits = self.get_splits(dataset)  # Cache the splits for the next call to `setup`
-            train_idx, val_idx, test_idx = self._splits
-
-            if stage == TrainerFn.FITTING:
-                self.train_dataset = dataset[train_idx]
-                self.val_dataset = dataset[val_idx] if val_idx is not None else None
-            elif stage == TrainerFn.TESTING:
-                self.test_dataset = dataset[test_idx] if test_idx is not None else None
+            all_splits = [self.train_dataset]
+            if self.val_dataset is not None:
+                all_splits.append(self.val_dataset)
+            if self.test_dataset is not None:
+                all_splits.append(self.test_dataset)
+            self.pred_dataset = ConcatDataset(all_splits)
 
     @abstractmethod
-    def get_splits(self, dataset: Dataset) -> tuple[list[int], list[int] | None, list[int] | None]:
-        """Get the splits of the dataset between train, val, and test sets.
+    def get_dataset_split(self, split: str) -> Dataset:
+        """Get a subset over a requested split of the dataset.
 
         Args:
-            dataset: The dataset to split.
+            split: The split (e.g. 'train') of the dataset to return.
 
         Returns:
-            The indices of samples for the train, val, and test sets.
+            Subset over the dataset's requested split.
         """
 
     def train_dataloader(self) -> DataLoader:  # noqa: D102
@@ -143,6 +144,27 @@ class LightningDataset(LightningDataModule, ABC):
 
     def predict_dataloader(self) -> DataLoader:  # noqa: D102
         return self._eval_dataloader(self.pred_dataset)
+
+
+class PreSplitLightningDataset(LightningDataset):
+    """A `LightningDataset` for datasets with pre-defined splits, specified by a `split` init argument.
+
+    This datamodule supports datasets that use the same API as PyG's built-in `ZINC` dataset, for example.
+    """
+
+    def __init__(self, dataset: Callable[[str], Dataset], *args, **kwargs) -> None:
+        """Initializes a `PreSplitLightningDataset`.
+
+        Args:
+            dataset: A callable that takes a `split` argument (e.g. 'train') and returns the corresponding dataset
+                split.
+            *args: Additional positional arguments to pass to the superclass.
+            **kwargs: Additional keyword arguments to pass to the superclass.
+        """
+        super().__init__(dataset, *args, **kwargs)
+
+    def get_dataset_split(self, split: str) -> Dataset:  # noqa: D102
+        return self._dataset_init(split=split)
 
 
 class SplitLightningDataset(LightningDataset):
@@ -180,14 +202,36 @@ class SplitLightningDataset(LightningDataset):
         self._split_idx = split_idx
         self._on_conflict = on_conflict
 
-    def get_splits(self, dataset: Dataset) -> tuple[list[int], list[int] | None, list[int] | None]:
+        # Cache full dataset and generated splits to avoid loading/recomputing them on each call to `setup`
+        self._dataset = None
+        self._splits = None
+
+    def get_dataset_split(self, split: str) -> Dataset:
+        """Generates train, val, and test splits for the dataset, saves/compares them to a file, and returns one split.
+
+        Args:
+            split: The split (e.g. 'train') of the dataset to return.
+
+        Returns:
+            Subset over the dataset's requested split.
+        """
+        if self._dataset is None:
+            # Load dataset + generated splits only on 1st call and cache them
+            # This 2nd call to `self._dataset_init()`, after the 1st call in `prepare_data()`, avoids downloading
+            # the data again, since PyG datasets cache their data under their root directory
+            self._dataset = self._dataset_init()
+            self._splits = self._get_splits(self._dataset)
+
+        return self._dataset[self._splits[split]]
+
+    def _get_splits(self, dataset: Dataset) -> dict[str, list[int]]:
         """Generates train, val, and test splits for the dataset, saves/compares them to a file, and returns one split.
 
         Args:
             dataset: The dataset to split.
 
         Returns:
-            The indices of samples for the train, val, and test sets.
+            The indices of samples by subsets (e.g. 'train').
         """
         # Serialize the split function and its parameters to a string to use it as a unique identifier for the splits
         splits_repr = serialize_split_fn(self._split_fn, self._stratify)
@@ -247,5 +291,4 @@ class SplitLightningDataset(LightningDataset):
                 else:
                     log.info(f"Newly generated requested splits match the saved splits from '{splits_file}'!")
 
-        split = splits[self._split_idx]
-        return split[TRAIN_SET], split.get(VAL_SET), split.get(TEST_SET)
+        return splits[self._split_idx]

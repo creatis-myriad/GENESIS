@@ -1,0 +1,15 @@
+defaults:
+  - dataset: ??? # Specify the dataset name
+
+_target_: genesis.data.PreSplitLightningDataset
+has_val: True
+has_test: True
+batch_size: 32
+num_workers: 0
+pin_memory: ${op:eq,${oc.select:trainer.accelerator},gpu} # Pin memory if using GPU
+persistent_workers: ${op:gt,${.num_workers},0} # If `num_workers` is greater than 0, enable `persistent_workers`
+
+dataset:
+  # Avoid instantiating the dataset when the configuration is resolved, since PyG datasets download the data
+  # upon instantiation. This allows us to instantiate (and download) the dataset in the `prepare_data` hook.
+  _partial_: True
