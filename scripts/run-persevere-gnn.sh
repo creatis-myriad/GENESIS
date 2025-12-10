@@ -23,13 +23,13 @@ models=(
   # Different formulation of virtual nodes, with heterogeneous message passing between real and virtual nodes
 #  "gcn+vn_g" "gat+vn_g" "gin+vn_g"
   "mlp+ef" "gcn+ef" "gat+ef" "gin+ef"
-  "mlp+lf" "gcn+lf" "gat+lf" "gin+lf" "gps+lf"
+  "mlp+lf" "gcn+lf" "gat+lf" "gin+lf"
   "gcn+gavn" "gat+gavn" "gin+gavn"
   # Different formulation of virtual nodes initialized with graph attributes, with heterogeneous message passing between
   # real and virtual nodes
 #  "gcn+vn_gv2" "gat+vn_gv2" "gin+vn_gv2"
   "gps"
-  "gps+ef" "gps+xa" "gps+ftxa"
+  "gps+ef" "gps+lf" "gps+xa" "gps+ftxa"
 )
 
 for target in "${!targets_configs[@]}"; do # Loop over targets and associated hparams to use
