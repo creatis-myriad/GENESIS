@@ -4,6 +4,8 @@ import torch
 from torch_geometric.data import Data
 from torch_geometric.transforms import BaseTransform
 
+from genesis.data.data import GraphAttrData
+
 
 class ConcatFeatures(BaseTransform):
     """Concatenate graph features together."""
@@ -72,5 +74,10 @@ class ConcatFeatures(BaseTransform):
 
         # Concatenate the features and save to the target
         data[self.concat_attr] = torch.hstack(feat2concat)
+
+        if self.level == "graph":
+            # When features are concatenated at the graph level, convert `Data` to `GraphAttrData` so that graph
+            # features are properly handled when batching
+            data = GraphAttrData.from_dict(data.to_dict())
 
         return data
