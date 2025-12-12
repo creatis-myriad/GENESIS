@@ -4,6 +4,8 @@
 # Not optimal when used directly, as it uses the default graph-level model.
 
 defaults:
+  - /callbacks:
+      - lr_monitor # Add learning rate monitor callback to default callbacks
   - override /data: ogb_lightning_dataset
   - override /data/dataset: ogbg-molhiv
   - override /model: graph_level
