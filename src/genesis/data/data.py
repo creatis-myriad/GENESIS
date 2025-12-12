@@ -27,6 +27,6 @@ class GraphAttrData(Data):
     """
 
     def __cat_dim__(self, key: str, value: Any, *args, **kwargs) -> Any:  # noqa: D105
-        if key == "graph_attr":
+        if "graph" in key:
             return None
         return super().__cat_dim__(key, value, *args, **kwargs)
