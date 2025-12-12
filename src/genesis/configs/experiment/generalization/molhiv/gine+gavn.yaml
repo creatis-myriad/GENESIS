@@ -1,0 +1,16 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=generalization/molhiv/gine+gavn
+
+defaults:
+  - /experiment/generalization/molhiv/_gine_base
+  # Use the base GINE config, modified to:
+  # 1) compute molecular global features, and;
+  # 2) use virtual nodes initialized with global features
+
+  - override /data/dataset/transform@data.dataset.pre_transform: add_molecular_global_features
+  # Virtual node must come after atom and bond embeddings, so that it can infer node/edge features dimensions
+  - override /model/transforms:
+      - atom_bond_embedding
+      - graph_attr_virtual_nodes
