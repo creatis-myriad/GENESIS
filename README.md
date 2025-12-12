@@ -124,10 +124,11 @@ neural networks to predict the risk of pulmonary embolism.
 
 - \[`cpu`|`cu129`|`cu128`|`cu126`\]: Required mutually exclusive extras to install the project with a PyTorch version
   built for CPU or a specific CUDA version (only available when using `uv`, not `pip`).
-- `wandb`: For experiment tracking with Weights & Biases.
-- `totalsegmentator`: For using the pretrained `TotalSegmentator` model for segmenting heart ventricles to preprocess images.
-- `baselines`: Extra dependencies required to run the baselines.
 - `all`: Install all (non-mutually exclusive) extras at once.
+- `baselines`: Extra dependencies required to run the baselines.
+- `molecular`: Extra dependencies required to test generalization on ZINC and MolHIV molecular datasets.
+- `totalsegmentator`: For using the pretrained `TotalSegmentator` model for segmenting heart ventricles to preprocess images.
+- `wandb`: For experiment tracking with Weights & Biases.
 
 ### Setup Weight & Biases
 

@@ -22,7 +22,6 @@ dependencies = [
     "networkx>=3.4.2,<4",
     "pandas>=2.2.3,<3",
     "plotly>=6.2.0,<7",
-    "pulp>=3.3.0,<4",
     "pyvis>=0.3.2,<1",
     "rich>=14,<15",
     "rootutils>=1.0.7,<2",
@@ -33,17 +32,22 @@ dependencies = [
 ]
 [project.optional-dependencies]
 all = [
-    "genesis[wandb,baselines,totalsegmentator]",    # Adjust this entry when adding new extras
-]
-wandb = [
-    "wandb>=0.24,<0.25",
+    "genesis[baselines,molecular,totalsegmentator,wandb]",    # Adjust this entry when adding new extras
 ]
 baselines = [
     "tabpfn>=2.1.3,<3",
     "xgboost>=2.1.4,<3",
 ]
+molecular = [
+    "pulp>=3.3.0,<4",
+    "ogb>=1.3.6,<2",
+
+]
 totalsegmentator = [
     "TotalSegmentator>=2.5.0,<2.6",
+]
+wandb = [
+    "wandb>=0.24,<0.25",
 ]
 # torch libraries are not included in the main dependencies because they can be platform-specific
 # rather, we leave them as optional dependencies (even though they are required for the code to run)
