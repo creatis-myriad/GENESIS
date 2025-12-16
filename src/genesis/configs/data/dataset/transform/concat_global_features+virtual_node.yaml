@@ -1,0 +1,9 @@
+_target_: torch_geometric.transforms.Compose
+transforms:
+  - _target_: genesis.data.transforms.features.ConcatFeatures
+    attrs:
+      x: node
+      graph_attr: graph
+    level: node
+    concat_attr: x
+  - _target_: genesis.data.transforms.virtual_node.VirtualNodes

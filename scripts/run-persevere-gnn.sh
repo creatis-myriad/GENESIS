@@ -23,7 +23,9 @@ models=(
   # Different formulation of virtual nodes, with heterogeneous message passing between real and virtual nodes
 #  "gcn+vn_g" "gat+vn_g" "gin+vn_g"
   "mlp+ef" "gcn+ef" "gat+ef" "gin+ef"
+  "gcn+vn+ef" "gat+vn+ef" "gin+vn+ef"
   "mlp+lf" "gcn+lf" "gat+lf" "gin+lf"
+  "gcn+vn+lf" "gat+vn+lf" "gin+vn+lf"
   "gcn+gavn" "gat+gavn" "gin+gavn"
   # Different formulation of virtual nodes initialized with graph attributes, with heterogeneous message passing between
   # real and virtual nodes
