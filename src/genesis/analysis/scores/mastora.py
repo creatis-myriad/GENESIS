@@ -37,9 +37,9 @@ def mastora(
     # Determine numerical levels for which to look for obstructions, based on mode
     match mode:
         case "global":
-            levels_to_search = {ArteryLevel.MEDIASTINAL, ArteryLevel.LOBAR, ArteryLevel.SEGMENTAL}
+            levels_to_search = {ArteryLevel.ROOT, ArteryLevel.MEDIASTINAL, ArteryLevel.LOBAR, ArteryLevel.SEGMENTAL}
         case "central":
-            levels_to_search = {ArteryLevel.MEDIASTINAL, ArteryLevel.LOBAR}
+            levels_to_search = {ArteryLevel.ROOT, ArteryLevel.MEDIASTINAL, ArteryLevel.LOBAR}
         case "peripheral":
             levels_to_search = {ArteryLevel.SEGMENTAL}
         case _:
