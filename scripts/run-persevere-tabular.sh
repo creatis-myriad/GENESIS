@@ -10,7 +10,7 @@ LOG_DIR=${1:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 baseline-tabular -m hydra/launcher=joblib hydra.launcher.n_jobs=10 \
   logger=wandb test=True \
   experiment=tabular_baseline/risk_ESC-2014,tabular_baseline/risk_ESC-2014_elevated,tabular_baseline/enzymes_elevated,tabular_baseline/troponin_elevated,tabular_baseline/nt-probnp_elevated \
-  data/dataset/usecols=spesi,spesi+rv-lv_radiologist,spesi+rv-lv_totalseg,spesi+cardiac_biomarkers,spesi+tev,spesi+qanadli,spesi+mastora,spesi+graph_biomarkers,spesi+cardiac_biomarkers+graph_biomarkers \
+  data/dataset/usecols=spesi,spesi+rv-lv_radiologist,spesi+rv-lv_totalseg,cardiac_biomarkers,spesi+cardiac_biomarkers,spesi+tev,spesi+qanadli,spesi+mastora,graph_biomarkers,spesi+graph_biomarkers,spesi+cardiac_biomarkers+graph_biomarkers \
   model/model=tabpfn,xgboost \
   data/split=k_fold data.on_conflict=ignore \
   'data.split_idx=range(10)' \
