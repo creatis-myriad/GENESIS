@@ -37,6 +37,21 @@ neural networks to predict the risk of pulmonary embolism.
 > We refer you to the [PyTorch Lightning documentation](https://lightning.ai/docs/pytorch/stable/) and the
 > [Hydra documentation](https://hydra.cc/docs/intro/).
 
+### Table of Contents
+
+1. [Installation](#installation)
+   1. [`uv`](#uv-recommended)
+   2. [`pip`](#pip)
+   3. [Extras](#list-of-available-extras)
+   4. [Weight & Biases configuration](#setup-weight--biases)
+2. [How to run](#how-to-run)
+   1. [Basics](#the-basics)
+   2. [Preset configs](#use-preset-configs)
+   3. [Track experiments](#track-experiments)
+   4. [Launch multiple experiments simultaneously](#run-multiple-experiments)
+   5. [Hyperparameter search with Optuna](#run-automatic-hyperparameter-search-with-optuna)
+3. [Run tests](#run-tests)
+
 ## Installation
 
 #### uv (recommended)
@@ -158,7 +173,7 @@ Follow the instructions provided in the [How to run](#track-experiments) section
 
 ### The basics
 
-Train model with the default configuration.
+Train model with the default configuration (on the small MUTAG dataset).
 
 ```bash
 # train on CPU
@@ -260,15 +275,14 @@ gnn-train hparams_search=graph_classification_optuna
 > we support cross-validation with Optuna.
 >
 > This is all handled already in the predefined Optuna config `graph_classification_optuna` for graph-level models.
-> However, if you want to support this in your own Optuna config, all you have to do is to use the predefined
-> `splits` config for `serial_sweeper`, and make sure that `data/split=kfold` is used to split the data into
-> multiple folds.
+> If you want to support this in your own Optuna config, all you have to do is to use the predefined `splits` config for
+> `serial_sweeper`, and make sure that `data/split=kfold` is used to split the data into multiple folds.
 >
 > ```bash
 > gnn-train [...] hparams_search=<YOUR_OPTUNA_CONFIG> data/split=k_fold serial_sweeper=splits
 > ```
 
-### Run tests
+## Run tests
 
 Run the tests using [Pytest](https://docs.pytest.org/en/stable/).
 
