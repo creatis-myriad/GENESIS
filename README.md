@@ -44,13 +44,14 @@ neural networks to predict the risk of pulmonary embolism.
    2. [`pip`](#pip)
    3. [Extras](#list-of-available-extras)
    4. [Weight & Biases configuration](#setup-weight--biases)
-2. [How to run](#how-to-run)
+2. [Reproduce published experiments](#reproduce-published-experiments)
+3. [Run custom experiments](#run-custom-experiments)
    1. [Basics](#the-basics)
    2. [Preset configs](#use-preset-configs)
    3. [Track experiments](#track-experiments)
    4. [Launch multiple experiments simultaneously](#run-multiple-experiments)
    5. [Hyperparameter search with Optuna](#run-automatic-hyperparameter-search-with-optuna)
-3. [Run tests](#run-tests)
+4. [Run tests](#run-tests)
 
 ## Installation
 
@@ -169,7 +170,88 @@ You don't have to do anything more than that, as the project is configured to au
 
 Follow the instructions provided in the [How to run](#track-experiments) section to enable experiment tracking via W&B.
 
-## How to run
+## Reproduce published experiments
+
+The commands below are meant to reproduce the experiments described in the paper. They will run different combinations
+of models and data configurations in a 10-fold cross-validation setting.
+
+Results are logged both locally and online on W&B (see [previous section for instructions to set up W&B](#setup-weight--biases)).
+Each experiment corresponds to a configuration run on a specific cross-validation fold. To facilitate analysis, groups
+in W&B correspond to the same configuration run on the cross-validation folds.
+
+Depending on the type of model (tabular or GNN) different Python entry point scripts are called:
+
+- Tabular models use the [`tabular_baseline.py`](src/genesis/tabular_baseline.py) script;
+- GNNs use the [`train.py`](src/genesis/train.py) script.
+
+> [!WARNING]
+> Running the experiments below requires access to the PERSEVERE dataset, which is not publicly available.
+> Thus, the scripts should not be expected to run as-is without the dataset. Rather, the scripts and code are provided
+> for reference.
+
+> [!TIP]
+> Since models are implemented in a dataset-agnostic way, implementing PyG datasets and providing corresponding configs
+> should be all that is needed to test the models on other datasets.
+
+### Ablation study of global features with tabular models for risk stratification
+
+To run tabular models (TabPFN, XGBoost) on combinations of global features (medical records, cardiac biomarkers, vascular biomarkers):
+
+```bash
+scripts/train-persevere-tabular.sh
+```
+
+### Benchmark of GNNs on vascular graph and global features for risk stratification
+
+To run GNN backbones (GCN, GAT, GIN, GPS), with and without Virtual Nodes (VN) for MPNN backbones, and with different
+strategies to combine global features (early fusion (EF), late fusion (LF), virtual node (VN), Feature Tokenizer with cross-attention (FTxA)):
+
+```bash
+scripts/train-persevere-gnn.sh
+```
+
+### Vascular biomarkers regression as sanity check on GNNs
+
+To compare the best tabular and GNN backbones for the prediction of vascular biomarkers that are derived from local graph features:
+
+- Runs TabPFN on global features (medical records, cardiac biomarkers);
+- Runs GIN and GPS on the vascular graphs.
+
+```bash
+scripts/run-persevere-sanity-check-targets.sh
+```
+
+### Ablation study of data and graph representations on the best GNN configuration
+
+To run the best GNN configuration with alternative graph and global features representations:
+
+```bash
+# Test the primal graph representation.
+# The default config uses the dual (i.e. line graph) representation.
+scripts/run-persevere-gnn-ablation.sh graph_representation
+
+# Test linear and TabPFN embedding of global features.
+# The default config uses the Feature Tokenizer embedding.
+scripts/run-persevere-gnn-ablation.sh global_features_embedding
+
+# Test using a CLS token on global features as readout, i.e. graph-level representation.
+# The default configuration uses global graph pooling (i.e., mean or sum depending on the config).
+scripts/run-persevere-gnn-ablation.sh readout
+```
+
+> [!IMPORTANT]
+> The results of these runs are meant to be compared to runs launched with the best GNN configuration,
+> GPS + Feature Tokenizer with Cross-Attention (gps+ftxa), run as part of the [GNN benchmark](#benchmark-of-gnns-on-vascular-graph-and-global-features-for-risk-stratification).
+
+> [!TIP]
+> Calling the [`run-persevere-gnn-ablation.sh`](scripts/run-persevere-gnn-ablation.sh) script with the name of one of
+> the folders in [`configs/experiment/ablation`](src/genesis/configs/experiment/ablation) will run all the experiment
+> configs in that folder using the [`train.py`](src/genesis/train.py) script.
+
+## Run custom experiments
+
+This section describes how to configure individual experiments, e.g., to change hyperparameters, models, datasets, etc.,
+if you want more control over the configuration than the predefined batch of experiments described in the [previous section](#reproduce-published-experiments).
 
 ### The basics
 
