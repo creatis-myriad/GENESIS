@@ -1,0 +1,5 @@
+_target_: genesis.models.optim.get_cosine_schedule_with_warmup
+_partial_: true
+num_warmup_epochs: ???
+num_training_epochs: ${oc.select:trainer.max_epochs}
+num_cycles: 0.5
