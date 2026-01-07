@@ -29,7 +29,7 @@ trainer:
   max_epochs: 350
 
 callbacks:
-  # Override default monitoring callbacks on loss to monitor accuracy instead
+  # Override default callbacks monitoring loss to monitor F1 score instead
   model_checkpoint:
     monitor: "val/f1"
     mode: "max"
