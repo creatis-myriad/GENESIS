@@ -3,7 +3,11 @@ defaults:
   - early_stopping
   - model_summary
   - rich_progress_bar
-  - _self_
+  # lr_monitor is not enabled by default since it raises a MisconfigurationException if no logger is used.
+  # Loggers are often missing/disabled (e.g. disabled in fast dev runs, missing from tests, etc.), so enabling
+  # lr_monitor by default could cause more issues than benefits.
+  # However, this could be reconsidered if the callback is updated in the future to ignore when no logger is present
+  # (see this Lightning issue: https://github.com/Lightning-AI/pytorch-lightning/issues/17613).
 
 model_checkpoint:
   dirpath: ${paths.output_dir}/checkpoints
