@@ -355,10 +355,14 @@ class GraphLitModule(MetricTrackingLitModule, ABC):
                 # individual `Data` object instead (see issue: https://github.com/pyg-team/pytorch_geometric/issues/989)
                 data_list = list(fake_dataset)
 
-                # Clip global features between 0 and 1, to match range of binary features, in case they are used as
-                # categorical features to lookup embeddings in some models (e.g. GPS with Feature Tokenizer)
-                if hasattr(fake_dataset, "graph_attr"):
-                    for data in data_list:
+                # Clip features between 0 and 1, to match range of binary features, in case they are used as categorical
+                # features to lookup embeddings in some models (e.g. encoding of atom/bond on molecular datasets,
+                # Feature Tokenizer on global features for multimodal GPS)
+                for data in data_list:
+                    data.x = data.x.clip(0, 1)
+                    if data.edge_attr is not None:
+                        data.edge_attr = data.edge_attr.clip(0, 1)
+                    if hasattr(data, "graph_attr"):
                         data.graph_attr = data.graph_attr.clip(0, 1)
 
                 # If `edge_dim==1`, `FakeDataset` creates a features in `data.edge_weight` instead of `data.edge_attr`.
