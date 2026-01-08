@@ -1,5 +1,5 @@
 defaults:
-  - _pe
+  - _pe_hparams # Load related config that updates global data hparams
 
 _target_: torch_geometric.transforms.AddRandomWalkPE
 walk_length: ${hparams.data.num_pe_features}
