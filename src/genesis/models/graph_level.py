@@ -7,14 +7,12 @@ from torch import nn
 from torch_geometric.data import Batch
 from torch_geometric.nn import aggr
 
-from genesis.models import GraphLitModule
+from genesis.models import MetricTrackingLitModule
 from genesis.models.gnn.transforms import LearnableTransform
 
 
-class GraphLevelLitModule(GraphLitModule):
+class GraphLevelLitModule(MetricTrackingLitModule):
     """A LightningModule for GNNs aimed at graph-level tasks."""
-
-    task_level = "graph"
 
     def __init__(
         self,
@@ -23,6 +21,7 @@ class GraphLevelLitModule(GraphLitModule):
         readout: aggr.Aggregation,
         head: nn.Module,
         transforms: dict[str, LearnableTransform] | None = None,
+        pe_attr: str | None = None,
         *args,
         **kwargs,
     ) -> None:
@@ -35,6 +34,8 @@ class GraphLevelLitModule(GraphLitModule):
             head: The prediction head used to make predictions based on the graph-level representation.
             transforms: Transformations with learnable parameters (e.g. embedding) to apply to the input graphs before
                 passing them to the encoder.
+            pe_attr: Name of the attribute in the `data` object containing positional encodings to be used by the
+                encoder, if provided and not directly concatenated to node features.
             *args: Additional positional arguments to pass to the superclass.
             **kwargs: Additional keyword arguments to pass to the superclass.
         """

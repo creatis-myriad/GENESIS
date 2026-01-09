@@ -8,4 +8,4 @@ defaults:
 _target_: genesis.models.LateFusionGraphLevelLitModule
 
 head:
-  in_channels: ${op:add,${..encoder.hidden_channels},${..num_graph_features}}
+  in_channels: ${op:add,${..encoder.hidden_channels},${hparams.data.num_graph_features}}

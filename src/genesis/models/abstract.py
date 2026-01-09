@@ -2,17 +2,14 @@ import inspect
 import types
 from abc import ABC
 from collections.abc import Sequence
-from typing import Any, Literal
+from typing import Any
 
 import torch
 from lightning import LightningModule
 from torch import nn
 from torch_geometric.data import Batch
-from torch_geometric.datasets import FakeDataset
-from torch_geometric.transforms import AddRandomWalkPE
 from torchmetrics import MeanMetric, Metric, MetricCollection, MetricTracker
 
-from genesis.data.data import GraphAttrData
 from genesis.utils import RankedLogger, pad_keys
 from genesis.utils.logging_utils import log_nonscalar_metrics, split_scalar_nonscalar_metrics
 
@@ -265,113 +262,3 @@ class MetricTrackingLitModule(LightningModule, ABC):
                 },
             }
         return {"optimizer": optimizer}
-
-
-class GraphLitModule(MetricTrackingLitModule, ABC):
-    """A `LightningModule` that provides the boilerplate code for GNNs."""
-
-    task_level: Literal["node", "graph"]
-    """The type of task the model is designed for, used to generate an example input batch."""
-
-    def __init__(
-        self,
-        num_node_features: int | None = None,
-        num_edge_features: int | None = None,
-        pe_attr: str | None = None,
-        num_pe_features: int | None = None,
-        num_graph_features: int | None = None,
-        num_classes: int | None = None,
-        *args,
-        **kwargs,
-    ) -> None:
-        """Initializes a `GraphLitModule`.
-
-        Args:
-            num_node_features: The number of features per node in the input graph(s). If provided, it is used to
-                generate an example input batch, useful for inspecting the model's input/output shapes.
-            num_edge_features: The number of features per edge in the input graph(s). If provided, it is used to
-                generate an example input batch, useful for inspecting the model's input/output shapes.
-            pe_attr: The attribute name in data batches containing positional encodings, if the model uses them.
-                If `None` but `num_pe_features` is provided, assumes positional encodings are concatenated to `data.x`.
-            num_pe_features: The number of positional encoding features in the input graph(s), if any.
-                If provided, it is used to generate an example input batch, useful for inspecting the model's
-                input/output shapes.
-            num_graph_features: The number of global features per graph in the input, if any. If provided, it is used to
-                generate an example input batch, useful for inspecting the model's input/output shapes.
-            num_classes: The number of target classes for the prediction task. If provided, it is used to
-                generate an example input batch, useful for inspecting the model's input/output shapes.
-            *args: Additional positional arguments to pass to the superclass.
-            **kwargs: Additional keyword arguments to pass to the superclass.
-        """
-        super().__init__(*args, **kwargs)
-
-        required_data_hparams = {"num_node_features": num_node_features}
-        missing_required_hparams = [k for k, v in required_data_hparams.items() if v is None]
-        optional_data_hparams = {
-            "num_edge_features": num_edge_features,
-            "pe_attr": pe_attr,
-            "num_pe_features": num_pe_features,
-            "num_graph_features": num_graph_features,
-            "num_classes": num_classes,
-        }
-        data_hparams = required_data_hparams | optional_data_hparams
-
-        # If at least one of the required or optional hparams is provided (not None), try to generate an example batch
-        if any(val is not None for val in data_hparams.values()):
-            # If some of the required hparams are missing, warn and skip example batch generation
-            if missing_required_hparams:
-                log.warning(
-                    f"You provided the following hparams to generate an example input batch: {data_hparams}. "
-                    "No example batch will be generated because some hparams are missing. "
-                    f"To suppress this warning, either set all hparams to `None` to disable example batch generation, "
-                    f"or provide missing required hparams: {missing_required_hparams}."
-                )
-            else:
-                pe_transform = None
-                if num_pe_features:
-                    if pe_attr is None:
-                        # If no attribute name is provided, PE features are concatenated to node features in `data.x`
-                        num_node_features += num_pe_features
-                    else:
-                        # If an attribute name is provided, PE features are stored in `data[pe_attr]`
-                        pe_transform = AddRandomWalkPE(num_pe_features, attr_name=pe_attr)
-
-                custom_data_attrs = {}
-                if num_graph_features:
-                    custom_data_attrs["graph_attr"] = num_graph_features
-                fake_dataset = FakeDataset(
-                    num_graphs=2 if self.task_level == "graph" else 1,
-                    num_channels=num_node_features,
-                    edge_dim=num_edge_features or 0,
-                    num_classes=num_classes or 10,
-                    **custom_data_attrs,
-                    transform=pe_transform,
-                )
-
-                # For manual updates of the data before batching, extract individual `Data` objects from the dataset.
-                # This is because `InMemoryDataset` attributes are either batched views disconnected from the underlying
-                # `Data` objects, or read-only cached `Data` objects on which updates won't be reflected.
-                # Therefore, it is not recommended to update the dataset attributes directly, but rather to update each
-                # individual `Data` object instead (see issue: https://github.com/pyg-team/pytorch_geometric/issues/989)
-                data_list = list(fake_dataset)
-
-                # Clip features between 0 and 1, to match range of binary features, in case they are used as categorical
-                # features to lookup embeddings in some models (e.g. encoding of atom/bond on molecular datasets,
-                # Feature Tokenizer on global features for multimodal GPS)
-                for data in data_list:
-                    data.x = data.x.clip(0, 1)
-                    if data.edge_attr is not None:
-                        data.edge_attr = data.edge_attr.clip(0, 1)
-                    if hasattr(data, "graph_attr"):
-                        data.graph_attr = data.graph_attr.clip(0, 1)
-
-                # If `edge_dim==1`, `FakeDataset` creates a features in `data.edge_weight` instead of `data.edge_attr`.
-                # In this case, copy them to `data.edge_attr` in case the model excepts edge features specifically.
-                if num_edge_features == 1:
-                    for data in data_list:
-                        data.edge_attr = data.edge_weight
-
-                # Convert/cast the `Data` objects to `GraphAttrData` objects so that if graph features are present,
-                # they are properly handled when batching
-                data_list = [GraphAttrData.from_dict(data.to_dict()) for data in data_list]
-                self.example_input_array = Batch.from_data_list(data_list)

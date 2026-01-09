@@ -3,9 +3,7 @@
 defaults:
   - graph_level
 
-num_node_features: ${op:add, ${oc.select:hparams.data.num_node_features,0}, ${oc.select:hparams.data.num_graph_features,0} }
-
 encoder:
-  # Copy the interpolation expression from the generic GNN config, but update `num_node_features` to refer to the param
-  # overridden by the model and summed with `num_graph_features`, rather than the dataset hparams value
-  in_channels: ${op:add, ${..num_node_features}, ${op.ternary:${oc.select:hparams.data.pe_attr}, 0, ${oc.select:hparams.data.num_pe_features,0}} }
+  # Add global graph features to compute the input dimension of the first GNN layer. The rest of the expression is
+  # copied from the generic GNN config to account for positional encoding optionally concatenated to node features.
+  in_channels: ${op:add, ${op:add,${hparams.data.num_node_features},${hparams.data.num_graph_features}}, ${op.ternary:${oc.select:hparams.data.pe_attr}, 0, ${oc.select:hparams.data.num_pe_features,0}} }

@@ -1,4 +1,4 @@
-from .abstract import GraphLitModule, MetricTrackingLitModule
+from .abstract import MetricTrackingLitModule
 from .gnn.gine import GINE
 from .gnn.gps import GPS
 from .gnn.vn_g import GAT_VN_G, GCN_VN_G, GIN_VN_G
@@ -13,7 +13,6 @@ __all__ = [
     "GPS",
     "GPSGraphLevelLitModule",
     "GraphLevelLitModule",
-    "GraphLitModule",
     "LateFusionGraphLevelLitModule",
     "MetricTrackingLitModule",
     "TabularEstimator",
