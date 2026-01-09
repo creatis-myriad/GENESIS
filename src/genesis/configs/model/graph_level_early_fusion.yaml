@@ -2,6 +2,7 @@
 # 1) Update the GNN input channels to expect a concatenation of graph encoding and global features.
 defaults:
   - graph_level
+  - override /data/dataset/transform@_global_.data.dataset.pre_transform: concat_global_features
 
 encoder:
   # Add global graph features to compute the input dimension of the first GNN layer. The rest of the expression is
