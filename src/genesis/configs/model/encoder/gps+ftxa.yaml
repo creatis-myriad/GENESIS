@@ -13,7 +13,7 @@ graph_attr_embedding:
       cat_cardinalities: ${hparams.data.graph_cat_features_cardinalities}
       d_token: ${....hidden_channels}
     - _target_: genesis.models.tabular.embedding.CLSToken
-      d_token: ${..0.d_token}
+      d_token: ${....hidden_channels}
     - _target_: genesis.models.tabular.embedding.PositionalEncoding
       n_tokens: ${op:add,${hparams.data.num_graph_features},1} # +1 token for CLS token
-      d_token: ${..0.d_token}
+      d_token: ${....hidden_channels}
