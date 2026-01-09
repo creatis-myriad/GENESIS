@@ -1,17 +1,20 @@
 import copy
 
 import torch
-from torch import Tensor
+from torch import Tensor, nn
 from torch_geometric.data import Data
 from torch_geometric.transforms import BaseTransform
 
 
-class VirtualNodes(BaseTransform):
+class VirtualNodes(BaseTransform, nn.Module):
     """Appends virtual node(s) (i.e. connected to all nodes) with optional initialization, otherwise zero-filled.
 
     Inspired by the `VirtualNode` transform from the PyTorch Geometric library (see link below), which hard-codes a
     zero-filled virtual node to the graph. This implementation was made to make the virtual node more flexible, by
     allowing multiple virtual nodes and non-zero initial features.
+
+    Made to inherit from `nn.Module`, even though it contains no learnable parameters, to enable chaining with other
+    learnable transforms inside collections like `nn.Sequential` or `nn.ModuleDict`.
 
     References:
         - PyTorch Geometric `VirtualNode` transform:
