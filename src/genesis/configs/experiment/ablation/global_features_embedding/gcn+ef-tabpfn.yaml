@@ -4,9 +4,11 @@
 # python train.py experiment=ablation/global_features_embedding/gcn+ef-tabpfn
 
 # Use the default GCN+EF config, modified to:
-# - replace global features with their TabPFN embedding
-# - move `concat_global_features` from pre_transform to transform, to come after `tabpfn_embedding` in the pipeline
+# - replace global features with their TabPFN embedding as part of the data processing pipeline
 defaults:
   - /experiment/persevere/risk_ESC-2014/gcn+ef
+  # Set expensive `tabpfn_embedding` step as pre-transform and move `concat_global_features` step to transform.
+  # We proceed this way, instead of creating a config concatenating both steps (like for other transform combinations),
+  # because `tabpfn_embedding` config is complex, and we want to avoid duplicating it if possible.
   - override /data/dataset/transform@data.dataset.pre_transform: tabpfn_embedding
   - override /data/dataset/transform: concat_global_features
