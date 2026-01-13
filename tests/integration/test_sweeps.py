@@ -56,6 +56,25 @@ def test_experiments(script: Path, testing_overrides: list[str]) -> None:
 
 @RunIf(sh=True)
 @pytest.mark.slow
+def test_molhiv_experiments(script: Path, testing_overrides: list[str]) -> None:
+    """Test running all available experiment configs (except for tabular baselines) with `fast_dev_run=True`.
+
+    Args:
+        script: The path of the script to invoke.
+        testing_overrides: The generic overrides to suitably configure tests.
+    """
+    command = [
+        str(script),
+        "-m",
+        "experiment=generalization/molhiv/gine+vn",
+        "++trainer.fast_dev_run=true",
+        *testing_overrides,
+    ]
+    run_sh_command(command)
+
+
+@RunIf(sh=True)
+@pytest.mark.slow
 @pytest.mark.parametrize("script", ["src/genesis/tabular_baseline.py"], indirect=True)
 def test_tabular_baseline_experiments(script: Path, shared_datadir: Path, testing_overrides: list[str]) -> None:
     """Test running all available tabular baseline experiment configs.
