@@ -1,12 +1,11 @@
 import copy
 import itertools
 import re
-from contextlib import nullcontext
 
 import pytest
 import torch
 from _pytest.fixtures import FixtureRequest
-from torch_geometric.data import Data
+from torch_geometric.data import Batch, Data
 
 from genesis.data.transforms.virtual_node import VirtualNodes
 
@@ -35,43 +34,52 @@ def data(request: FixtureRequest) -> Data:
     return request.getfixturevalue(request.param)
 
 
-@pytest.mark.parametrize("num_virtual_nodes", [None, 1, 2])
-def test_virtual_nodes_zero_fill(data: Data, num_virtual_nodes: int | None) -> None:
-    """Test adding a single virtual node to a connected graph, by specifying it explicitly or by default."""
-    data_with_virtual_nodes = VirtualNodes(num=num_virtual_nodes)(data)
-    zero_filled_virtual_nodes = data.x.new_zeros((num_virtual_nodes or 1, *data.x.shape[1:]))
-    _validate_data_with_virtual_nodes(data, data_with_virtual_nodes, zero_filled_virtual_nodes)
-
-
 @pytest.fixture(params=[(16,), (1, 16), (2, 16)])
 def init_values(request: FixtureRequest) -> torch.Tensor:
     """Pytest fixture that returns initial features for virtual nodes."""
     return torch.randn(*request.param)
 
 
-@pytest.mark.parametrize("num_virtual_nodes", [None, 1, 2])
-def test_virtual_nodes_init_values(data: Data, num_virtual_nodes: int | None, init_values: torch.Tensor) -> None:
+def test_virtual_nodes_zero_fill(data: Data) -> None:
+    """Test adding a single virtual node to a connected graph, by specifying it explicitly or by default."""
+    data_with_virtual_nodes = VirtualNodes()(data)
+    zero_filled_virtual_nodes = data.x.new_zeros((1, data.x.shape[-1]))
+    _validate_data_with_virtual_nodes(data, data_with_virtual_nodes, zero_filled_virtual_nodes)
+
+
+def test_virtual_nodes_init_values(data: Data, init_values: torch.Tensor) -> None:
     """Test adding a single virtual node with initialized features to a connected graph."""
-    num_init_values = 1 if init_values.ndim == 1 else len(init_values)
-    if num_virtual_nodes is not None and num_virtual_nodes != num_init_values:
-        expectation = pytest.raises(
-            ValueError,
-            match=re.escape(
-                f"Number of provided virtual node initial features ({num_init_values}) does not match the number "
-                f"of virtual nodes to add ({num_virtual_nodes})."
-            ),
-        )
-    else:
-        expectation = nullcontext()
-
-    with expectation:
-        data_with_virtual_nodes = VirtualNodes(num=num_virtual_nodes).forward(copy.copy(data), init_values=init_values)
-    if not isinstance(expectation, nullcontext):
-        return  # Stop test here if exception was raised as expected
-
+    data_with_virtual_nodes = VirtualNodes().forward(copy.copy(data), init_values=init_values)
     _validate_data_with_virtual_nodes(
         data, data_with_virtual_nodes, init_values if init_values.ndim == 2 else init_values.unsqueeze(0)
     )
+
+
+def test_virtual_nodes_init_values_dimension_mismatch(data: Data) -> None:
+    """Test that an error is raised when the initial features dimension does not match node feature dimension."""
+    wrong_dim_init_values = torch.randn(1, data.x.size(1) + 1)  # Mismatch feature dimension with node features
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            f"Feature size of `init_values` for virtual nodes ({wrong_dim_init_values.shape[-1]}) "
+            f"does not match node feature size ({data.x.shape[-1]})."
+        ),
+    ):
+        VirtualNodes().forward(data, init_values=wrong_dim_init_values)
+
+
+def test_virtual_nodes_batched_data(data: Data) -> None:
+    """Test that an error is raised when trying to add virtual nodes to batched data."""
+    batched_data = Batch.from_data_list([data, data])
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "You are applying `VirtualNodes` transform on batched data objects. `VirtualNodes` only supports "
+            "individual graphs. You should unbatch the data first (e.g. using `data.to_data_list()`) before "
+            "calling `VirtualNodes`."
+        ),
+    ):
+        VirtualNodes()(batched_data)
 
 
 def _validate_data_with_virtual_nodes(original_data: Data, data: Data, init_values: torch.Tensor) -> None:

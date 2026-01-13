@@ -18,49 +18,51 @@ class VirtualNodes(BaseTransform):
           https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.transforms.VirtualNode.html
     """
 
-    def __init__(self, num: int | None = None) -> None:
-        """Initializes a `VirtualNodes` instance.
-
-        Args:
-            num: Number of virtual nodes to add to each graph. If `None` and no initial features are provided when
-                calling `forward`, one virtual node will be added. Must be at least 1 if specified.
-        """
-        super().__init__()
-        self.num = num
-
     def forward(self, data: Data, init_values: Tensor = None) -> Data:
         """Appends virtual node(s) (i.e. connected to all nodes) with optional initialization, otherwise zero-filled.
 
         Args:
             data: The input graph to which to add virtual node(s).
-            init_values: ([`num`,] `features`), Optional initial features of the virtual node(s) to add.
-                If `None`, virtual node will be zero-filled.
+            init_values: Optional initial features of the virtual node(s) to add. Supported shapes are:
+                - (V, F): add multiple virtual nodes;
+                - (F): add a single virtual node;
+                where V is the number of virtual nodes to add per graph, and F is the dimensionality of node features.
+                If `None`, a single virtual node per graph will be zero-filled.
 
         Returns:
             Input graph with virtual node(s) added.
         """
-        if init_values is None:
-            num_virtual_nodes = self.num or 1  # Default to adding one virtual node if no initial features are provided
-        else:
-            if init_values.ndim == 1:
-                init_values = init_values.unsqueeze(0)  # Prepend batch dim if one unbatched virtual node is provided
-            if self.num is not None and len(init_values) != self.num:
-                raise ValueError(
-                    f"Number of provided virtual node initial features ({len(init_values)}) does not match the number "
-                    f"of virtual nodes to add ({self.num})."
-                )
-            num_virtual_nodes = len(init_values)
+        if (batch := getattr(data, "batch", None)) is not None and batch.max() > 0:
+            raise ValueError(
+                "You are applying `VirtualNodes` transform on batched data objects. `VirtualNodes` only supports "
+                "individual graphs. You should unbatch the data first (e.g. using `data.to_data_list()`) before "
+                "calling `VirtualNodes`."
+            )
 
-        # Extract node and edge information (number, nodes connected by edges, types of edges, etc.)
-        assert data.edge_index is not None
+        # Extract metadata
+        num_nodes = data.num_nodes
+        device = data.edge_index.device
+
+        # Check init_values + broadcast them to all graphs in the batch
+        if init_values is None:
+            # Zero-fill one virtual node with the same feature size as other nodes if no initial features are provided
+            init_values = data.x.new_zeros(data.x.shape[-1])
+        if init_values.shape[-1] != data.x.shape[-1]:
+            raise ValueError(
+                f"Feature size of `init_values` for virtual nodes ({init_values.shape[-1]}) "
+                f"does not match node feature size ({data.x.shape[-1]})."
+            )
+        if init_values.ndim == 1:  # (F,) -> (1, F)
+            init_values = init_values.unsqueeze(0)
+        num_virtual_nodes = len(init_values)
+
+        # Extract edge information (nodes connected by edges, types of edges, etc.)
         edge_index = data.edge_index
         row, col = edge_index
         edge_type = data.get("edge_type", torch.zeros_like(row))
-        num_nodes = data.num_nodes
-        assert num_nodes is not None
 
         # Add edges between the virtual node and all other nodes in sparse COO format `edge_index`
-        arange = torch.arange(num_nodes, device=row.device)
+        arange = torch.arange(num_nodes, device=device)
         for virtual_node_idx in range(num_nodes, num_nodes + num_virtual_nodes):
             # Connect all nodes to the current virtual node and vice versa
             full = edge_index.new_full((num_nodes,), virtual_node_idx)
@@ -96,31 +98,20 @@ class VirtualNodes(BaseTransform):
 
                 new_value = None
                 if key == "edge_weight":
-                    # Each virtual node connects to all other nodes, so 2 * num_nodes new edge weights are added for
-                    # each virtual node, with default value of 1
-                    size[dim] = 2 * num_nodes * num_virtual_nodes
+                    # Add new edge weights, with default value of 1, for all new edges connected to virtual nodes
+                    size[dim] = edge_index.size(1) - value.size(dim)
                     new_value = value.new_ones(size)
                 elif old_data.is_edge_attr(key):
-                    # Each virtual node connects to all other nodes, so 2 * num_nodes new edge attributes are added for
-                    # each virtual node, with default value of 0
-                    size[dim] = 2 * num_nodes * num_virtual_nodes
+                    # Add new edge attributes, with default value of 0, for all new edges connected to virtual nodes
+                    size[dim] = edge_index.size(1) - value.size(dim)
                     new_value = value.new_zeros(size)
                 elif key == "batch":
                     # Assign the same batch index as the first node in the graph to all virtual nodes
                     size[dim] = num_virtual_nodes
                     new_value = value.new_full(size, int(value[0]))
                 elif old_data.is_node_attr(key):
-                    # Add initial virtual node features if provided, num_virtual_nodes zero-filled nodes are added
-                    if init_values is not None:
-                        if list(init_values.size())[1:] != size[1:]:
-                            raise ValueError(
-                                f"Dimensionality of virtual nodes initial features ({list(init_values.size())[1:]}) "
-                                f"does not match the node feature dimensionality ({size[1:]})."
-                            )
-                        new_value = init_values
-                    else:
-                        size[dim] = num_virtual_nodes
-                        new_value = value.new_zeros(size)
+                    # Assign initial virtual node features
+                    new_value = init_values
 
                 if new_value is not None:
                     data[key] = torch.cat([value, new_value], dim=dim)
