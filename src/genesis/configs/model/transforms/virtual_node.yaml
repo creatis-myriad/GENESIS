@@ -1,0 +1,2 @@
+virtual_node:
+  _target_: genesis.models.gnn.transforms.VirtualNodes
