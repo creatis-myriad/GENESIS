@@ -5,7 +5,7 @@
 
 defaults:
   - /experiment/persevere/enzymes_elevated/_base
-  - override /model/transforms: graph_attr_virtual_nodes
+  - override /model/transforms: graph_attr_virtual_node
   - override /model/encoder: gin
 
   # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
