@@ -36,6 +36,17 @@ hparams:
       - 5 # bond type
       - 6 # bond stereochemistry
       - 2 # is conjugated
+    graph_features:
+      - wiener
+      - circuit_rank
+      - independence
+      # - hosoya # Do not use Hosoya index on MolHIV due to degenerate values (some graphs have `inf` Hosoya index)
+      - max_matching
+      - second_eigenv
+      - spectral_radius
+      - zagreb_M1
+      - zagreb_M2
+    graph_cat_features_cardinalities: {} # Empty dict to indicate there are no categorical molecular global features
     # Statistics pre-computed over the dataset's train split by the `molecular_global_features_stats.py `script,
     # used to normalize global features
     graph_features_statistics:

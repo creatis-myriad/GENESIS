@@ -37,6 +37,17 @@ hparams:
       - 28 # atom type
     edge_features_cardinalities: # Bond (i.e. edge) metadata, used to encode edge features
       - 4 # bond type
+    graph_features:
+      - wiener
+      - circuit_rank
+      - independence
+      - hosoya
+      - max_matching
+      - second_eigenv
+      - spectral_radius
+      - zagreb_M1
+      - zagreb_M2
+    graph_cat_features_cardinalities: {} # Empty dict to indicate there are no categorical molecular global features
     # Statistics pre-computed over the dataset's train split by the `molecular_global_features_stats.py `script,
     # used to normalize global features
     graph_features_statistics:

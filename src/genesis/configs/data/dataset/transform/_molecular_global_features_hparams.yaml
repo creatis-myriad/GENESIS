@@ -2,15 +2,4 @@
 
 hparams:
   data:
-    graph_features:
-      - wiener
-      - circuit_rank
-      - independence
-      - hosoya
-      - max_matching
-      - second_eigenv
-      - spectral_radius
-      - zagreb_M1
-      - zagreb_M2
     num_graph_features: ${op:length_hint,${.graph_features}}
-    graph_cat_features_cardinalities: {} # There are no categorical molecular global features
