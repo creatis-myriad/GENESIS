@@ -36,3 +36,46 @@ hparams:
       - 5 # bond type
       - 6 # bond stereochemistry
       - 2 # is conjugated
+    # Statistics pre-computed over the dataset's train split by the `molecular_global_features_stats.py `script,
+    # used to normalize global features
+    graph_features_statistics:
+      wiener:
+        mean: 4680.26416015625
+        std: 19200.099609375
+        min: -1
+        max: 1_252_938
+      circuit_rank:
+        mean: 2.868636131286621
+        std: 1.6790343523025513
+        min: 0
+        max: 48
+      independence:
+        mean: 13.696757316589355
+        std: 6.578110218048096
+        min: 1
+        max: 129
+      max_matching:
+        mean: 11.010972023010254
+        std: 5.257043361663818
+        min: 1
+        max: 97
+      second_eigenv:
+        mean: 0.06663547456264496
+        std: 0.06817308813333511
+        min: -6.287662680927008e-16
+        max: 2.0
+      spectral_radius:
+        mean: 2.4545676708221436
+        std: 0.13707926869392395
+        min: 1.0
+        max: 4.125269412994385
+      zagreb_M1:
+        mean: 523.607177734375
+        std: 258.38336181640625
+        min: 8
+        max: 5224
+      zagreb_M2:
+        mean: 1235.3193359375
+        std: 628.9971313476562
+        min: 8
+        max: 13760
