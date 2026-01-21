@@ -14,3 +14,7 @@ defaults:
   - override /data/dataset/transform@data.dataset.pre_transform: random_walk_pe+add_molecular_global_features
   - override /model: graph_level_gps+ga
   - override /model/encoder: gps+ftxa
+
+model:
+  optimizer:
+    lr: 0.0001 # Reduce learning rate compared to value reported in GPS paper for ZINC, since GPS+FTxA tends to diverge
