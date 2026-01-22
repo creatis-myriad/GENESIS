@@ -8,7 +8,7 @@ _target_: genesis.data.CSVDataset
 # since pandas.read_csv does not recognize OmegaConf containers as their corresponding Python primitives
 # (when forwarding them to the read_csv function), force the conversion of OmegaConf containers to Python primitives
 _convert_: all
-src: ${paths.data_dir}/PERSEVERE/clinical_data.csv
+src: ${paths.data_dir}/PERSEVERE/global_features.csv
 target_attr: null # To be set by the target config
 index_col: patient_id
 na_values: ["nr", "NR"]

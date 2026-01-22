@@ -13,7 +13,7 @@ from genesis.analysis.cli.parameters import patient_data_params
 from genesis.analysis.cli.utils import get_logger
 from genesis.analysis.config import PERSEVERE_ATTRS_LABELS, PERSEVERE_AUTO_MEASURES
 from genesis.analysis.plot.distribution import facet_grid
-from genesis.data.utils.io import find_file, json_to_networkx, load_and_clean_clinical_data
+from genesis.data.utils.io import find_file, json_to_networkx, load_and_clean_tabular_features
 
 log = get_logger(__name__)
 
@@ -45,7 +45,7 @@ def eval_population(
         ctx.obj["ctpa_paths"] = {}
 
     log.info(f"Loading clinical data from {clinical_csv}...")
-    data = load_and_clean_clinical_data(clinical_csv)
+    data = load_and_clean_tabular_features(clinical_csv)
     ctx.obj["clinical_data"] = data  # Store loaded clinical data in the Click context object
 
     for patient_id in tqdm(data.index, desc="Loading patient files", unit="patient"):

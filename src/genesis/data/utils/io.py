@@ -156,15 +156,15 @@ def find_file(
     return unique.pop()
 
 
-def load_and_clean_clinical_data(csv_filepath: Path, drop_na_subset: list[str] | None = None) -> pd.DataFrame:
-    """Load and clean clinical data from a CSV file.
+def load_and_clean_tabular_features(csv_filepath: Path, drop_na_subset: list[str] | None = None) -> pd.DataFrame:
+    """Load and clean tabular patient features from a CSV file.
 
     Args:
-        csv_filepath: Path to the clinical data CSV file.
+        csv_filepath: Path to the tabular patient features CSV file.
         drop_na_subset: Critical columns where rows with NA values should be dropped.
 
     Returns:
-        Cleaned clinical data as a pandas DataFrame.
+        Cleaned tabular features as a pandas DataFrame.
     """
     df = pd.read_csv(csv_filepath, na_values=["nr", "NR"])
     # Standardize patient IDs to be zero-padded strings of length 4, and set as index

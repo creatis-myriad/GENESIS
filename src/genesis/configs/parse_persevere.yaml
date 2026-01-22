@@ -3,8 +3,8 @@
 defaults:
   - paths: default
   - hydra: default
-  - data/dataset@clinical_data: persevere_clinical
-  - override data/dataset/imputer@clinical_data.imputer: iterative
+  - data/dataset@global_features: persevere_global_features
+  - override data/dataset/imputer@global_features.imputer: iterative
   - _self_
 
 source_dir: ${paths.data_dir}/PERSEVERE/graphs
@@ -45,7 +45,7 @@ attrs_to_remove:
       embolisms_volumes_cm3,
     ]
 
-clinical_data:
+global_features:
   target_attr: null # Disable the default target attribute, since we do not want to treat it differently at this stage
   drop_na: true # Do not silently propagate missing value NaNs
 

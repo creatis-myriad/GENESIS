@@ -90,7 +90,7 @@ def data_overrides(request: FixtureRequest) -> list[str]:
     target, metrics = request.param
     return [
         "data=split_lightning_dataset",
-        "data/dataset=persevere_clinical",
+        "data/dataset=persevere_global_features",
         f"data/dataset/target={target}",
         # Specify the metrics here, since they depend on the data task
         f"model/metrics={metrics}",

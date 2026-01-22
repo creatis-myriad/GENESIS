@@ -41,25 +41,25 @@ def hydra_main(cfg: DictConfig) -> None:
         f"  links={agg_cfg.get('links', {})}, "
     )
 
-    clinical_dataset = hydra.utils.instantiate(cfg.clinical_data)
-    clinical_data = clinical_dataset.data  # Extract the raw DataFrame from the dataset
-    log.info(f"Extracted clinical attributes for {len(clinical_data)} patients")
+    tabular_dataset = hydra.utils.instantiate(cfg.global_features)
+    tabular_data = tabular_dataset.data  # Extract the raw DataFrame from the dataset
+    log.info(f"Extracted tabular features for {len(tabular_data)} patients")
 
     # If usecols is not specified, use all columns
-    global_attrs = cfg.clinical_data.get("usecols", clinical_data.columns.tolist())
+    global_attrs = cfg.global_features.get("usecols", tabular_data.columns.tolist())
     # Do not include the index column in the global attributes if it is specified
-    if (index_col := cfg.clinical_data.get("index_col")) and (index_col in global_attrs):
+    if (index_col := cfg.global_features.get("index_col")) and (index_col in global_attrs):
         global_attrs.remove(index_col)
-    log.info(f"Clinical attributes to add: {global_attrs}")
+    log.info(f"Tabular features to add: {global_attrs}")
 
     skipped_patient_ids = []
 
     for json_path in json_files:
         patient_id = json_path.stem[:4]
-        if is_integer_dtype(clinical_data.index):
+        if is_integer_dtype(tabular_data.index):
             patient_id = int(patient_id)
 
-        if patient_id in clinical_data.index:
+        if patient_id in tabular_data.index:
             log.debug(f"Parsing file '{json_path.name}' for patient ID '{patient_id}'")
             with open(json_path) as f:
                 node_link_data = json.load(f)
@@ -67,7 +67,7 @@ def hydra_main(cfg: DictConfig) -> None:
                 graph = nx.node_link_graph(node_link_data, edges=edges_key)
 
             # Add patient attributes as graph attributes
-            patient_attrs = clinical_data.loc[patient_id, global_attrs].to_dict()
+            patient_attrs = tabular_data.loc[patient_id, global_attrs].to_dict()
             graph = networkx_add_attrs(graph, "graph", patient_attrs)
 
             # Aggregate list attributes to scalar values
@@ -97,7 +97,7 @@ def hydra_main(cfg: DictConfig) -> None:
     parsed_count = len(json_files) - skipped_count
     log.info(f"Parsed {parsed_count} JSON files")
     if skipped_patient_ids:
-        log.warning(f"{skipped_count} patient(s) skipped because absent from clinical data: {skipped_patient_ids}")
+        log.warning(f"{skipped_count} patient(s) skipped because absent from tabular features: {skipped_patient_ids}")
 
 
 def main() -> None:

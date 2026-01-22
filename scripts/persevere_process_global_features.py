@@ -2,10 +2,10 @@ import csv
 
 import rootutils
 
-from genesis.data.utils.io import load_and_clean_clinical_data
+from genesis.data.utils.io import load_and_clean_tabular_features
 
-data = load_and_clean_clinical_data(
-    rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/clinical_data.csv"
+data = load_and_clean_tabular_features(
+    rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/global_features.csv"
 )
 
 # Compute binary targets from available data
@@ -23,7 +23,7 @@ binary_targets = {k: v.astype(int) for k, v in binary_targets.items()}
 # Save the new binary targets in the clinical data DataFrame and CSV
 data = data.assign(**binary_targets)
 data.to_csv(
-    rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/clinical_data_processed.csv",
+    rootutils.find_root(indicator="pyproject.toml") / "data/PERSEVERE/global_features_processed.csv",
     index=True,
     quoting=csv.QUOTE_NONNUMERIC,
 )
