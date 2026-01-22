@@ -15,6 +15,10 @@ defaults:
   - override /model/scheduler: linear_warmup_cosine_annealing
   - override /model/readout: mean
 
+trainer:
+  gradient_clip_val: 1.0
+  gradient_clip_algorithm: norm
+
 model:
   encoder:
     hidden_channels: 64

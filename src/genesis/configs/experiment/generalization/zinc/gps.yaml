@@ -17,6 +17,8 @@ defaults:
 
 trainer:
   max_epochs: 2000
+  gradient_clip_val: 1.0
+  gradient_clip_algorithm: norm
 
 data:
   batch_size: 32
