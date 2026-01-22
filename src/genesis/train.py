@@ -7,6 +7,7 @@ from lightning import Callback, LightningDataModule, LightningModule, Trainer
 from lightning.pytorch.loggers import Logger
 from omegaconf import DictConfig
 
+from genesis.data.data import GraphAttrData
 from genesis.utils import (
     RankedLogger,
     extras,
@@ -109,6 +110,9 @@ def hydra_main(cfg: DictConfig) -> float | None:
     # apply extra utilities
     # (e.g. ask for tags if none are provided in cfg, print cfg tree, etc.)
     extras(cfg)
+
+    # Allowlist custom classes from the package that could be serialized/loaded with torch.save/torch.load
+    torch.serialization.add_safe_globals([GraphAttrData])  # Custom `Data` that could be saved in preprocessed datasets
 
     # train the model
     metric_dict, _ = train(cfg)

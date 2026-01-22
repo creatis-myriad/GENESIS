@@ -9,13 +9,11 @@ from pathlib import Path
 from typing import Any
 
 import rootutils
-import torch
 from hydra.core.override_parser.overrides_parser import OverridesParser
 from hydra.utils import call
 from omegaconf import DictConfig, OmegaConf
 
 from genesis.configs import register_config_resolvers, register_operator_and_keyword_resolvers
-from genesis.data.data import GraphAttrData
 from genesis.utils import pylogger, rich_utils
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
@@ -38,9 +36,6 @@ def pre_hydra_routine() -> None:
     # Register custom OmegaConf resolvers
     register_operator_and_keyword_resolvers()
     register_config_resolvers()
-
-    # Allowlist custom classes from the package that could be serialized/loaded with torch.save/torch.load
-    torch.serialization.add_safe_globals([GraphAttrData])  # Custom `Data` that could be saved in preprocessed datasets
 
 
 def extras(cfg: DictConfig) -> None:
