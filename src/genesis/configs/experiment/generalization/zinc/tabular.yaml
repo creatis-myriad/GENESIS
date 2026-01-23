@@ -1,0 +1,26 @@
+# @package _global_
+
+# to execute this experiment run:
+# python tabular_baseline.py experiment=generalization/zinc/tabular
+
+defaults:
+  - override /data: presplit_lightning_dataset
+  - override /data/dataset: zinc_global_features
+  - override /model: tabular_estimator
+  # Metrics are part of the model, used to evaluate it during training, but they depend on the data task.
+  # Intuitively, the metrics config should be interpolated based on the data config. However, limitations in the
+  # interpolation capabilities of Hydra make this impractical.
+  # In this context, the least bad solution is to assign the metrics manually at the experiment (or main config) level.
+  - override /model/metrics: regression
+
+tags:
+  - ${hydra:runtime.choices.model/model} # automatically tag with the chosen model architecture
+  - ${hydra:runtime.choices.data/dataset} # automatically tag with the chosen dataset
+
+seed: 12345
+
+logger:
+  wandb:
+    project: "GENESIS-molecular"
+    tags: ${tags}
+    group: ${tags.1}/${tags.0} # by default, group runs by {dataset}/{model}
