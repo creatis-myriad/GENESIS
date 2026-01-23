@@ -6,7 +6,6 @@
 defaults:
   - override /data: split_lightning_dataset
   - override /data/dataset: persevere_global_features
-  - override /data/dataset/usecols: ESC # by default, use the attributes requested by the ESC guidelines
   - override /model: tabular_estimator
   # Metrics are part of the model, used to evaluate it during training, but they depend on the data task.
   # Intuitively, the metrics config should be interpolated based on the data config. However, limitations in the

@@ -1,5 +1,5 @@
 defaults:
-  - usecols: ESC
+  - usecols: ESC # by default, use the attributes requested by the ESC guidelines
   - imputer: null
   - _self_
   - target: risk_ESC-2014
@@ -9,7 +9,7 @@ _target_: genesis.data.CSVDataset
 # (when forwarding them to the read_csv function), force the conversion of OmegaConf containers to Python primitives
 _convert_: all
 src: ${paths.data_dir}/PERSEVERE/global_features.csv
-target_attr: null # To be set by the target config
+target_attr: ??? # To be set by the target config
 index_col: patient_id
 na_values: ["nr", "NR"]
 impute_cols: null
