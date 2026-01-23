@@ -27,4 +27,14 @@ for dataset in "${datasets[@]}"; do # Loop over datasets
       'seed=range(10)' \
       >>"${LOG_DIR}/generalization-${dataset}-${model}.log" 2>&1
   done
+
+  # Separate run for tabular models on the same datasets' global features
+  baseline-tabular -m \
+    logger=wandb test=True \
+    experiment=generalization/"${dataset}"/tabular \
+    model/model=tabpfn,xgboost \
+    +model.model.ignore_pretraining_limits=true \
+    'seed=range(10)' \
+    >>"${LOG_DIR}/generalization-${dataset}-tabular.log" 2>&1
+
 done
