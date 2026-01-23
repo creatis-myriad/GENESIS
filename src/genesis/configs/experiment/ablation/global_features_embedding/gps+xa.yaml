@@ -1,0 +1,10 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=ablation/global_features_embedding/gps+xa
+
+# Use the default GPS+FTxA config, modified to:
+# - replace Feature Tokenizer with linear embedding
+defaults:
+  - /experiment/persevere/risk_ESC-2014/gps+ftxa
+  - override /model/encoder: gps+xa
