@@ -8,3 +8,8 @@
 defaults:
   - /experiment/persevere/risk_ESC-2014/gps+ftxa
   - override /model/encoder: gps+xa
+
+callbacks:
+  # Disable early stopping by default for this experiment
+  # Since Hydra does not support removing config nodes in YAML files, we have to set it to null/None
+  early_stopping: null
