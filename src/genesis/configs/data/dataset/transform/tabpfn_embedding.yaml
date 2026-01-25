@@ -1,7 +1,7 @@
 defaults:
   # Split override of global package into another file because Hydra doesn't support multiple package scopes in a single file
   # (see issues https://github.com/facebookresearch/hydra/issues/1983 and https://github.com/facebookresearch/hydra/issues/1913)
-  - _tabpfn_embedding_overrides
+  - _tabpfn_embedding_hparams
 
 _target_: genesis.data.transforms.tabpfn.TabPFNEmbedding
 # Path to a TabPFN model pre-fitted to the specific configuration of the dataset used (e.g. split, features, etc.)
