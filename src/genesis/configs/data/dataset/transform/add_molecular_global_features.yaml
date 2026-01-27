@@ -1,0 +1,8 @@
+defaults:
+  - _molecular_global_features_hparams
+
+_target_: genesis.data.transforms.molecules.AddMolecularGlobalFeatures
+features: ${hparams.data.graph_features}
+attr_name: graph_attr
+normalize: z-score
+features_stats: ${hparams.data.graph_features_statistics}

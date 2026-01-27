@@ -32,17 +32,22 @@ dependencies = [
 ]
 [project.optional-dependencies]
 all = [
-    "genesis[wandb,baselines,totalsegmentator]",    # Adjust this entry when adding new extras
-]
-wandb = [
-    "wandb>=0.24,<0.25",
+    "genesis[baselines,molecular,totalsegmentator,wandb]",    # Adjust this entry when adding new extras
 ]
 baselines = [
     "tabpfn>=2.1.3,<3",
     "xgboost>=2.1.4,<3",
 ]
+molecular = [
+    "pulp>=3.3.0,<4",
+    "ogb>=1.3.6,<2",
+
+]
 totalsegmentator = [
     "TotalSegmentator>=2.5.0,<2.6",
+]
+wandb = [
+    "wandb>=0.24,<0.25",
 ]
 # torch libraries are not included in the main dependencies because they can be platform-specific
 # rather, we leave them as optional dependencies (even though they are required for the code to run)

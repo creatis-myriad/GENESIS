@@ -750,6 +750,8 @@ dependencies = [
 
 [package.optional-dependencies]
 all = [
+    { name = "ogb" },
+    { name = "pulp" },
     { name = "tabpfn" },
     { name = "totalsegmentator" },
     { name = "wandb" },
@@ -783,6 +785,10 @@ cu129 = [
     { name = "torchvision", version = "0.23.0", source = { registry = "https://download.pytorch.org/whl/cu129" }, marker = "(python_full_version < '3.14' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (python_full_version >= '3.14' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (platform_machine != 'aarch64' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (platform_python_implementation != 'CPython' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
     { name = "torchvision", version = "0.23.0+cu129", source = { registry = "https://download.pytorch.org/whl/cu129" }, marker = "(python_full_version >= '3.14' and extra == 'extra-7-genesis-cu129') or (python_full_version < '3.14' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (platform_machine != 'aarch64' and extra == 'extra-7-genesis-cu129') or (platform_python_implementation != 'CPython' and extra == 'extra-7-genesis-cu129') or (sys_platform != 'linux' and extra != 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (sys_platform != 'linux' and extra != 'extra-7-genesis-cpu' and extra != 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
 ]
+molecular = [
+    { name = "ogb" },
+    { name = "pulp" },
+]
 totalsegmentator = [
     { name = "totalsegmentator" },
 ]
@@ -815,7 +821,7 @@ test = [
 requires-dist = [
     { name = "click", specifier = ">=8.1.8,<9" },
     { name = "filelock", specifier = ">=3.16.1,<4" },
-    { name = "genesis", extras = ["wandb", "baselines", "totalsegmentator"], marker = "extra == 'all'" },
+    { name = "genesis", extras = ["baselines", "molecular", "totalsegmentator", "wandb"], marker = "extra == 'all'" },
     { name = "hydra-colorlog", specifier = ">=1.2.0,<2" },
     { name = "hydra-core", specifier = ">=1.3.2,<2" },
     { name = "hydra-joblib-launcher", specifier = ">=1.2.0,<2" },
@@ -824,8 +830,10 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.3,<4" },
     { name = "monai", extras = ["nibabel"], specifier = ">=1.4,<2" },
     { name = "networkx", specifier = ">=3.4.2,<4" },
+    { name = "ogb", marker = "extra == 'molecular'", specifier = ">=1.3.6,<2" },
     { name = "pandas", specifier = ">=2.2.3,<3" },
     { name = "plotly", specifier = ">=6.2.0,<7" },
+    { name = "pulp", marker = "extra == 'molecular'", specifier = ">=3.3.0,<4" },
     { name = "pyvis", specifier = ">=0.3.2,<1" },
     { name = "rich", specifier = ">=14,<15" },
     { name = "rootutils", specifier = ">=1.0.7,<2" },
@@ -850,7 +858,7 @@ requires-dist = [
     { name = "wandb", marker = "extra == 'wandb'", specifier = ">=0.24,<0.25" },
     { name = "xgboost", marker = "extra == 'baselines'", specifier = ">=2.1.4,<3" },
 ]
-provides-extras = ["all", "wandb", "baselines", "totalsegmentator", "cpu", "cu126", "cu128", "cu129"]
+provides-extras = ["all", "baselines", "molecular", "totalsegmentator", "wandb", "cpu", "cu126", "cu128", "cu129"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -1299,6 +1307,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/44/b0/963c352372c242f9e40db02bbc6a39ae51bde15dddee8523fe4aca94a97e/linecache2-1.0.0.tar.gz", hash = "sha256:4b26ff4e7110db76eeb6f5a7b64a82623839d595c2038eeda662f2a2db78e97c", size = 11013, upload-time = "2015-03-06T01:33:30.161Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/a3/c5da2a44c85bfbb6eebcfc1dde24933f8704441b98fdde6528f4831757a6/linecache2-1.0.0-py2.py3-none-any.whl", hash = "sha256:e78be9c0a0dfcbac712fe04fbf92b96cddae80b1b842f24248214c8496f006ef", size = 12967, upload-time = "2015-03-06T01:33:36.657Z" },
+]
+
+[[package]]
+name = "littleutils"
+version = "0.2.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/f0/ddc72338ed9365ced4b109d8b6233b6689d28f41f1e2a4d97fd8c1eb3da9/littleutils-0.2.4.tar.gz", hash = "sha256:c7835b01020ced42e291118b7d78fb16bc2d9a1b4f3f42f3cb3787bb4da53d19", size = 9526, upload-time = "2024-07-07T22:04:35.844Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/19/ac/a89d28d7421fffc028d68cdfde5e3e056e690cb4b1bbef4a5fea661e16f5/littleutils-0.2.4-py3-none-any.whl", hash = "sha256:d10d5fe2e107c49fe2fc2904a08d6e5a302b41f8405921835ffcc323782d5dbc", size = 8145, upload-time = "2024-07-07T22:04:34.24Z" },
 ]
 
 [[package]]
@@ -1934,7 +1951,7 @@ resolution-markers = [
 dependencies = [
     { name = "nvidia-cublas-cu12", version = "12.6.4.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129')" },
     { name = "nvidia-cublas-cu12", version = "12.8.4.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
-    { name = "nvidia-cublas-cu12", version = "12.9.1.4", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
+    { name = "nvidia-cublas-cu12", version = "12.9.1.4", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.14' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (python_full_version >= '3.14' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fa/41/e79269ce215c857c935fd86bcfe91a451a584dfc27f1e068f568b9ad1ab7/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:c9132cc3f8958447b4910a1720036d9eff5928cc3179b0a51fb6d167c6cc87d8", size = 705026878, upload-time = "2025-06-06T21:52:51.348Z" },
@@ -2000,7 +2017,7 @@ resolution-markers = [
     "(python_full_version >= '3.14' and sys_platform == 'linux') or (platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux')",
 ]
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", version = "12.9.86", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
+    { name = "nvidia-nvjitlink-cu12", version = "12.9.86", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.14' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (python_full_version >= '3.14' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9b/2b/76445b0af890da61b501fde30650a1a4bd910607261b209cccb5235d3daa/nvidia_cufft_cu12-11.4.1.4-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:1a28c9b12260a1aa7a8fd12f5ebd82d027963d635ba82ff39a1acfa7c4c0fbcf", size = 200822453, upload-time = "2025-06-05T20:05:27.889Z" },
@@ -2162,9 +2179,9 @@ resolution-markers = [
     "(python_full_version >= '3.14' and sys_platform == 'linux') or (platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux')",
 ]
 dependencies = [
-    { name = "nvidia-cublas-cu12", version = "12.9.1.4", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
-    { name = "nvidia-cusparse-cu12", version = "12.5.10.65", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
-    { name = "nvidia-nvjitlink-cu12", version = "12.9.86", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
+    { name = "nvidia-cublas-cu12", version = "12.9.1.4", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.14' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (python_full_version >= '3.14' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
+    { name = "nvidia-cusparse-cu12", version = "12.5.10.65", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.14' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (python_full_version >= '3.14' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
+    { name = "nvidia-nvjitlink-cu12", version = "12.9.86", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.14' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (python_full_version >= '3.14' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/03/99/686ff9bf3a82a531c62b1a5c614476e8dfa24a9d89067aeedf3592ee4538/nvidia_cusolver_cu12-11.7.5.82-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:62efa83e4ace59a4c734d052bb72158e888aa7b770e1a5f601682f16fe5b4fd2", size = 337869834, upload-time = "2025-06-05T20:06:53.125Z" },
@@ -2230,7 +2247,7 @@ resolution-markers = [
     "(python_full_version >= '3.14' and sys_platform == 'linux') or (platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux')",
 ]
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", version = "12.9.86", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
+    { name = "nvidia-nvjitlink-cu12", version = "12.9.86", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.14' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (python_full_version >= '3.14' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-7-genesis-cu129') or (sys_platform != 'linux' and extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5e/6f/8710fbd17cdd1d0fc3fea7d36d5b65ce1933611c31e1861da330206b253a/nvidia_cusparse_cu12-12.5.10.65-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:221c73e7482dd93eda44e65ce567c031c07e2f93f6fa0ecd3ba876a195023e83", size = 366359408, upload-time = "2025-06-05T20:07:42.501Z" },
@@ -2381,6 +2398,31 @@ wheels = [
 ]
 
 [[package]]
+name = "ogb"
+version = "1.3.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "outdated" },
+    { name = "pandas" },
+    { name = "scikit-learn" },
+    { name = "six" },
+    { name = "torch", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra != 'extra-7-genesis-cpu' and extra != 'extra-7-genesis-cu126' and extra != 'extra-7-genesis-cu128' and extra != 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-7-genesis-cpu') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra != 'extra-7-genesis-cpu' and extra != 'extra-7-genesis-cu126' and extra != 'extra-7-genesis-cu128' and extra != 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-7-genesis-cpu') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129')" },
+    { name = "torch", version = "2.8.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-7-genesis-cu126' or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129')" },
+    { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-7-genesis-cu128' or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129') or (extra == 'extra-7-genesis-cpu' and extra != 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129')" },
+    { name = "torch", version = "2.8.0+cu129", source = { registry = "https://download.pytorch.org/whl/cu129" }, marker = "(extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu126') or (extra == 'extra-7-genesis-cpu' and extra == 'extra-7-genesis-cu128') or (extra == 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu128') or (extra != 'extra-7-genesis-cu128' and extra == 'extra-7-genesis-cu129') or (extra != 'extra-7-genesis-cpu' and extra != 'extra-7-genesis-cu126' and extra == 'extra-7-genesis-cu129')" },
+    { name = "tqdm" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3f/0a/70cc51c00254be784b2b05ee50ec03ca3cf20f130c97cb3d29dd4e9dffce/ogb-1.3.6.tar.gz", hash = "sha256:ce90418a0e3206483187aa7b7ecac1a2c5d85b3b99aceedb807138ee43115914", size = 48908, upload-time = "2023-04-07T05:59:02.964Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/95/e0770cf1ad9667492f56b732f44398ef2756d61df914e10d121a3cad013a/ogb-1.3.6-py3-none-any.whl", hash = "sha256:29ab84078c66a7846bf137c9be9545978616a053e734c032a2ff731d026bb5e9", size = 78750, upload-time = "2023-04-07T05:59:00.053Z" },
+]
+
+[[package]]
 name = "omegaconf"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2412,6 +2454,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c6/6a/5204699dd9c2b4b3062e3c77469058d7d96e59946e67353a80f0103ff353/optuna-2.10.1.tar.gz", hash = "sha256:8a12009b57757c1070b3bff2261c24824d6430c22926dd1e2ace33b3deff555f", size = 224093, upload-time = "2022-06-13T05:39:22.48Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9f/6c/c6fab7d673d9d12144b8fe7155e15aeb06798b029ecfece4b193ffc859e6/optuna-2.10.1-py3-none-any.whl", hash = "sha256:d57dc1fd911d20697098bdef83836f8078387a3be2a5400ab26db15f8341e1f4", size = 308237, upload-time = "2022-06-13T05:39:20.176Z" },
+]
+
+[[package]]
+name = "outdated"
+version = "0.2.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "littleutils" },
+    { name = "requests" },
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e9/43/ac45b6c53fc62c99f02dbc310939d8693aa76cdf9900afe74a60febc8266/outdated-0.2.2.tar.gz", hash = "sha256:4b7fdec88e36711120d096d485fc4d5035e4e5ffbd907cf3a6ce2af43058b970", size = 9325, upload-time = "2022-10-29T10:14:01.847Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d3/04/7d2b9a0d1b81e30f39e6f358bac01f4f18b585f35b0ffc5c83fc274f146b/outdated-0.2.2-py2.py3-none-any.whl", hash = "sha256:3e9c2ee6d17e86ae8cc7bb71d70c4172690121cda367155a30994742172678c8", size = 7543, upload-time = "2022-10-29T10:13:59.919Z" },
 ]
 
 [[package]]
@@ -2701,6 +2757,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/20/e5/16ff212c1e452235a90aeb09066144d0c5a6a8c0834397e03f5224495c4e/ptyprocess-0.7.0.tar.gz", hash = "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220", size = 70762, upload-time = "2020-12-28T15:15:30.155Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/22/a6/858897256d0deac81a172289110f31629fc4cee19b6f01283303e18c8db3/ptyprocess-0.7.0-py2.py3-none-any.whl", hash = "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35", size = 13993, upload-time = "2020-12-28T15:15:28.35Z" },
+]
+
+[[package]]
+name = "pulp"
+version = "3.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/16/1c/d880b739b841a8aa81143091c9bdda5e72e226a660aa13178cb312d4b27f/pulp-3.3.0.tar.gz", hash = "sha256:7eb99b9ce7beeb8bbb7ea9d1c919f02f003ab7867e0d1e322f2f2c26dd31c8ba", size = 16301847, upload-time = "2025-09-18T08:14:57.552Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/99/6c/64cafaceea3f99927e84b38a362ec6a8f24f33061c90bda77dfe1cd4c3c6/pulp-3.3.0-py3-none-any.whl", hash = "sha256:dd6ad2d63f196d1254eddf9dcff5cd224912c1f046120cb7c143c5b0eda63fae", size = 16387700, upload-time = "2025-09-18T08:14:53.368Z" },
 ]
 
 [[package]]

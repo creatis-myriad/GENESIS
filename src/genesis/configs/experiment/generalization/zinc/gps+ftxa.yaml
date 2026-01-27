@@ -1,0 +1,20 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=generalization/zinc/gps+ftxa
+
+defaults:
+  - /experiment/generalization/zinc/gps
+  # Use the GPS config, modified to:
+  # 1) compute molecular global features, and;
+  # 2) use GPS+FTxA extension to support global features
+
+  # Use custom transform config that pairs computation of molecular global features with
+  # transform required by the GNN backbone (i.e. random walk positional encoding)
+  - override /data/dataset/transform@data.dataset.pre_transform: random_walk_pe+add_molecular_global_features
+  - override /model: graph_level_gps+ga
+  - override /model/encoder: gps+ftxa
+
+model:
+  optimizer:
+    lr: 0.0001 # Reduce learning rate compared to value reported in GPS paper for ZINC, since GPS+FTxA tends to diverge

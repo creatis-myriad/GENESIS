@@ -17,6 +17,7 @@ class CSVDataset(Dataset):
     def __init__(
         self,
         src: str | Path,
+        split: str | None = None,
         target_attr: str | None = None,
         imputer: _BaseImputer | None = None,
         impute_cols: list[str] | None = None,
@@ -26,7 +27,9 @@ class CSVDataset(Dataset):
         """Initializes a `CSVDataset`.
 
         Args:
-            src: Path to the CSV file.
+            src: If `split` is None, path to the CSV file. If `split` is provided, path to the directory containing the
+                CSV files for each split (e.g. 'train.csv', 'val.csv', 'test.csv').
+            split: If provided, specifies which split (e.g. 'train', 'val', 'test') to load from the `src` directory.
             target_attr: Name of the target attribute (column) in the CSV file. If None, the dataset will not return
                 targets.
             imputer: Imputer to complete missing values. If None, no imputation will be performed. In any case, any
@@ -39,8 +42,11 @@ class CSVDataset(Dataset):
                 If False, no rows are dropped.
             **read_csv_kwargs: Additional keyword arguments to pass to `pandas.read_csv`.
         """
-        self.root = Path(src).parent
-        self.data = pd.read_csv(src, **read_csv_kwargs)
+        csv_file = Path(src)
+        if split:
+            csv_file /= f"{split}.csv"
+        self.root = csv_file.parent  # For compatibility with `SplitLightningDataset` to generate splits at runtime
+        self.data = pd.read_csv(csv_file, **read_csv_kwargs)
         self._target_attr = target_attr
 
         # Complete missing values if imputer is provided

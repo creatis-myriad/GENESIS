@@ -1,0 +1,98 @@
+# @package _global_
+
+# NOTICE: ZINC is a dataset unrelated to the subject of the paper, but useful as a larger dataset to test methods' generalizability.
+
+defaults:
+  # Place _self_ before filters and transforms in the defaults list, in case they override dataset hparams,
+  # e.g. modify number of graphs, features, etc.
+  - _self_
+  # To add transforms (or pre-transforms) to the dataset, use the following config group:
+  - /data/dataset/transform: null
+  - /data/dataset/transform@data.dataset.pre_transform: null
+
+data:
+  dataset:
+    _target_: torch_geometric.datasets.ZINC
+    root: ${paths.data_dir}/ZINC
+    # Use the smaller subset by default, to remain consistent with standardized benchmark defined in the paper
+    # "Benchmarking Graph Neural Networks"
+    # https://jmlr.org/papers/v24/22-0567.html
+    subset: True
+    force_reload: False
+
+hparams:
+  # hparams.data.* values are meant to expose the constant properties of the `torch_geometric.data.Dataset` instance
+  # to make them available during the resolution of the configuration, using the same names.
+  # This is done to allow for automatic interpolation of data-processing components (e.g. stratified splits)
+  # and model architecture components (e.g. input/output dimensions) during the resolution of the configuration.
+  # Therefore, it is important to provide the values available for your dataset, whether it is a PyTorch Geometric
+  # dataset or your own custom dataset.
+  data:
+    # MUTAG dataset contains 135 graphs in the cleaned version, and 188 graphs in the original version
+    num_graphs: ${op.ternary:${data.dataset.subset}, 12000, 249456}
+    num_node_features: 1
+    num_edge_features: 1
+    task: regression
+    node_features_cardinalities: # Atom (i.e. node) metadata, used to encode node features
+      - 28 # atom type
+    edge_features_cardinalities: # Bond (i.e. edge) metadata, used to encode edge features
+      - 4 # bond type
+    graph_features:
+      - wiener
+      - circuit_rank
+      - independence
+      - hosoya
+      - max_matching
+      - second_eigenv
+      - spectral_radius
+      - zagreb_M1
+      - zagreb_M2
+    graph_cat_features_cardinalities: {} # Empty dict to indicate there are no categorical molecular global features
+    # Statistics pre-computed over the dataset's train split by the `molecular_global_features_stats.py `script,
+    # used to normalize global features
+    graph_features_statistics:
+      wiener:
+        mean: 2868.475341796875
+        std: 1484.5592041015625
+        min: 172
+        max: 9690
+      circuit_rank:
+        mean: 2.7614998817443848
+        std: 1.0033535957336426
+        min: 0
+        max: 7
+      independence:
+        mean: 12.291899681091309
+        std: 2.3948001861572266
+        min: 5
+        max: 21
+      hosoya:
+        mean: 764624.625
+        std: 3339998.5
+        min: 31
+        max: 73_431_168
+      max_matching:
+        mean: 10.258899688720703
+        std: 2.185394287109375
+        min: 3
+        max: 17
+      second_eigenv:
+        mean: 0.046704791486263275
+        std: 0.025694934651255608
+        min: 0.01519576646387577
+        max: 0.3520822823047638
+      spectral_radius:
+        mean: 2.4086174964904785
+        std: 0.08028135448694229
+        min: 1.9796428680419922
+        max: 2.861311674118042
+      zagreb_M1:
+        mean: 476.5096130371094
+        std: 106.08866882324219
+        min: 136
+        max: 880
+      zagreb_M2:
+        mean: 1107.468017578125
+        std: 266.7090148925781
+        min: 272
+        max: 2344

@@ -1,0 +1,21 @@
+defaults:
+  - target: logp
+
+_target_: genesis.data.CSVDataset
+# since pandas.read_csv does not recognize OmegaConf containers as their corresponding Python primitives
+# (when forwarding them to the read_csv function), force the conversion of OmegaConf containers to Python primitives
+_convert_: all
+src: ${paths.data_dir}/ZINC/global_features
+target_attr: ??? # To be set by the target config
+index_col: false # pandas should auto-generate integer indices, and not use the first column as index (default)
+usecols:
+  - wiener
+  - circuit_rank
+  - independence
+  - hosoya
+  - max_matching
+  - second_eigenv
+  - spectral_radius
+  - zagreb_M1
+  - zagreb_M2
+  - ${..target_attr} # ensure target attribute is also included in the features
