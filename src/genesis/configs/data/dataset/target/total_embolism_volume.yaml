@@ -1,0 +1,9 @@
+# @package _global_
+
+data:
+  dataset:
+    target_attr: total_embolism_volume
+
+hparams:
+  data:
+    task: regression

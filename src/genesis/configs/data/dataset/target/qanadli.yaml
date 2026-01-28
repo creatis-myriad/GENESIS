@@ -1,0 +1,9 @@
+# @package _global_
+
+data:
+  dataset:
+    target_attr: qanadli
+
+hparams:
+  data:
+    task: regression
