@@ -4,8 +4,6 @@
 # Not optimal when used directly, as it uses the default graph-level model.
 
 defaults:
-  - /callbacks:
-      - lr_monitor # Add learning rate monitor callback to default callbacks
   - override /data: split_lightning_dataset
   - override /data/dataset: persevere
   - override /model: graph_level
