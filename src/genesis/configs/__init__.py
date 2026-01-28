@@ -3,6 +3,7 @@ import importlib
 import operator
 from typing import Any
 
+import hydra
 from omegaconf import OmegaConf
 
 from genesis.utils import pylogger
@@ -36,6 +37,12 @@ def register_config_resolvers() -> None:
     """Register custom OmegaConf resolvers to handle complex config interpolation cases."""
     OmegaConf.register_new_resolver("cfg.graph_level_criterion", lambda task: _graph_level_criterion_resolver(task))
     OmegaConf.register_new_resolver("cfg.xgboost_objective", lambda task: _xgboost_objective_resolver(task))
+    OmegaConf.register_new_resolver(
+        "cfg.metric_optim_mode",
+        # Infer the optimization mode ("min" or "max") from the fully instantiated metric and not just the class,
+        # since some metaclasses (e.g. `F1Score`) only set `higher_is_better` for task-specific classes.
+        lambda metric_cfg: "max" if hydra.utils.instantiate(metric_cfg).higher_is_better else "min",
+    )
 
 
 def import_from_module(dotpath: str) -> Any:
