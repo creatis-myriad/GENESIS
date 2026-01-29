@@ -1,0 +1,8 @@
+graph_level_prediction_writer:
+  _target_: genesis.callbacks.prediction_writer.GraphLevelPredictionWriter
+  # output and filename where predictions will be saved
+  output_dir: ${paths.outputs}/predictions/
+  filename_format: "{split}_predictions.csv"
+  # which splits to save predictions for
+  save_fit_predictions: ${oc.select:train,False}
+  save_test_predictions: ${oc.select:test,True}
