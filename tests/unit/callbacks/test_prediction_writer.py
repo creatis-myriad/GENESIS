@@ -200,7 +200,7 @@ def test_write_on_epoch_end_with_logging(tmp_path: Path) -> None:
         [[0, 1, 2]],
     ]
     
-    # Create mock logger
+    # Create mock logger (non-WandbLogger)
     mock_logger = Mock()
     trainer = Trainer(logger=mock_logger)
     module = DummyModule()
@@ -208,20 +208,12 @@ def test_write_on_epoch_end_with_logging(tmp_path: Path) -> None:
     # Call write_on_epoch_end
     writer.write_on_epoch_end(trainer, module, predictions, batch_indices)
     
-    # Verify that log_metrics was called
-    mock_logger.log_metrics.assert_called_once()
+    # Verify that the CSV file was created
+    test_file = tmp_path / "test_predictions.csv"
+    assert test_file.exists()
     
-    # Verify the logged metrics contain expected keys
-    logged_metrics = mock_logger.log_metrics.call_args[0][0]
-    assert "test/predictions_mean" in logged_metrics
-    assert "test/predictions_std" in logged_metrics
-    assert "test/predictions_min" in logged_metrics
-    assert "test/predictions_max" in logged_metrics
-    assert "test/num_predictions" in logged_metrics
-    
-    # Verify the values
-    assert logged_metrics["test/num_predictions"] == 3
-    assert logged_metrics["test/predictions_mean"] == pytest.approx(0.6)
+    # Verify that log_metrics was not called (no summary statistics)
+    mock_logger.log_metrics.assert_not_called()
 
 
 def test_write_on_epoch_end_fewer_batch_indices_than_predictions(tmp_path: Path) -> None:

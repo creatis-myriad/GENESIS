@@ -2,6 +2,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import torch
 from lightning import LightningModule, Trainer
@@ -39,6 +40,61 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
             self.predictions_dataloaders.append("test")
         super().__init__(write_interval="epoch")
 
+    def _preprocess_predictions(
+        self, dataloader_preds: Sequence[Any], dataloader_batch_indices: Sequence[Any]
+    ) -> tuple[np.ndarray, list[int]]:
+        """Preprocess predictions and batch indices from a single dataloader.
+        
+        Args:
+            dataloader_preds: Predictions from a single dataloader (list of batch predictions).
+            dataloader_batch_indices: Batch indices corresponding to the predictions.
+            
+        Returns:
+            A tuple containing:
+                - Predictions as a numpy array
+                - Flattened list of batch indices
+                
+        Raises:
+            TypeError: If predictions are not in the expected format (torch.Tensor).
+            ValueError: If the number of batch indices is less than the number of predictions.
+        """
+        # Concatenate all batch predictions into a single tensor
+        if isinstance(dataloader_preds[0], torch.Tensor):
+            all_predictions = torch.cat([pred for pred in dataloader_preds])
+        else:
+            # Handle case where predictions might already be concatenated
+            if isinstance(dataloader_preds, torch.Tensor):
+                all_predictions = dataloader_preds
+            else:
+                raise TypeError(
+                    f"Expected predictions to be a list of torch.Tensor or a single torch.Tensor, "
+                    f"but got {type(dataloader_preds)}"
+                )
+        
+        # Convert predictions to numpy for DataFrame creation
+        if isinstance(all_predictions, torch.Tensor):
+            all_predictions = all_predictions.cpu().numpy()
+        
+        # Flatten batch indices if they are nested
+        all_batch_indices = []
+        for batch_idx_list in dataloader_batch_indices:
+            if isinstance(batch_idx_list, (list, tuple)):
+                all_batch_indices.extend(batch_idx_list)
+            else:
+                all_batch_indices.append(batch_idx_list)
+        
+        # Validate that we have enough batch indices for all predictions
+        if len(all_batch_indices) < len(all_predictions):
+            raise ValueError(
+                f"Number of batch indices ({len(all_batch_indices)}) is less than "
+                f"number of predictions ({len(all_predictions)})"
+            )
+        
+        # Truncate batch indices to match predictions if necessary
+        all_batch_indices = all_batch_indices[:len(all_predictions)]
+        
+        return all_predictions, all_batch_indices
+
     def write_on_epoch_end(
         self, trainer: Trainer, pl_module: LightningModule, predictions: Sequence[Any], batch_indices: Sequence[Any]
     ) -> None:
@@ -48,8 +104,7 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
         CSV files, and logs them to the configured experiment tracker if available.
         
         Note:
-            For WandbLogger, both the prediction CSV file and summary statistics are logged. For other loggers,
-            only summary statistics are logged.
+            For WandbLogger, the prediction CSV file is logged as an artifact.
         
         Args:
             trainer: The PyTorch Lightning trainer instance.
@@ -62,55 +117,17 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # Iterate through each dataloader's predictions
-        for dataloader_idx, (dataloader_preds, dataloader_batch_indices) in enumerate(
-            zip(predictions, batch_indices, strict=True)
+        for subset, dataloader_preds, dataloader_batch_indices in zip(
+            self.predictions_dataloaders, predictions, batch_indices, strict=True
         ):
-            # Get the subset name for this dataloader
-            if dataloader_idx >= len(self.predictions_dataloaders):
-                # Skip if we have more predictions than expected dataloaders
-                continue
-            
             # Skip if no predictions for this dataloader
             if not dataloader_preds:
                 continue
             
-            subset = self.predictions_dataloaders[dataloader_idx]
-            
-            # Concatenate all batch predictions into a single tensor
-            if isinstance(dataloader_preds[0], torch.Tensor):
-                all_predictions = torch.cat([pred for pred in dataloader_preds])
-            else:
-                # Handle case where predictions might already be concatenated
-                if isinstance(dataloader_preds, torch.Tensor):
-                    all_predictions = dataloader_preds
-                else:
-                    raise TypeError(
-                        f"Expected predictions to be a list of torch.Tensor or a single torch.Tensor, "
-                        f"but got {type(dataloader_preds)}"
-                    )
-            
-            # Convert predictions to numpy for DataFrame creation
-            if isinstance(all_predictions, torch.Tensor):
-                all_predictions = all_predictions.cpu().numpy()
-            
-            # Create a DataFrame with predictions and batch indices
-            # Flatten batch indices if they are nested
-            all_batch_indices = []
-            for batch_idx_list in dataloader_batch_indices:
-                if isinstance(batch_idx_list, (list, tuple)):
-                    all_batch_indices.extend(batch_idx_list)
-                else:
-                    all_batch_indices.append(batch_idx_list)
-            
-            # Validate that we have enough batch indices for all predictions
-            if len(all_batch_indices) < len(all_predictions):
-                raise ValueError(
-                    f"Number of batch indices ({len(all_batch_indices)}) is less than "
-                    f"number of predictions ({len(all_predictions)}) for subset '{subset}'"
-                )
-            
-            # Truncate batch indices to match predictions if necessary
-            all_batch_indices = all_batch_indices[:len(all_predictions)]
+            # Preprocess predictions and batch indices
+            all_predictions, all_batch_indices = self._preprocess_predictions(
+                dataloader_preds, dataloader_batch_indices
+            )
             
             # Create DataFrame based on prediction dimensionality
             if all_predictions.ndim == 1:
@@ -142,13 +159,3 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
                     if isinstance(logger, WandbLogger):
                         wandb_run = logger.experiment
                         wandb_run.save(str(filepath), base_path=str(output_dir.parent))
-                    
-                    # Log summary statistics
-                    summary_stats = {
-                        f"{subset}/predictions_mean": float(all_predictions.mean()),
-                        f"{subset}/predictions_std": float(all_predictions.std()),
-                        f"{subset}/predictions_min": float(all_predictions.min()),
-                        f"{subset}/predictions_max": float(all_predictions.max()),
-                        f"{subset}/num_predictions": len(all_predictions),
-                    }
-                    logger.log_metrics(summary_stats)
