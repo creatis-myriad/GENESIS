@@ -97,6 +97,8 @@ def test_write_on_epoch_end_binary_classification(tmp_path: Path) -> None:
     assert "prediction" in train_df.columns
     assert "batch_idx" in train_df.columns
     assert list(train_df["prediction"]) == pytest.approx([0.8, 0.6, 0.9, 0.7, 0.5])
+    # Verify batch indices are correct
+    assert list(train_df["batch_idx"]) == [0, 1, 2, 3, 4]
     
     # Check val file contents
     val_df = pd.read_csv(val_file)
@@ -104,6 +106,8 @@ def test_write_on_epoch_end_binary_classification(tmp_path: Path) -> None:
     assert "prediction" in val_df.columns
     assert "batch_idx" in val_df.columns
     assert list(val_df["prediction"]) == pytest.approx([0.4, 0.3, 0.6])
+    # Verify batch indices are correct
+    assert list(val_df["batch_idx"]) == [0, 1, 2]
 
 
 def test_write_on_epoch_end_multiclass_classification(tmp_path: Path) -> None:
@@ -175,3 +179,96 @@ def test_write_on_epoch_end_empty_predictions(tmp_path: Path) -> None:
     
     assert not train_file.exists()
     assert not val_file.exists()
+
+
+def test_write_on_epoch_end_with_logging(tmp_path: Path) -> None:
+    """Test write_on_epoch_end with logger configured."""
+    from unittest.mock import Mock
+    
+    writer = GraphLevelPredictionWriter(
+        output_dir=str(tmp_path),
+        save_fit_predictions=False,
+        save_test_predictions=True,
+    )
+    
+    # Create dummy predictions
+    predictions = [
+        [torch.tensor([0.5, 0.6, 0.7])],
+    ]
+    
+    batch_indices = [
+        [[0, 1, 2]],
+    ]
+    
+    # Create mock logger
+    mock_logger = Mock()
+    trainer = Trainer(logger=mock_logger)
+    module = DummyModule()
+    
+    # Call write_on_epoch_end
+    writer.write_on_epoch_end(trainer, module, predictions, batch_indices)
+    
+    # Verify that log_metrics was called
+    mock_logger.log_metrics.assert_called_once()
+    
+    # Verify the logged metrics contain expected keys
+    logged_metrics = mock_logger.log_metrics.call_args[0][0]
+    assert "test/predictions_mean" in logged_metrics
+    assert "test/predictions_std" in logged_metrics
+    assert "test/predictions_min" in logged_metrics
+    assert "test/predictions_max" in logged_metrics
+    assert "test/num_predictions" in logged_metrics
+    
+    # Verify the values
+    assert logged_metrics["test/num_predictions"] == 3
+    assert logged_metrics["test/predictions_mean"] == pytest.approx(0.6)
+
+
+def test_write_on_epoch_end_fewer_batch_indices_than_predictions(tmp_path: Path) -> None:
+    """Test write_on_epoch_end when there are fewer batch indices than predictions."""
+    writer = GraphLevelPredictionWriter(
+        output_dir=str(tmp_path),
+        save_fit_predictions=False,
+        save_test_predictions=True,
+    )
+    
+    # Create predictions with more samples than batch indices
+    predictions = [
+        [torch.tensor([0.5, 0.6, 0.7])],
+    ]
+    
+    batch_indices = [
+        [[0, 1]],  # Only 2 batch indices for 3 predictions
+    ]
+    
+    trainer = Trainer(logger=None)
+    module = DummyModule()
+    
+    # Should raise ValueError
+    with pytest.raises(ValueError, match="Number of batch indices .* is less than number of predictions"):
+        writer.write_on_epoch_end(trainer, module, predictions, batch_indices)
+
+
+def test_write_on_epoch_end_invalid_prediction_format(tmp_path: Path) -> None:
+    """Test write_on_epoch_end with invalid prediction format."""
+    writer = GraphLevelPredictionWriter(
+        output_dir=str(tmp_path),
+        save_fit_predictions=False,
+        save_test_predictions=True,
+    )
+    
+    # Create predictions with invalid format (not tensors)
+    predictions = [
+        [123, 456, 789],  # Invalid: list of integers instead of tensors
+    ]
+    
+    batch_indices = [
+        [[0, 1, 2]],
+    ]
+    
+    trainer = Trainer(logger=None)
+    module = DummyModule()
+    
+    # Should raise TypeError
+    with pytest.raises(TypeError, match="Expected predictions to be"):
+        writer.write_on_epoch_end(trainer, module, predictions, batch_indices)

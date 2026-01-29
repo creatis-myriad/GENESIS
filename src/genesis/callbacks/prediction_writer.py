@@ -47,6 +47,10 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
         This method collects predictions from different dataloaders (train/val/test), saves them to separate
         CSV files, and logs them to the configured experiment tracker if available.
         
+        Note:
+            For WandbLogger, both the prediction CSV file and summary statistics are logged. For other loggers,
+            only summary statistics are logged.
+        
         Args:
             trainer: The PyTorch Lightning trainer instance.
             pl_module: The LightningModule being trained.
@@ -59,7 +63,7 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
         
         # Iterate through each dataloader's predictions
         for dataloader_idx, (dataloader_preds, dataloader_batch_indices) in enumerate(
-            zip(predictions, batch_indices, strict=False)
+            zip(predictions, batch_indices, strict=True)
         ):
             # Get the subset name for this dataloader
             if dataloader_idx >= len(self.predictions_dataloaders):
@@ -67,7 +71,7 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
                 continue
             
             # Skip if no predictions for this dataloader
-            if not dataloader_preds or len(dataloader_preds) == 0:
+            if not dataloader_preds:
                 continue
             
             subset = self.predictions_dataloaders[dataloader_idx]
@@ -76,8 +80,14 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
             if isinstance(dataloader_preds[0], torch.Tensor):
                 all_predictions = torch.cat([pred for pred in dataloader_preds])
             else:
-                # Handle case where predictions might already be concatenated or in a different format
-                all_predictions = dataloader_preds
+                # Handle case where predictions might already be concatenated
+                if isinstance(dataloader_preds, torch.Tensor):
+                    all_predictions = dataloader_preds
+                else:
+                    raise TypeError(
+                        f"Expected predictions to be a list of torch.Tensor or a single torch.Tensor, "
+                        f"but got {type(dataloader_preds)}"
+                    )
             
             # Convert predictions to numpy for DataFrame creation
             if isinstance(all_predictions, torch.Tensor):
@@ -92,23 +102,33 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
                 else:
                     all_batch_indices.append(batch_idx_list)
             
+            # Validate that we have enough batch indices for all predictions
+            if len(all_batch_indices) < len(all_predictions):
+                raise ValueError(
+                    f"Number of batch indices ({len(all_batch_indices)}) is less than "
+                    f"number of predictions ({len(all_predictions)}) for subset '{subset}'"
+                )
+            
+            # Truncate batch indices to match predictions if necessary
+            all_batch_indices = all_batch_indices[:len(all_predictions)]
+            
             # Create DataFrame based on prediction dimensionality
             if all_predictions.ndim == 1:
                 # Binary classification or regression: single value per sample
                 df = pd.DataFrame({
                     "prediction": all_predictions,
-                    "batch_idx": all_batch_indices[:len(all_predictions)],
+                    "batch_idx": all_batch_indices,
                 })
             else:
                 # Multi-class or multi-label: multiple values per sample
                 prediction_cols = {f"prediction_{i}": all_predictions[:, i] for i in range(all_predictions.shape[1])}
                 df = pd.DataFrame({
                     **prediction_cols,
-                    "batch_idx": all_batch_indices[:len(all_predictions)],
+                    "batch_idx": all_batch_indices,
                 })
             
             # Save to CSV file
-            filename = self.filename_format.format(subset=subset, split=subset)
+            filename = self.filename_format.format(subset=subset)
             filepath = output_dir / filename
             df.to_csv(filepath, index=False)
             
