@@ -216,6 +216,47 @@ def test_write_on_epoch_end_with_logging(tmp_path: Path) -> None:
     mock_logger.log_metrics.assert_not_called()
 
 
+def test_write_on_epoch_end_with_wandb_logger(tmp_path: Path) -> None:
+    """Test write_on_epoch_end with WandbLogger configured."""
+    from unittest.mock import Mock, patch
+    
+    writer = GraphLevelPredictionWriter(
+        output_dir=str(tmp_path),
+        save_fit_predictions=False,
+        save_test_predictions=True,
+    )
+    
+    # Create dummy predictions
+    predictions = [
+        [torch.tensor([0.5, 0.6, 0.7])],
+    ]
+    
+    batch_indices = [
+        [[0, 1, 2]],
+    ]
+    
+    # Create mock WandbLogger
+    mock_wandb_logger = Mock(spec=WandbLogger)
+    mock_experiment = Mock()
+    mock_wandb_logger.experiment = mock_experiment
+    
+    trainer = Trainer(logger=mock_wandb_logger)
+    module = DummyModule()
+    
+    # Mock wandb.Table
+    with patch("genesis.callbacks.prediction_writer.wandb") as mock_wandb:
+        mock_table = Mock()
+        mock_wandb.Table.return_value = mock_table
+        
+        # Call write_on_epoch_end
+        writer.write_on_epoch_end(trainer, module, predictions, batch_indices)
+        
+        # Verify that WandB Table was created
+        mock_wandb.Table.assert_called_once()
+        # Verify that the table was logged
+        mock_experiment.log.assert_called_once_with({"test_predictions": mock_table})
+
+
 def test_write_on_epoch_end_fewer_batch_indices_than_predictions(tmp_path: Path) -> None:
     """Test write_on_epoch_end when there are fewer batch indices than predictions."""
     writer = GraphLevelPredictionWriter(

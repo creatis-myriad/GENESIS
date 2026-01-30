@@ -104,7 +104,7 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
         CSV files, and logs them to the configured experiment tracker if available.
         
         Note:
-            For WandbLogger, the prediction CSV file is logged as an artifact.
+            For WandbLogger, predictions are logged as interactive Tables.
         
         Args:
             trainer: The PyTorch Lightning trainer instance.
@@ -155,7 +155,11 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
                 loggers = trainer.logger if isinstance(trainer.logger, list) else [trainer.logger]
                 
                 for logger in loggers:
-                    # Log the file as an artifact for WandbLogger
+                    # Log as a WandB Table for WandbLogger
                     if isinstance(logger, WandbLogger):
+                        import wandb
+                        
+                        # Create WandB Table from DataFrame
+                        table = wandb.Table(dataframe=df)
                         wandb_run = logger.experiment
-                        wandb_run.save(str(filepath), base_path=str(output_dir.parent))
+                        wandb_run.log({f"{subset}_predictions": table})
