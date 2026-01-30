@@ -1,0 +1,180 @@
+from collections.abc import Sequence
+from pathlib import Path
+from typing import Literal
+
+import numpy as np
+import pandas as pd
+import scipy
+import torch
+from lightning import LightningModule, Trainer
+from lightning.pytorch.callbacks import BasePredictionWriter
+from lightning.pytorch.loggers import WandbLogger
+
+
+class GraphLevelPredictionWriter(BasePredictionWriter):
+    """Callback to log graph-level predictions to the configured logger/experiment tracker."""
+
+    def __init__(
+        self,
+        output_dir: str,
+        save_fit_predictions: bool,
+        save_test_predictions: bool,
+        filename_format: str = "{}_predictions.csv",
+        output_labels: Sequence[str] | None = None,
+        samplewise_op: Literal["softmax", "argmax"] | None = None,
+    ) -> None:
+        """Initializes a `GraphLevelPredictionWriter` instance.
+
+        Args:
+            output_dir: Directory where prediction files will be saved.
+            save_fit_predictions: Whether the dataloaders passed to the prediction loop will include training and
+                validation dataloaders.
+            save_test_predictions: Whether the dataloaders passed to the prediction loop will include the test
+                dataloader.
+            filename_format: A format string for naming the output files. It should include a placeholder
+                that will be replaced with the subset (e.g., "train", "val", "test") and samplewise operation applied.
+            output_labels: Sequence of label names corresponding to prediction columns, for models that return multiple
+                values per sample (e.g. class logits).
+            samplewise_op: Operation to apply to model outputs on a per-sample basis before saving/logging.
+        """
+        super().__init__(write_interval="epoch")
+
+        self.output_dir = output_dir
+        self.predictions_dataloaders = []
+        if save_fit_predictions:
+            self.predictions_dataloaders.extend(["train", "val"])
+        if save_test_predictions:
+            self.predictions_dataloaders.append("test")
+        self.filename_format = filename_format
+        self.output_labels = output_labels
+        self.samplewise_op = [samplewise_op]
+        if samplewise_op is not None:
+            # If a samplewise operation is specified, also save unmodified predictions alongside
+            self.samplewise_op.append(None)
+
+    def _format_predictions(
+        self, dataloader_preds: list[torch.Tensor], dataloader_batch_indices: list[list[int]]
+    ) -> tuple[np.ndarray, list[int]]:
+        """Format nested predictions and batch indices from a single dataloader to flat structures.
+
+        Args:
+            dataloader_preds: Predictions from a single dataloader (list of batch predictions).
+            dataloader_batch_indices: Batch indices corresponding to the predictions.
+
+        Returns:
+            A tuple containing:
+                - Predictions as a numpy array
+                - Flattened list of batch indices
+
+        Raises:
+            ValueError: If the number of batch indices is not equal to the number of predictions.
+        """
+        # Convert predictions to numpy for DataFrame creation
+        all_predictions = torch.cat(dataloader_preds).cpu().numpy()
+
+        # Flatten batch indices
+        all_batch_indices = []
+        for batch_idx_list in dataloader_batch_indices:
+            all_batch_indices.extend(batch_idx_list)
+
+        # Validate that batch indices and predictions match
+        if len(all_batch_indices) != len(all_predictions):
+            raise ValueError(
+                f"Number of batch indices ({len(all_batch_indices)}) does not match "
+                f"number of predictions ({len(all_predictions)})"
+            )
+
+        return all_predictions, all_batch_indices
+
+    def write_on_epoch_end(
+        self,
+        trainer: Trainer,
+        pl_module: LightningModule,
+        predictions: list[torch.Tensor | list[torch.Tensor]],
+        batch_indices: list[list[list[int]]],
+    ) -> None:
+        """Logs predictions at the end of an epoch, saving each dataloader's predictions to a separate file.
+
+        This method collects predictions from different dataloaders (train/val/test), saves them to separate
+        CSV files, and logs them to the configured experiment tracker if available.
+
+        Note:
+            For WandbLogger, predictions are logged as interactive Tables.
+
+        Args:
+            trainer: The PyTorch Lightning trainer instance.
+            pl_module: The LightningModule being trained.
+            predictions: A sequence of predictions from each dataloader. Each element is a list of batch predictions.
+            batch_indices: A sequence of batch indices corresponding to the predictions.
+        """
+        # Create output directory if it doesn't exist
+        output_dir = Path(self.output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        if isinstance(predictions[0], torch.Tensor):
+            # If there is only one dataloader, wrap predictions in a list to match expected structure
+            predictions = [predictions]
+
+        # Iterate through each dataloader's predictions
+        for subset, dataloader_preds, dataloader_batch_indices in zip(
+            self.predictions_dataloaders, predictions, batch_indices, strict=True
+        ):
+            # Format predictions and batch indices
+            dataloader_preds, dataloader_batch_indices = self._format_predictions(  # noqa: PLW2901
+                dataloader_preds, dataloader_batch_indices
+            )
+
+            for samplewise_op in self.samplewise_op:
+                proc_dataloader_preds = dataloader_preds
+                match samplewise_op:
+                    case "softmax":
+                        proc_dataloader_preds = scipy.special.softmax(proc_dataloader_preds, axis=1)
+                    case "argmax":
+                        proc_dataloader_preds = np.argmax(proc_dataloader_preds, axis=1)
+                    case None:
+                        # No operation, use predictions as is
+                        pass
+                    case _:
+                        raise ValueError(f"Unsupported samplewise operation: {samplewise_op}")
+
+                # Create DataFrame based on prediction dimensionality
+                if proc_dataloader_preds.ndim == 1:
+                    # Regression: single value per sample
+                    df = pd.DataFrame(
+                        {
+                            "prediction": proc_dataloader_preds,
+                            "batch_idx": dataloader_batch_indices,
+                        }
+                    )
+                else:
+                    # Classification: multiple values per sample (i.e. class probabilities)
+                    output_labels = self.output_labels or [str(i) for i in range(proc_dataloader_preds.shape[1])]
+                    prediction_cols = {
+                        output_label: proc_dataloader_preds[:, i] for i, output_label in enumerate(output_labels)
+                    }
+                    df = pd.DataFrame(
+                        {
+                            **prediction_cols,
+                            "batch_idx": dataloader_batch_indices,
+                        }
+                    )
+
+                # Save to CSV file
+                filename = self.filename_format.format(subset if samplewise_op is None else f"{subset}_{samplewise_op}")
+                filepath = output_dir / filename
+                df.to_csv(filepath, index=False)
+
+                # Log to experiment tracker if available
+                if trainer.logger is not None:
+                    # Handle both single logger and list of loggers
+                    loggers = trainer.logger if isinstance(trainer.logger, list) else [trainer.logger]
+
+                    for logger in loggers:
+                        # Log as a WandB Table for WandbLogger
+                        if isinstance(logger, WandbLogger):
+                            import wandb  # noqa: PLC0415
+
+                            # Create WandB Table from DataFrame
+                            table = wandb.Table(dataframe=df)
+                            wandb_run = logger.experiment
+                            wandb_run.log({filepath.stem: table})

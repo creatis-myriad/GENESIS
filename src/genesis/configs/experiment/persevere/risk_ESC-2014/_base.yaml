@@ -7,3 +7,7 @@ defaults:
   - /experiment/persevere/default
   - override /data/dataset/target: risk_ESC-2014
   - override /model/metrics: multi_classification
+
+callbacks:
+  graph_level_prediction_writer:
+    samplewise_op: argmax # Save the predicted class along on top of the raw class logits

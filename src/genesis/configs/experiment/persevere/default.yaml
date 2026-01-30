@@ -4,6 +4,8 @@
 # Not optimal when used directly, as it uses the default graph-level model.
 
 defaults:
+  - /callbacks:
+      - graph_level_prediction_writer # Add callback to log graph-level predictions after evaluation
   - override /data: split_lightning_dataset
   - override /data/dataset: persevere
   - override /model: graph_level
