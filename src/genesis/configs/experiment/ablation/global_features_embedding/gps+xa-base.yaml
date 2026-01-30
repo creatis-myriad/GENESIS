@@ -3,11 +3,12 @@
 # to execute this experiment run:
 # python train.py experiment=ablation/global_features_embedding/gps+xa
 
-# Use the default GPS+FTxA config, modified to:
+# Use the default GPS+xA config, modified to:
 # - replace Feature Tokenizer with linear embedding
+# Note:
+# - uses the "base" GPS encoder hparams (optimized for GPS+xA configuration)
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gps+ftxa
-  - override /model/encoder: gps+xa
+  - /experiment/persevere/risk_ESC-2014/gps+xa
 
 callbacks:
   # Disable early stopping by default for this experiment
