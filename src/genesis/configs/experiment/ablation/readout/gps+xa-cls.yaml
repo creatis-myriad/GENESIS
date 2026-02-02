@@ -1,0 +1,13 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=ablation/readout/gps+xa-cls
+
+# Use the default GPS+xA config, modified to:
+# - use global features token as global graph representation, instead of readout over node representations
+defaults:
+  - /experiment/persevere/risk_ESC-2014/gps+xa
+  - override /model/readout: last # Extract the (single) global token
+
+model:
+  features_for_readout: graph # Use global features representations (instead of node representations) as readout input

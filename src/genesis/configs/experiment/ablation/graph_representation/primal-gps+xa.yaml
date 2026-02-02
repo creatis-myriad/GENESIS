@@ -1,9 +1,9 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=ablation/graph_representation/primal-gps+ftxa
+# python train.py experiment=ablation/graph_representation/primal-gps+xa
 
-# Use the default GPS+FTxA config, consisting of:
+# Use the default GPS+xA config, consisting of:
 # - dual representation
 # - node features, no edge features
 # - positional encoding
@@ -16,7 +16,7 @@
 #       encoder to account for edge features
 
 defaults:
-  - /experiment/persevere/risk_ESC-2014/gps+ftxa
+  - /experiment/persevere/risk_ESC-2014/gps+xa
   - /data/dataset/transform/_pe_hparams # Load base PE config
   # Make sure no parts of other pre-transforms remain when redefining pre-transforms below
   - override /data/dataset/transform@data.dataset.pre_transform: null
