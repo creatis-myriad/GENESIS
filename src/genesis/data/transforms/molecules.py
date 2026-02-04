@@ -84,8 +84,8 @@ class AddMolecularGlobalFeatures(BaseTransform):
                                 f"`min` and `max` must be provided in `features_stats` for feature '{feature}' "
                                 f"when using 'min-max' normalization."
                             )
-                        self._norm_funcs[feature] = (
-                            lambda x, shift=feat_min, scale=feat_max - feat_min: (x - shift) / scale
+                        self._norm_funcs[feature] = lambda x, shift=feat_min, scale=feat_max - feat_min: (
+                            (x - shift) / scale
                         )
                     case "z-score":
                         if not (mean := feat_stats.get("mean", None)) or not (std := feat_stats.get("std", None)):
