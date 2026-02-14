@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pandas as pd
 import pytest
 from _pytest.fixtures import FixtureRequest
 from hydra import compose, initialize
@@ -178,3 +179,40 @@ def test_train_resume_eval(tmp_path: Path, cfg: DictConfig) -> None:
     # i.e. that the model was saved and loaded correctly
     metric = next(iter(test_metric_dict))
     assert abs(train_metric_dict[metric].item() - test_metric_dict[metric].item()) < 0.001
+
+
+@RunIf(xgboost=True)
+@pytest.mark.slow
+def test_train_predict(tmp_path: Path, cfg: DictConfig) -> None:
+    """Fit model on training data and generate predictions on train/val/test sets.
+
+    Args:
+        tmp_path: The temporary logging path.
+        cfg: A DictConfig containing a valid configuration.
+    """
+    with open_dict(cfg):
+        cfg.test = True
+        cfg.predict = True
+
+    HydraConfig().set_config(cfg)
+    metric_dict, _ = fit_and_score(cfg)
+
+    # Check that metrics were computed
+    assert any(metric.startswith("train/") for metric in metric_dict)
+    assert any(metric.startswith("val/") for metric in metric_dict)
+    assert any(metric.startswith("test/") for metric in metric_dict)
+
+    # Check that prediction CSV files were created
+    assert (tmp_path / "train_predictions.csv").exists()
+    assert (tmp_path / "val_predictions.csv").exists()
+    assert (tmp_path / "test_predictions.csv").exists()
+
+    # Verify that the CSV files contain predictions
+    train_df = pd.read_csv(tmp_path / "train_predictions.csv")
+    val_df = pd.read_csv(tmp_path / "val_predictions.csv")
+    test_df = pd.read_csv(tmp_path / "test_predictions.csv")
+
+    # Check that all dataframes have at least one prediction column
+    assert len(train_df) > 0
+    assert len(val_df) > 0
+    assert len(test_df) > 0

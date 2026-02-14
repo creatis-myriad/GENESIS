@@ -3,7 +3,6 @@ from typing import Any
 
 import hydra
 import lightning as L  # noqa: N812
-import numpy as np
 from lightning import LightningDataModule
 from lightning.pytorch.loggers import Logger, WandbLogger
 from omegaconf import DictConfig
@@ -106,21 +105,23 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     if cfg.get("predict"):
         log.info("Starting predicting!")
         if not (cfg.get("ckpt_path") or cfg.get("train")):
-            log.warning("ckpt not found! Using untrained model for predicting... This is likely a mistake in your config.")
-        
+            log.warning(
+                "ckpt not found! Using untrained model for predicting... This is likely a mistake in your config."
+            )
+
         # Determine which subsets to predict on
         predict_subsets = ["train", "val"]
         if cfg.get("test"):
             predict_subsets.append("test")
-        
+
         # Loop over subsets and collect predictions
         output_dir = Path(cfg.paths.output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         for subset in predict_subsets:
             log.info(f"Predicting on {subset} set...")
             predictions = model.predict(datamodule=datamodule, subset=subset)
-            
+
             # Create DataFrame from predictions
             # Note: We don't have batch indices for tabular predictions, so we pass None
             df = create_predictions_dataframe(
@@ -129,12 +130,12 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
                 output_labels=None,
                 samplewise_op=None,
             )
-            
+
             # Save to CSV file
             filename = f"{subset}_predictions.csv"
             filepath = save_predictions_to_csv(df, output_dir, filename)
             log.info(f"Saved predictions to {filepath}")
-            
+
             # Log to experiment tracker if available
             if logger:
                 log_predictions_dataframe(df, logger, filepath.stem)
