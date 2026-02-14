@@ -3,6 +3,7 @@ from typing import Any
 
 import hydra
 import lightning as L  # noqa: N812
+import numpy as np
 from lightning import LightningDataModule
 from lightning.pytorch.loggers import Logger, WandbLogger
 from omegaconf import DictConfig
@@ -19,6 +20,11 @@ from genesis.utils import (
     metrics_table,
     pre_hydra_routine,
     task_wrapper,
+)
+from genesis.utils.logging_utils import (
+    create_predictions_dataframe,
+    log_predictions_dataframe,
+    save_predictions_to_csv,
 )
 
 log = RankedLogger(__name__, rank_zero_only=True)
@@ -96,6 +102,42 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     metric_dict = {**train_metrics, **test_metrics}
 
     Console().print(metrics_table(metric_dict, cols_from_prefixes=["train", "val", "test"]))
+
+    if cfg.get("predict"):
+        log.info("Starting predicting!")
+        if not (cfg.get("ckpt_path") or cfg.get("train")):
+            log.warning("ckpt not found! Using untrained model for predicting... This is likely a mistake in your config.")
+        
+        # Determine which subsets to predict on
+        predict_subsets = ["train", "val"]
+        if cfg.get("test"):
+            predict_subsets.append("test")
+        
+        # Loop over subsets and collect predictions
+        output_dir = Path(cfg.paths.output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        for subset in predict_subsets:
+            log.info(f"Predicting on {subset} set...")
+            predictions = model.predict(datamodule=datamodule, subset=subset)
+            
+            # Create DataFrame from predictions
+            # Note: We don't have batch indices for tabular predictions, so we pass None
+            df = create_predictions_dataframe(
+                predictions=predictions,
+                batch_indices=None,
+                output_labels=None,
+                samplewise_op=None,
+            )
+            
+            # Save to CSV file
+            filename = f"{subset}_predictions.csv"
+            filepath = save_predictions_to_csv(df, output_dir, filename)
+            log.info(f"Saved predictions to {filepath}")
+            
+            # Log to experiment tracker if available
+            if logger:
+                log_predictions_dataframe(df, logger, filepath.stem)
 
     return metric_dict, object_dict
 

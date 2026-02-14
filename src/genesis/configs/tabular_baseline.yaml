@@ -43,6 +43,9 @@ train: True
 # lightning chooses best weights based on the metric specified in checkpoint callback
 test: False
 
+# predict on train/val (and test if `test=True`) sets after training
+predict: False
+
 # directory and filename to use for checkpointing
 ckpt_save_dirpath: ${paths.output_dir}
 ckpt_save_filename: "model.pickle"

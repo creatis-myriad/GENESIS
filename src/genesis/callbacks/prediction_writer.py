@@ -3,12 +3,15 @@ from pathlib import Path
 from typing import Literal
 
 import numpy as np
-import pandas as pd
-import scipy
 import torch
 from lightning import LightningModule, Trainer
 from lightning.pytorch.callbacks import BasePredictionWriter
-from lightning.pytorch.loggers import WandbLogger
+
+from genesis.utils.logging_utils import (
+    create_predictions_dataframe,
+    log_predictions_dataframe,
+    save_predictions_to_csv,
+)
 
 
 class GraphLevelPredictionWriter(BasePredictionWriter):
@@ -125,56 +128,18 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
             )
 
             for samplewise_op in self.samplewise_op:
-                proc_dataloader_preds = dataloader_preds
-                match samplewise_op:
-                    case "softmax":
-                        proc_dataloader_preds = scipy.special.softmax(proc_dataloader_preds, axis=1)
-                    case "argmax":
-                        proc_dataloader_preds = np.argmax(proc_dataloader_preds, axis=1)
-                    case None:
-                        # No operation, use predictions as is
-                        pass
-                    case _:
-                        raise ValueError(f"Unsupported samplewise operation: {samplewise_op}")
+                # Create DataFrame using utility function
+                df = create_predictions_dataframe(
+                    predictions=dataloader_preds,
+                    batch_indices=dataloader_batch_indices,
+                    output_labels=self.output_labels,
+                    samplewise_op=samplewise_op,
+                )
 
-                # Create DataFrame based on prediction dimensionality
-                if proc_dataloader_preds.ndim == 1:
-                    # Regression: single value per sample
-                    df = pd.DataFrame(
-                        {
-                            "prediction": proc_dataloader_preds,
-                            "batch_idx": dataloader_batch_indices,
-                        }
-                    )
-                else:
-                    # Classification: multiple values per sample (i.e. class probabilities)
-                    output_labels = self.output_labels or [str(i) for i in range(proc_dataloader_preds.shape[1])]
-                    prediction_cols = {
-                        output_label: proc_dataloader_preds[:, i] for i, output_label in enumerate(output_labels)
-                    }
-                    df = pd.DataFrame(
-                        {
-                            **prediction_cols,
-                            "batch_idx": dataloader_batch_indices,
-                        }
-                    )
-
-                # Save to CSV file
+                # Save to CSV file using utility function
                 filename = self.filename_format.format(subset if samplewise_op is None else f"{subset}_{samplewise_op}")
-                filepath = output_dir / filename
-                df.to_csv(filepath, index=False)
+                filepath = save_predictions_to_csv(df, output_dir, filename)
 
                 # Log to experiment tracker if available
                 if trainer.logger is not None:
-                    # Handle both single logger and list of loggers
-                    loggers = trainer.logger if isinstance(trainer.logger, list) else [trainer.logger]
-
-                    for logger in loggers:
-                        # Log as a WandB Table for WandbLogger
-                        if isinstance(logger, WandbLogger):
-                            import wandb  # noqa: PLC0415
-
-                            # Create WandB Table from DataFrame
-                            table = wandb.Table(dataframe=df)
-                            wandb_run = logger.experiment
-                            wandb_run.log({filepath.stem: table})
+                    log_predictions_dataframe(df, trainer.logger, filepath.stem)

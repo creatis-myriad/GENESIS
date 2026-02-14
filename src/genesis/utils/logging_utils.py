@@ -1,7 +1,11 @@
 from collections.abc import Mapping, Sequence
-from typing import Any
+from pathlib import Path
+from typing import Any, Literal
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import scipy
 from lightning.pytorch.loggers import Logger, WandbLogger
 from lightning_utilities.core.rank_zero import rank_zero_only
 from omegaconf import OmegaConf
@@ -147,3 +151,104 @@ def log_nonscalar_metrics(logger: Logger, metrics: MetricCollection) -> None:
                 )
 
         plt.close("all")  # avoid memory leaks from figures left opened
+
+
+def create_predictions_dataframe(
+    predictions: np.ndarray,
+    batch_indices: list[int] | None = None,
+    output_labels: Sequence[str] | None = None,
+    samplewise_op: Literal["softmax", "argmax"] | None = None,
+) -> pd.DataFrame:
+    """Create a DataFrame from predictions.
+
+    Args:
+        predictions: Array of model predictions.
+            (n_samples,) for regression or (n_samples, n_classes) for classification.
+        batch_indices: Batch indices corresponding to the predictions. If None, batch indices are not included.
+        output_labels: Sequence of label names corresponding to prediction columns, for models that return multiple
+            values per sample (e.g. class logits). If None, uses numeric indices as column names.
+        samplewise_op: Operation to apply to predictions on a per-sample basis before creating the DataFrame.
+            - "softmax": Apply softmax along the class dimension.
+            - "argmax": Take the argmax along the class dimension.
+            - None: Use predictions as is.
+
+    Returns:
+        DataFrame containing the predictions and optionally batch indices.
+    """
+    # Apply samplewise operation if specified
+    proc_predictions = predictions
+    match samplewise_op:
+        case "softmax":
+            proc_predictions = scipy.special.softmax(proc_predictions, axis=1)
+        case "argmax":
+            proc_predictions = np.argmax(proc_predictions, axis=1)
+        case None:
+            # No operation, use predictions as is
+            pass
+        case _:
+            raise ValueError(f"Unsupported samplewise operation: {samplewise_op}")
+
+    # Create DataFrame based on prediction dimensionality
+    if proc_predictions.ndim == 1:
+        # Regression: single value per sample
+        data = {"prediction": proc_predictions}
+    else:
+        # Classification: multiple values per sample (i.e. class probabilities)
+        output_labels = output_labels or [str(i) for i in range(proc_predictions.shape[1])]
+        data = {output_label: proc_predictions[:, i] for i, output_label in enumerate(output_labels)}
+
+    # Add batch indices if provided
+    if batch_indices is not None:
+        data["batch_idx"] = batch_indices
+
+    return pd.DataFrame(data)
+
+
+def save_predictions_to_csv(
+    df: pd.DataFrame,
+    output_dir: Path | str,
+    filename: str,
+) -> Path:
+    """Save predictions DataFrame to a CSV file.
+
+    Args:
+        df: DataFrame containing the predictions to save.
+        output_dir: Directory where the CSV file will be saved.
+        filename: Name of the output CSV file.
+
+    Returns:
+        Path to the saved CSV file.
+    """
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    filepath = output_dir / filename
+    df.to_csv(filepath, index=False)
+    return filepath
+
+
+def log_predictions_dataframe(
+    df: pd.DataFrame,
+    logger: Logger | list[Logger],
+    table_name: str,
+) -> None:
+    """Log predictions DataFrame to experiment tracker.
+
+    Currently only supports WandbLogger. For other loggers, this function does nothing.
+
+    Args:
+        df: DataFrame containing the predictions to log.
+        logger: Logger or list of loggers to log to.
+        table_name: Name for the table in the experiment tracker.
+    """
+    # Handle both single logger and list of loggers
+    loggers = logger if isinstance(logger, list) else [logger]
+
+    for logger_instance in loggers:
+        # Log as a WandB Table for WandbLogger
+        if isinstance(logger_instance, WandbLogger):
+            import wandb  # noqa: PLC0415
+
+            # Create WandB Table from DataFrame
+            table = wandb.Table(dataframe=df)
+            wandb_run = logger_instance.experiment
+            wandb_run.log({table_name: table})
