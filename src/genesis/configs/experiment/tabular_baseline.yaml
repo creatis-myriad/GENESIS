@@ -20,6 +20,10 @@ tags:
 
 seed: 12345
 
+# Prediction configuration
+predictions_output_labels: ${oc.select:hparams.data.class_labels}
+samplewise_op: ${if:${op:eq,${hparams.data.task},multiclass},softmax,null}
+
 logger:
   wandb:
     tags: ${tags}

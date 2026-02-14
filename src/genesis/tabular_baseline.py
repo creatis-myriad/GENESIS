@@ -22,8 +22,8 @@ from genesis.utils import (
 )
 from genesis.utils.logging_utils import (
     create_predictions_dataframe,
-    log_predictions_dataframe,
-    save_predictions_to_csv,
+    log_dataframe,
+    save_dataframe_to_csv,
 )
 
 log = RankedLogger(__name__, rank_zero_only=True)
@@ -114,31 +114,31 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
         if cfg.get("test"):
             predict_subsets.append("test")
 
-        # Loop over subsets and collect predictions
+        # Get prediction configuration
         output_dir = Path(cfg.paths.output_dir)
-        output_dir.mkdir(parents=True, exist_ok=True)
+        output_labels = cfg.get("predictions_output_labels")
+        samplewise_op = cfg.get("samplewise_op")
 
         for subset in predict_subsets:
             log.info(f"Predicting on {subset} set...")
             predictions = model.predict(datamodule=datamodule, subset=subset)
 
             # Create DataFrame from predictions
-            # Note: We don't have batch indices for tabular predictions, so we pass None
             df = create_predictions_dataframe(
                 predictions=predictions,
                 batch_indices=None,
-                output_labels=None,
-                samplewise_op=None,
+                output_labels=output_labels,
+                samplewise_op=samplewise_op,
             )
 
             # Save to CSV file
             filename = f"{subset}_predictions.csv"
-            filepath = save_predictions_to_csv(df, output_dir, filename)
+            filepath = save_dataframe_to_csv(df, output_dir, filename)
             log.info(f"Saved predictions to {filepath}")
 
             # Log to experiment tracker if available
             if logger:
-                log_predictions_dataframe(df, logger, filepath.stem)
+                log_dataframe(df, logger, filepath.stem)
 
     return metric_dict, object_dict
 

@@ -198,22 +198,24 @@ def create_predictions_dataframe(
         output_labels = output_labels or [str(i) for i in range(proc_predictions.shape[1])]
         data = {output_label: proc_predictions[:, i] for i, output_label in enumerate(output_labels)}
 
-    # Add batch indices if provided
+    # Add batch indices if provided, otherwise create default continuous indices
     if batch_indices is not None:
         data["batch_idx"] = batch_indices
+    else:
+        data["batch_idx"] = list(range(len(proc_predictions)))
 
     return pd.DataFrame(data)
 
 
-def save_predictions_to_csv(
+def save_dataframe_to_csv(
     df: pd.DataFrame,
     output_dir: Path | str,
     filename: str,
 ) -> Path:
-    """Save predictions DataFrame to a CSV file.
+    """Save DataFrame to a CSV file.
 
     Args:
-        df: DataFrame containing the predictions to save.
+        df: DataFrame to save.
         output_dir: Directory where the CSV file will be saved.
         filename: Name of the output CSV file.
 
@@ -227,17 +229,17 @@ def save_predictions_to_csv(
     return filepath
 
 
-def log_predictions_dataframe(
+def log_dataframe(
     df: pd.DataFrame,
     logger: Logger | list[Logger],
     table_name: str,
 ) -> None:
-    """Log predictions DataFrame to experiment tracker.
+    """Log DataFrame to experiment tracker.
 
     Currently only supports WandbLogger. For other loggers, this function does nothing.
 
     Args:
-        df: DataFrame containing the predictions to log.
+        df: DataFrame to log.
         logger: Logger or list of loggers to log to.
         table_name: Name for the table in the experiment tracker.
     """

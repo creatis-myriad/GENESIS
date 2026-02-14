@@ -9,8 +9,8 @@ from lightning.pytorch.callbacks import BasePredictionWriter
 
 from genesis.utils.logging_utils import (
     create_predictions_dataframe,
-    log_predictions_dataframe,
-    save_predictions_to_csv,
+    log_dataframe,
+    save_dataframe_to_csv,
 )
 
 
@@ -138,8 +138,8 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
 
                 # Save to CSV file using utility function
                 filename = self.filename_format.format(subset if samplewise_op is None else f"{subset}_{samplewise_op}")
-                filepath = save_predictions_to_csv(df, output_dir, filename)
+                filepath = save_dataframe_to_csv(df, output_dir, filename)
 
                 # Log to experiment tracker if available
                 if trainer.logger is not None:
-                    log_predictions_dataframe(df, trainer.logger, filepath.stem)
+                    log_dataframe(df, trainer.logger, filepath.stem)
