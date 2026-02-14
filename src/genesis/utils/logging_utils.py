@@ -155,7 +155,7 @@ def log_nonscalar_metrics(logger: Logger, metrics: MetricCollection) -> None:
 
 def create_predictions_dataframe(
     predictions: np.ndarray,
-    batch_indices: list[int] | None = None,
+    batch_indices: Sequence[int] | np.ndarray | None = None,
     output_labels: Sequence[str] | None = None,
     samplewise_op: Literal["softmax", "argmax"] | None = None,
 ) -> pd.DataFrame:
@@ -165,6 +165,7 @@ def create_predictions_dataframe(
         predictions: Array of model predictions.
             (n_samples,) for regression or (n_samples, n_classes) for classification.
         batch_indices: Batch indices corresponding to the predictions. If None, batch indices are not included.
+            Can be a list, numpy array, or any sequence of integers.
         output_labels: Sequence of label names corresponding to prediction columns, for models that return multiple
             values per sample (e.g. class logits). If None, uses numeric indices as column names.
         samplewise_op: Operation to apply to predictions on a per-sample basis before creating the DataFrame.

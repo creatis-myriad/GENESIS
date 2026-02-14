@@ -207,12 +207,13 @@ def test_train_predict(tmp_path: Path, cfg: DictConfig) -> None:
     assert (tmp_path / "val_predictions.csv").exists()
     assert (tmp_path / "test_predictions.csv").exists()
 
-    # Verify that the CSV files contain predictions
+    # Verify that the CSV files contain predictions with proper structure
     train_df = pd.read_csv(tmp_path / "train_predictions.csv")
     val_df = pd.read_csv(tmp_path / "val_predictions.csv")
     test_df = pd.read_csv(tmp_path / "test_predictions.csv")
 
-    # Check that all dataframes have at least one prediction column
-    assert len(train_df) > 0
-    assert len(val_df) > 0
-    assert len(test_df) > 0
+    # Check that all dataframes have predictions and proper structure
+    for df, subset in [(train_df, "train"), (val_df, "val"), (test_df, "test")]:
+        assert len(df) > 0, f"{subset} DataFrame is empty"
+        # Check that DataFrame has either 'prediction' column (regression) or numbered columns (classification)
+        assert "prediction" in df.columns or "0" in df.columns, f"{subset} DataFrame missing prediction columns"
