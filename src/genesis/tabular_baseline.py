@@ -119,28 +119,36 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
         # Get prediction configuration
         output_dir = Path(cfg.paths.output_dir)
         output_labels = cfg.get("predictions_output_labels")
-        samplewise_op = cfg.get("samplewise_op")
+        samplewise_ops = cfg.get("samplewise_op")
+        if samplewise_ops is None or isinstance(samplewise_ops, str):
+            # If a single samplewise operation is provided, convert it to a list for consistency
+            samplewise_ops = [samplewise_ops]
+        if None not in samplewise_ops:
+            # If any samplewise operation is specified, also save unmodified predictions by adding None as an operation
+            samplewise_ops.append(None)
 
         for subset in predict_subsets:
             log.info(f"Predicting on {subset} set...")
             predictions = model.predict(datamodule=datamodule, subset=subset)
 
-            # Create DataFrame from predictions
-            df = create_predictions_dataframe(
-                predictions=predictions,
-                batch_indices=None,
-                output_labels=output_labels,
-                samplewise_op=samplewise_op,
-            )
+            for samplewise_op in samplewise_ops:
+                # Create DataFrame from predictions
+                df = create_predictions_dataframe(
+                    predictions=predictions,
+                    batch_indices=None,
+                    output_labels=output_labels,
+                    samplewise_op=samplewise_op,
+                )
 
-            # Save to CSV file
-            filename = f"{subset}_predictions.csv"
-            filepath = save_dataframe_to_csv(df, output_dir, filename)
-            log.info(f"Saved predictions to {filepath}")
+                # Save to CSV file
+                op_suffix = f"_{samplewise_op}" if samplewise_op is not None else ""
+                filename = f"{subset}{op_suffix}_predictions.csv"
+                filepath = save_dataframe_to_csv(df, output_dir, filename)
+                log.info(f"Saved predictions to {filepath}")
 
-            # Log to experiment tracker if available
-            if logger:
-                log_dataframe(df, logger, filepath.stem)
+                # Log to experiment tracker if available
+                if logger:
+                    log_dataframe(df, logger, filepath.stem)
 
     return metric_dict, object_dict
 
