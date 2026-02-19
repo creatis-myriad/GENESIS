@@ -160,7 +160,8 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
                     )
 
                 # Save to CSV file
-                filename = self.filename_format.format(subset if samplewise_op is None else f"{subset}_{samplewise_op}")
+                op_suffix = f"_{samplewise_op}" if samplewise_op is not None else ""
+                filename = self.filename_format.format(subset + op_suffix)
                 filepath = output_dir / filename
                 df.to_csv(filepath, index=False)
 
