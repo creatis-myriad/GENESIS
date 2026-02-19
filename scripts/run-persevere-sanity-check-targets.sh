@@ -47,7 +47,7 @@ for target in "${!targets_configs[@]}"; do # Loop over targets and associated hp
     logger=wandb test=True \
     experiment=tabular_baseline \
     model/model=tabpfn,xgboost \
-    data/dataset/usecols=spesi+cardiac_biomarkers,spesi+cardiac_biomarkers+graph_biomarkers \
+    data/dataset/usecols=spesi+cardiac_biomarkers+graph_biomarkers \
     ${targets_overrides[${target}]} \
     data/dataset/target="${target}" data/split=k_fold data.on_conflict=ignore 'data.split_idx=range(10)' \
     >>"${LOG_DIR}/run-persevere-sanity-check-targets-${target}-tabular.log" 2>&1
