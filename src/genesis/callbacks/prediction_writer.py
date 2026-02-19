@@ -21,7 +21,7 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
         save_test_predictions: bool,
         filename_format: str = "{}_predictions.csv",
         output_labels: Sequence[str] | None = None,
-        samplewise_op: Literal["softmax", "argmax"] | None = None,
+        samplewise_op: Literal["softmax", "argmax"] | list[Literal["softmax", "argmax"]] | None = None,
     ) -> None:
         """Initializes a `GraphLevelPredictionWriter` instance.
 
@@ -35,7 +35,7 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
                 that will be replaced with the subset (e.g., "train", "val", "test") and samplewise operation applied.
             output_labels: Sequence of label names corresponding to prediction columns, for models that return multiple
                 values per sample (e.g. class logits).
-            samplewise_op: Operation to apply to model outputs on a per-sample basis before saving/logging.
+            samplewise_op: Operation(s) to apply to model outputs on a per-sample basis before saving/logging.
         """
         super().__init__(write_interval="epoch")
 
@@ -47,10 +47,13 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
             self.predictions_dataloaders.append("test")
         self.filename_format = filename_format
         self.output_labels = output_labels
-        self.samplewise_op = [samplewise_op]
-        if samplewise_op is not None:
-            # If a samplewise operation is specified, also save unmodified predictions alongside
-            self.samplewise_op.append(None)
+        self.samplewise_ops = samplewise_op
+        if samplewise_op is None or isinstance(samplewise_op, str):
+            # If a single samplewise operation is provided, convert it to a list for consistency
+            self.samplewise_ops = [samplewise_op]
+        if None not in self.samplewise_ops:
+            # If a samplewise operation is specified, also save unmodified predictions by adding None as an operation
+            self.samplewise_ops.append(None)
 
     def _format_predictions(
         self, dataloader_preds: list[torch.Tensor], dataloader_batch_indices: list[list[int]]
@@ -124,7 +127,7 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
                 dataloader_preds, dataloader_batch_indices
             )
 
-            for samplewise_op in self.samplewise_op:
+            for samplewise_op in self.samplewise_ops:
                 proc_dataloader_preds = dataloader_preds
                 match samplewise_op:
                     case "softmax":
