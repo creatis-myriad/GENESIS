@@ -116,8 +116,8 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
             predict_subsets.append("test")
 
         # Get prediction configuration
-        output_dir = Path(cfg.paths.output_dir)
-        output_dir.mkdir(parents=True, exist_ok=True)
+        predictions_dir = Path(cfg.paths.output_dir) / "predictions"
+        predictions_dir.mkdir(parents=True, exist_ok=True)
         output_labels = cfg.get("predictions_output_labels")
         samplewise_ops = cfg.get("predictions_samplewise_op")
         if samplewise_ops is None or isinstance(samplewise_ops, str):
@@ -142,7 +142,7 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
 
                 # Save to CSV file
                 op_suffix = f"_{samplewise_op}" if samplewise_op is not None else ""
-                filepath = output_dir / f"{subset}{op_suffix}_predictions.csv"
+                filepath = predictions_dir / f"{subset}{op_suffix}_predictions.csv"
                 log.info(f"Saved predictions to {filepath}")
                 df.to_csv(filepath, index=False)
 

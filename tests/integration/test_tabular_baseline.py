@@ -193,6 +193,7 @@ def test_train_predict(tmp_path: Path, cfg: DictConfig) -> None:
     with open_dict(cfg):
         cfg.test = True
         cfg.predict = True
+    predictions_dir = tmp_path / "predictions"
 
     HydraConfig().set_config(cfg)
     metric_dict, _ = fit_and_score(cfg)
@@ -203,14 +204,14 @@ def test_train_predict(tmp_path: Path, cfg: DictConfig) -> None:
     assert any(metric.startswith("test/") for metric in metric_dict)
 
     # Check that prediction CSV files were created
-    assert (tmp_path / "train_predictions.csv").exists()
-    assert (tmp_path / "val_predictions.csv").exists()
-    assert (tmp_path / "test_predictions.csv").exists()
+    assert (predictions_dir / "train_predictions.csv").exists()
+    assert (predictions_dir / "val_predictions.csv").exists()
+    assert (predictions_dir / "test_predictions.csv").exists()
 
     # Verify that the CSV files contain predictions with proper structure
-    train_df = pd.read_csv(tmp_path / "train_predictions.csv")
-    val_df = pd.read_csv(tmp_path / "val_predictions.csv")
-    test_df = pd.read_csv(tmp_path / "test_predictions.csv")
+    train_df = pd.read_csv(predictions_dir / "train_predictions.csv")
+    val_df = pd.read_csv(predictions_dir / "val_predictions.csv")
+    test_df = pd.read_csv(predictions_dir / "test_predictions.csv")
 
     # Check that all dataframes have predictions and proper structure
     for df, subset in [(train_df, "train"), (val_df, "val"), (test_df, "test")]:
