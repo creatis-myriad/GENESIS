@@ -241,7 +241,7 @@ class TabularEstimator:
         """Load a model from disk.
 
         Args:
-            ckpt: Path to the model checkpoint.
+            ckpt: Path to the model checkpoint, or TabPFN backbone pre-fitted state.
 
         Returns:
             The loaded model.
@@ -250,7 +250,7 @@ class TabularEstimator:
             if not isinstance(self.model, (TabPFNClassifier, TabPFNRegressor)):
                 raise RuntimeError(
                     f"The checkpoint file provided is of a pre-fitted TabPFN, but the model its loaded into "
-                    f"(type '{self.model.__class__.__name__}') is not a TabPFN model."
+                    f"(type '{self.model.__class__.__name__}') does not expect a TabPFN backbone."
                 )
             # Use TabPFN's built-in loading function
             self.model = self.model.__class__.load_from_fit_state(
