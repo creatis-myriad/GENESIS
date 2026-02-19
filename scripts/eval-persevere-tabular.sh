@@ -23,11 +23,12 @@ esac
 # NOTE: Ignore conflicts on data splits (data.on_conflict=ignore), because splits computed from different targets would
 # not match. This way, the splits computed from the first target will be used for all subsequent targets.
 # shellcheck disable=SC2016
-gnn-eval -m hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu \
-  test=True \
-  +experiment=tabular_baseline/"${TARGET}" \
+baseline-tabular -m hydra/launcher=joblib hydra.launcher.n_jobs=10 \
+  train=False test=True \
+  experiment=tabular_baseline/"${TARGET}" \
   data/dataset/usecols="${USECOLS}" \
   model/model="${MODEL}" \
-  data/dataset/target="${TARGET}" data/split=k_fold data.on_conflict=ignore 'data.split_idx=range(10)' \
-  ckpt_path="${CKPT_ROOT}/PERSEVERE/${TARGET}/${MODEL}/${USECOLS}/kfold/"'${data.split_idx}'"/${ckpt_filename}" \
+  data/split=k_fold data.on_conflict=ignore \
+  'data.split_idx=range(10)' \
+  ckpt_path="${CKPT_ROOT}/PERSEVERE/${TARGET}/${MODEL}/${USECOLS}/k_fold/"'${data.split_idx}'"/${ckpt_filename}" \
   >>"${LOG_DIR}/eval-persevere-tabular-${TARGET}-${MODEL}-${USECOLS}.log" 2>&1
