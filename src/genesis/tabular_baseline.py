@@ -54,7 +54,7 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     train_metrics = {}
     if ckpt_path := cfg.get("ckpt_path"):
         log.info(f"Loading model from {ckpt_path}!")
-        model = TabularEstimator.load(ckpt_path)
+        model = model.load(ckpt_path)
         if cfg.get("train"):
             log.warning(
                 "ckpt is provided, but training is enabled. Unless the model supports resuming training from a "

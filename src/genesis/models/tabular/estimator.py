@@ -15,7 +15,7 @@ from genesis.data import split
 from genesis.utils.logging_utils import log_nonscalar_metrics, split_scalar_nonscalar_metrics
 
 try:
-    from tabpfn import TabPFNClassifier
+    from tabpfn import TabPFNClassifier, TabPFNRegressor
 
     _tabpfn_is_available = True
 except ImportError:
@@ -230,15 +230,14 @@ class TabularEstimator:
                 "installing the project, e.g. pip install genesis[baselines], or manually via 'pip install tabpfn'."
             )
 
-        if isinstance(self.model, TabPFNClassifier):
+        if isinstance(self.model, (TabPFNClassifier, TabPFNRegressor)):
             # Use TabPFN's built-in saving function
             self.model.save_fit_state(ckpt)
         else:
             with Path(ckpt).open("wb") as f:
                 pickle.dump(self.model, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    @classmethod
-    def load(cls, ckpt: Path | str) -> "TabularEstimator":
+    def load(self, ckpt: Path | str) -> "TabularEstimator":
         """Load a model from disk.
 
         Args:
@@ -247,5 +246,11 @@ class TabularEstimator:
         Returns:
             The loaded model.
         """
+        if isinstance(self.model, (TabPFNClassifier, TabPFNRegressor)):
+            # Use TabPFN's built-in loading function
+            self.model = self.model.__class__.load_from_fit_state(
+                ckpt, device="cuda" if torch.cuda.is_available() else "cpu"
+            )
+            return self
         with Path(ckpt).open("rb") as f:
             return pickle.load(f)  # noqa: S301
