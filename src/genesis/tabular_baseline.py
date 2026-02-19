@@ -20,6 +20,10 @@ from genesis.utils import (
     pre_hydra_routine,
     task_wrapper,
 )
+from genesis.utils.logging_utils import (
+    create_predictions_dataframe,
+    log_dataframe,
+)
 
 log = RankedLogger(__name__, rank_zero_only=True)
 
@@ -96,6 +100,55 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     metric_dict = {**train_metrics, **test_metrics}
 
     Console().print(metrics_table(metric_dict, cols_from_prefixes=["train", "val", "test"]))
+
+    if cfg.get("predict"):
+        log.info("Starting predicting!")
+        if not (cfg.get("ckpt_path") or cfg.get("train")):
+            log.warning(
+                "ckpt not found! Using untrained model for predicting... This is likely a mistake in your config."
+            )
+
+        # Determine which subsets to predict on
+        predict_subsets = []
+        if cfg.get("train"):
+            predict_subsets.extend(["train", "val"])
+        if cfg.get("test"):
+            predict_subsets.append("test")
+
+        # Get prediction configuration
+        output_dir = Path(cfg.paths.output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_labels = cfg.get("predictions_output_labels")
+        samplewise_ops = cfg.get("predictions_samplewise_op")
+        if samplewise_ops is None or isinstance(samplewise_ops, str):
+            # If a single samplewise operation is provided, convert it to a list for consistency
+            samplewise_ops = [samplewise_ops]
+        if None not in samplewise_ops:
+            # If any samplewise operation is specified, also save unmodified predictions by adding None as an operation
+            samplewise_ops.append(None)
+
+        for subset in predict_subsets:
+            log.info(f"Predicting on {subset} set...")
+            predictions = model.predict(datamodule=datamodule, subset=subset)
+
+            for samplewise_op in samplewise_ops:
+                # Create DataFrame from predictions
+                df = create_predictions_dataframe(
+                    predictions=predictions,
+                    batch_indices=None,
+                    output_labels=output_labels,
+                    samplewise_op=samplewise_op,
+                )
+
+                # Save to CSV file
+                op_suffix = f"_{samplewise_op}" if samplewise_op is not None else ""
+                filepath = output_dir / f"{subset}{op_suffix}_predictions.csv"
+                log.info(f"Saved predictions to {filepath}")
+                df.to_csv(filepath, index=False)
+
+                # Log to experiment tracker if available
+                if logger:
+                    log_dataframe(df, logger, filepath.stem)
 
     return metric_dict, object_dict
 
