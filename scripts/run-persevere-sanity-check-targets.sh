@@ -38,7 +38,7 @@ for target in "${!targets_configs[@]}"; do # Loop over targets and associated hp
       experiment=persevere/"${experiment_config_group}"/"${model}" \
       ${targets_overrides[${target}]} \
       data/dataset/target="${target}" data/split=k_fold data.on_conflict=ignore 'data.split_idx=range(10)' \
-      >>"${LOG_DIR}/persevere-sanity-check-${target}-${model}.log" 2>&1
+      >>"${LOG_DIR}/run-persevere-sanity-check-targets-${target}-${model}.log" 2>&1
   done
 
   # Separate run for tabular models on the same target
@@ -50,5 +50,5 @@ for target in "${!targets_configs[@]}"; do # Loop over targets and associated hp
     data/dataset/usecols=spesi+cardiac_biomarkers,spesi+cardiac_biomarkers+graph_biomarkers \
     ${targets_overrides[${target}]} \
     data/dataset/target="${target}" data/split=k_fold data.on_conflict=ignore 'data.split_idx=range(10)' \
-    >>"${LOG_DIR}/persevere-sanity-check-${target}-tabular.log" 2>&1
+    >>"${LOG_DIR}/run-persevere-sanity-check-targets-${target}-tabular.log" 2>&1
 done

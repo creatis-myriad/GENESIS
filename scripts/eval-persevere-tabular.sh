@@ -48,4 +48,4 @@ gnn-eval -m hydra/launcher=joblib hydra.launcher.n_jobs=10 trainer=gpu \
   ${targets_overrides[${TARGET}]} \
   data/dataset/target="${TARGET}" data/split=k_fold data.on_conflict=ignore 'data.split_idx=range(10)' \
   ckpt_path="${CKPT_ROOT}/PERSEVERE/${TARGET}/${MODEL}/${USECOLS}/kfold/"'${data.split_idx}'"/${ckpt_filename}" \
-  >>"${LOG_DIR}/persevere-eval-tabular-${TARGET}-${MODEL}-${USECOLS}.log" 2>&1
+  >>"${LOG_DIR}/eval-persevere-tabular-${TARGET}-${MODEL}-${USECOLS}.log" 2>&1

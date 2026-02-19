@@ -16,4 +16,4 @@ baseline-tabular -m hydra/launcher=joblib hydra.launcher.n_jobs=10 \
   'data.split_idx=range(10)' \
   'ckpt_backbone_save_dirpath="${paths.ckpt_dir}/${op:call,${op:methodcaller,upper},${hydra:runtime.choices.data/dataset}}/${hydra:runtime.choices.data/dataset/target}/${hydra:runtime.choices.model/model}/${hydra:runtime.choices.data/dataset/usecols}/${hydra:runtime.choices.data/split}/${data.split_idx}"' \
   'ckpt_backbone_save_filename="${op.ternary:${op:eq,${hydra:runtime.choices.model/model},tabpfn},model.tabpfn_fit,null}"' \
-  >>"${LOG_DIR}/persevere-tabular.log" 2>&1
+  >>"${LOG_DIR}/train-persevere-tabular.log" 2>&1

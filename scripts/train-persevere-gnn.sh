@@ -45,6 +45,6 @@ for target in "${!targets_configs[@]}"; do # Loop over targets and associated hp
       experiment=persevere/"${experiment_config_group}"/"${model}" \
       ${targets_overrides[${target}]} \
       data/dataset/target="${target}" data/split=k_fold data.on_conflict=ignore 'data.split_idx=range(10)' \
-      >>"${LOG_DIR}/persevere-gnn-${target}-${model}.log" 2>&1
+      >>"${LOG_DIR}/train-persevere-gnn-${target}-${model}.log" 2>&1
   done
 done
