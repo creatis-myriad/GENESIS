@@ -23,7 +23,6 @@ from genesis.utils import (
 from genesis.utils.logging_utils import (
     create_predictions_dataframe,
     log_dataframe,
-    save_dataframe_to_csv,
 )
 
 log = RankedLogger(__name__, rank_zero_only=True)
@@ -118,6 +117,7 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
 
         # Get prediction configuration
         output_dir = Path(cfg.paths.output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
         output_labels = cfg.get("predictions_output_labels")
         samplewise_ops = cfg.get("predictions_samplewise_op")
         if samplewise_ops is None or isinstance(samplewise_ops, str):
@@ -142,9 +142,9 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
 
                 # Save to CSV file
                 op_suffix = f"_{samplewise_op}" if samplewise_op is not None else ""
-                filename = f"{subset}{op_suffix}_predictions.csv"
-                filepath = save_dataframe_to_csv(df, output_dir, filename)
+                filepath = output_dir / f"{subset}{op_suffix}_predictions.csv"
                 log.info(f"Saved predictions to {filepath}")
+                df.to_csv(filepath, index=False)
 
                 # Log to experiment tracker if available
                 if logger:

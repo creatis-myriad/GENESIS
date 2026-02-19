@@ -1,5 +1,4 @@
 from collections.abc import Mapping, Sequence
-from pathlib import Path
 from typing import Any, Literal
 
 import matplotlib.pyplot as plt
@@ -205,28 +204,6 @@ def create_predictions_dataframe(
         data["batch_idx"] = list(range(len(proc_predictions)))
 
     return pd.DataFrame(data)
-
-
-def save_dataframe_to_csv(
-    df: pd.DataFrame,
-    output_dir: Path | str,
-    filename: str,
-) -> Path:
-    """Save DataFrame to a CSV file.
-
-    Args:
-        df: DataFrame to save.
-        output_dir: Directory where the CSV file will be saved.
-        filename: Name of the output CSV file.
-
-    Returns:
-        Path to the saved CSV file.
-    """
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    filepath = output_dir / filename
-    df.to_csv(filepath, index=False)
-    return filepath
 
 
 def log_dataframe(

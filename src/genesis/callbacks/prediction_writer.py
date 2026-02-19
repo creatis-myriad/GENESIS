@@ -10,7 +10,6 @@ from lightning.pytorch.callbacks import BasePredictionWriter
 from genesis.utils.logging_utils import (
     create_predictions_dataframe,
     log_dataframe,
-    save_dataframe_to_csv,
 )
 
 
@@ -139,10 +138,10 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
                     samplewise_op=samplewise_op,
                 )
 
-                # Save to CSV file using utility function
+                # Save to CSV file
                 op_suffix = f"_{samplewise_op}" if samplewise_op is not None else ""
-                filename = self.filename_format.format(subset + op_suffix)
-                filepath = save_dataframe_to_csv(df, output_dir, filename)
+                filepath = output_dir / self.filename_format.format(subset + op_suffix)
+                df.to_csv(filepath, index=False)
 
                 # Log to experiment tracker if available
                 if trainer.logger is not None:
