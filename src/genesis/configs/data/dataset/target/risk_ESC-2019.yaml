@@ -7,8 +7,4 @@ data:
 hparams:
   data:
     num_classes: 3
-    classes_rescale_weights: # Weights by which to rescale each class to counteract class imbalance
-      _target_: torch.tensor
-      _args_:
-        - [3.2, 1., 1.1]
     task: multiclass
