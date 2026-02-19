@@ -110,7 +110,9 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
             )
 
         # Determine which subsets to predict on
-        predict_subsets = ["train", "val"]
+        predict_subsets = []
+        if cfg.get("train"):
+            predict_subsets.extend(["train", "val"])
         if cfg.get("test"):
             predict_subsets.append("test")
 
