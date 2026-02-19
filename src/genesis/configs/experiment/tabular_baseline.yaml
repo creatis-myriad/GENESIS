@@ -20,12 +20,6 @@ tags:
 
 seed: 12345
 
-# Prediction configuration
-predictions_output_labels: ${oc.select:hparams.data.class_labels}
-# for multiclass classification, save the predicted class (argmax) along with the logits;
-# otherwise, do not make assumptions about the predictions format and save the raw model outputs
-samplewise_op: ${op.ternary:${op:eq,${hparams.data.task},multiclass},argmax,null}
-
 logger:
   wandb:
     tags: ${tags}

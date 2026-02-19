@@ -45,6 +45,10 @@ test: False
 
 # predict on train/val (and test if `test=True`) sets after training
 predict: True
+predictions_output_labels: ${oc.select:hparams.data.class_labels}
+# for multiclass classification, save the predicted class (argmax) along with the logits;
+# otherwise, do not make assumptions about the predictions format and save the raw model outputs
+predictions_samplewise_op: ${op.ternary:${op:eq,${hparams.data.task},multiclass},argmax,null}
 
 # directory and filename to use for checkpointing
 ckpt_save_dirpath: ${paths.output_dir}

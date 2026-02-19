@@ -119,7 +119,7 @@ def fit_and_score(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
         # Get prediction configuration
         output_dir = Path(cfg.paths.output_dir)
         output_labels = cfg.get("predictions_output_labels")
-        samplewise_ops = cfg.get("samplewise_op")
+        samplewise_ops = cfg.get("predictions_samplewise_op")
         if samplewise_ops is None or isinstance(samplewise_ops, str):
             # If a single samplewise operation is provided, convert it to a list for consistency
             samplewise_ops = [samplewise_ops]
