@@ -246,7 +246,12 @@ class TabularEstimator:
         Returns:
             The loaded model.
         """
-        if isinstance(self.model, (TabPFNClassifier, TabPFNRegressor)):
+        if Path(ckpt).suffix == ".tabpfn_fit":
+            if not isinstance(self.model, (TabPFNClassifier, TabPFNRegressor)):
+                raise RuntimeError(
+                    f"The checkpoint file provided is of a pre-fitted TabPFN, but the model its loaded into "
+                    f"(type '{self.model.__class__.__name__}') is not a TabPFN model."
+                )
             # Use TabPFN's built-in loading function
             self.model = self.model.__class__.load_from_fit_state(
                 ckpt, device="cuda" if torch.cuda.is_available() else "cpu"
