@@ -3,7 +3,7 @@ import json
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from pathlib import Path
-from typing import Literal, cast
+from typing import Literal
 
 import torch
 from filelock import FileLock
@@ -16,14 +16,6 @@ from torch_geometric.loader import DataLoader
 
 from genesis.data.split import TEST_SET, TRAIN_SET, VAL_SET, DatasetSplit, serialize_split_fn
 from genesis.utils import RankedLogger
-
-try:
-    from ogb.graphproppred import PygGraphPropPredDataset
-
-    no_ogb = False
-except ImportError:
-    PygGraphPropPredDataset = object
-    no_ogb = True
 
 log = RankedLogger(__name__, rank_zero_only=True)
 
@@ -162,56 +154,6 @@ class PreSplitLightningDataset(LightningDataset):
 
     def get_dataset_split(self, split: str) -> Dataset:  # noqa: D102
         return self._dataset_init(split=split)
-
-
-class OGBLightningDataset(LightningDataset):
-    """A thin wrapper around the `ogb` datasets to use them in PyTorch Lightning."""
-
-    def __init__(self, *args, **kwargs) -> None:  # noqa: D107
-        if no_ogb:
-            raise ModuleNotFoundError(
-                "No module named 'ogb' found. "
-                "Install the project with the 'ogb' extra to use the 'OGBLightningDataset'."
-            )
-
-        # The following imports and safe globals additions are a workaround to load OGB datasets in torch>=2.6
-        # until this issue is resolved: https://github.com/snap-stanford/ogb/issues/497
-        # TODO: Remove this workaround once the issue linked above is resolved and the fix is released
-        from torch_geometric.data.data import DataEdgeAttr, DataTensorAttr  # noqa: PLC0415
-        from torch_geometric.data.storage import GlobalStorage  # noqa: PLC0415
-
-        torch.serialization.add_safe_globals([GlobalStorage, DataEdgeAttr, DataTensorAttr])
-
-        super().__init__(*args, has_val=True, has_test=True, **kwargs)
-
-        # Cache full dataset and generated splits to avoid loading/recomputing them on each call to `setup`
-        self._dataset = None
-        self._splits = None
-
-    def get_dataset_split(self, split: str) -> Dataset:
-        """Get a predefined OGB split (i.e. train, val, or test) for the dataset.
-
-        Args:
-            split: The split (e.g. 'train') of the dataset to return.
-
-        Returns:
-            Subset over the dataset's requested split.
-        """
-        if self._dataset is None:
-            # Load dataset + generated splits only on 1st call and cache them
-            # This 2nd call to `self._dataset_init()`, after the 1st call in `prepare_data()`, avoids downloading
-            # the data again, since PyG datasets cache their data under their root directory
-            self._dataset = cast(PygGraphPropPredDataset, self._dataset_init())
-            ogb_splits = self._dataset.get_idx_split()
-            # Map OGB split keys to our standard split keys
-            # OGB uses 'valid' instead of 'val', but otherwise split keys are the same
-            self._splits = {
-                TRAIN_SET: ogb_splits["train"],
-                VAL_SET: ogb_splits["valid"],
-                TEST_SET: ogb_splits["test"],
-            }
-
-        return self._dataset[self._splits[split]]
 
 
 class SplitLightningDataset(LightningDataset):

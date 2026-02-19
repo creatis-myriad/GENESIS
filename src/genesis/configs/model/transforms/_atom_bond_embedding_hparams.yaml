@@ -1,6 +1,0 @@
-# @package _global_
-
-hparams:
-  data:
-    num_node_features: ${model.transforms.atom_bond_embedding.atom_embed_dim}
-    num_edge_features: ${model.transforms.atom_bond_embedding.bond_embed_dim}

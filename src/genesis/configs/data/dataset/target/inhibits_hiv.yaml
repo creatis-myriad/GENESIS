@@ -1,9 +1,0 @@
-# @package _global_
-
-data:
-  dataset:
-    target_attr: inhibits_HIV
-
-hparams:
-  data:
-    task: binary

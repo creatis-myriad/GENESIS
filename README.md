@@ -126,7 +126,6 @@ neural networks to predict the risk of pulmonary embolism.
   built for CPU or a specific CUDA version (only available when using `uv`, not `pip`).
 - `all`: Install all (non-mutually exclusive) extras at once.
 - `baselines`: Extra dependencies required to run the baselines.
-- `molecular`: Extra dependencies required to test generalization on ZINC and MolHIV molecular datasets.
 - `totalsegmentator`: For using the pretrained `TotalSegmentator` model for segmenting heart ventricles to preprocess images.
 - `wandb`: For experiment tracking with Weights & Biases.
 

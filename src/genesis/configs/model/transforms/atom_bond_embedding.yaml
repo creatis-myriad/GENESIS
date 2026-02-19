@@ -1,9 +1,0 @@
-defaults:
-  - _atom_bond_embedding_hparams # Load related config that updates global data hparams
-
-atom_bond_embedding:
-  _target_: genesis.models.gnn.transforms.AtomBondEmbedding
-  atom_cardinalities: ${hparams.data.node_features_cardinalities}
-  atom_embed_dim: ??? # dimensionality at which to embed each categorical atom feature (input node features are the sum of feature embeddings)
-  bond_cardinalities: ${hparams.data.edge_features_cardinalities}
-  bond_embed_dim: ??? # dimensionality at which to embed each categorical bond feature (input edge features are the sum to feature embeddings)

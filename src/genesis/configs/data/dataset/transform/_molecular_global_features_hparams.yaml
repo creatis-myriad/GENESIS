@@ -1,5 +1,0 @@
-# @package _global_
-
-hparams:
-  data:
-    num_graph_features: ${op:length_hint,${.graph_features}}
