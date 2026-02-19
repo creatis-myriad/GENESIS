@@ -24,7 +24,7 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
         save_test_predictions: bool,
         filename_format: str = "{}_predictions.csv",
         output_labels: Sequence[str] | None = None,
-        samplewise_op: Literal["softmax", "argmax"] | None = None,
+        samplewise_op: Literal["softmax", "argmax"] | list[Literal["softmax", "argmax"]] | None = None,
     ) -> None:
         """Initializes a `GraphLevelPredictionWriter` instance.
 
@@ -38,7 +38,7 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
                 that will be replaced with the subset (e.g., "train", "val", "test") and samplewise operation applied.
             output_labels: Sequence of label names corresponding to prediction columns, for models that return multiple
                 values per sample (e.g. class logits).
-            samplewise_op: Operation to apply to model outputs on a per-sample basis before saving/logging.
+            samplewise_op: Operation(s) to apply to model outputs on a per-sample basis before saving/logging.
         """
         super().__init__(write_interval="epoch")
 
@@ -50,10 +50,13 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
             self.predictions_dataloaders.append("test")
         self.filename_format = filename_format
         self.output_labels = output_labels
-        self.samplewise_op = [samplewise_op]
-        if samplewise_op is not None:
-            # If a samplewise operation is specified, also save unmodified predictions alongside
-            self.samplewise_op.append(None)
+        self.samplewise_ops = samplewise_op
+        if samplewise_op is None or isinstance(samplewise_op, str):
+            # If a single samplewise operation is provided, convert it to a list for consistency
+            self.samplewise_ops = [samplewise_op]
+        if None not in self.samplewise_ops:
+            # If a samplewise operation is specified, also save unmodified predictions by adding None as an operation
+            self.samplewise_ops.append(None)
 
     def _format_predictions(
         self, dataloader_preds: list[torch.Tensor], dataloader_batch_indices: list[list[int]]
@@ -127,7 +130,7 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
                 dataloader_preds, dataloader_batch_indices
             )
 
-            for samplewise_op in self.samplewise_op:
+            for samplewise_op in self.samplewise_ops:
                 # Create DataFrame using utility function
                 df = create_predictions_dataframe(
                     predictions=dataloader_preds,
@@ -137,7 +140,8 @@ class GraphLevelPredictionWriter(BasePredictionWriter):
                 )
 
                 # Save to CSV file using utility function
-                filename = self.filename_format.format(subset if samplewise_op is None else f"{subset}_{samplewise_op}")
+                op_suffix = f"_{samplewise_op}" if samplewise_op is not None else ""
+                filename = self.filename_format.format(subset + op_suffix)
                 filepath = save_dataframe_to_csv(df, output_dir, filename)
 
                 # Log to experiment tracker if available

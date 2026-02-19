@@ -24,7 +24,6 @@ tags:
   - ${hydra:runtime.choices.data/dataset/target} # automatically tag with the chosen target
 
 seed: 12345
-weighted_loss: false
 
 trainer:
   min_epochs: 50
@@ -49,9 +48,6 @@ data:
   batch_size: 32
 
 model:
-  criterion:
-    # When `weighted_loss` is set, use a weighted loss to account for class imbalance, if weights are available in data config
-    weight: ${op.ternary:${weighted_loss}, ${oc.select:hparams.data.classes_rescale_weights}, null}
   optimizer:
     lr: 0.001
     weight_decay: 1e-5

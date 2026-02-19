@@ -1,0 +1,9 @@
+# @package _global_
+
+data:
+  dataset:
+    target_attr: mastora_central
+
+hparams:
+  data:
+    task: regression
