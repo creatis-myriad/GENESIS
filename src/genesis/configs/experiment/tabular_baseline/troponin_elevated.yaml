@@ -1,9 +1,0 @@
-# @package _global_
-
-# Tabular baseline configuration for binary classification of whether troponin, an enzyme measured in the blood, is elevated
-# on the PERSEVERE dataset.
-
-defaults:
-  - /experiment/tabular_baseline
-  - override /data/dataset/target: troponin_elevated
-  - override /model/metrics: binary_classification

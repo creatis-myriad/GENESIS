@@ -1,9 +1,0 @@
-# @package _global_
-
-# Tabular baseline configuration for binary classification of elevated risk stratification according to the ESC-2014 guidelines (>= 2)
-# on the PERSEVERE dataset.
-
-defaults:
-  - /experiment/tabular_baseline
-  - override /data/dataset/target: risk_ESC-2014_elevated
-  - override /model/metrics: binary_classification
