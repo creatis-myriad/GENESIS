@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-TARGET=${1:-"enzymes_elevated"}  # Default to "enzymes_elevated" if TARGET is not set by the user
+TARGET=${1:-"risk_ESC-2014"}  # Default to "risk_ESC-2014" if TARGET is not set by the user
 LOG_DIR=${2:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 
 # NOTE: Ignore conflicts on data splits (data.on_conflict=ignore), because splits computed from different targets would
