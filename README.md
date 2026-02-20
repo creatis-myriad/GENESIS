@@ -26,10 +26,15 @@ Code repository for the Graph nEural Networks for pulmonary EmboliSm rIsk Strati
 
 ## Description
 
-A project applying graph neural networks to the task of pulmonary embolism risk stratification.
-It is assumed that an image processing pipeline previously segmented and extracted the graph of the vascular tree from
-lung images (e.g. CT pulmonary angiograms). This code repository then takes these graphs as input and trains graph
-neural networks to predict the risk of pulmonary embolism.
+A project applying tabular models and graph neural networks to the task of pulmonary embolism risk stratification.
+
+For tabular models, it is assumed that a CSV of global features (i.e., medical records, cardiac biomarkers, vascular biomarkers)
+for all patients is available. This code repository can then fit tabular models to predict the risk of pulmonary embolism
+from these features.
+
+For graph neural networks (GNNs), it is assumed that an image processing pipeline previously segmented and extracted the
+graph of the vascular tree from 3D CTPA images. This code repository then takes these graphs as input and trains GNNs
+to predict the risk of pulmonary embolism from the vascular graphs and global features.
 
 > [!IMPORTANT]
 > Using this project requires a basic understanding of PyTorch Lightning and Hydra. If you do not know at least what
