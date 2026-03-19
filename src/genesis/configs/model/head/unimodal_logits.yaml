@@ -1,0 +1,7 @@
+_target_: genesis.models.nn.head.UnimodalLogits
+in_channels: ???
+# Predict `num_classes` outputs when it is set, otherwise a single value, e.g. for binary classification, regression
+out_channels: ${oc.select:hparams.data.num_classes,1}
+distribution: binomial
+tau: 1.0
+tau_mode: learn_fn
