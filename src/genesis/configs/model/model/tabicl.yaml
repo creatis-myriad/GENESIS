@@ -1,0 +1,3 @@
+# Use `TabICLRegressor` when task is regression, otherwise use `TabICLClassifier`
+_target_: ${op.ternary:${op:eq,${hparams.data.task},regression}, tabicl.TabICLRegressor, tabicl.TabICLClassifier}
+random_state: ${seed} # Set the model's own random state for reproducibility

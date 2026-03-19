@@ -98,7 +98,7 @@ def data_overrides(request: FixtureRequest) -> list[str]:
     ]
 
 
-@pytest.fixture(scope="module", params=["tabpfn", "xgboost"])
+@pytest.fixture(scope="module", params=["tabicl", "tabpfn", "xgboost"])
 def model_overrides(request: FixtureRequest) -> list[str]:
     """A pytest fixture for the overrides to use to specify the model for the tests.
 

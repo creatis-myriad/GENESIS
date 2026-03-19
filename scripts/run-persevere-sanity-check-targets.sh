@@ -45,7 +45,7 @@ for target in "${!targets_configs[@]}"; do # Loop over targets and associated hp
   baseline-tabular -m \
     logger=wandb test=True \
     experiment=tabular_baseline \
-    model/model=tabpfn,xgboost \
+    model/model=tabicl,tabpfn,xgboost \
     data/dataset/usecols=spesi+cardiac_biomarkers \
     ${targets_overrides[${target}]} \
     data/dataset/target="${target}" data/split=k_fold data.on_conflict=ignore 'data.split_idx=range(10)' \
