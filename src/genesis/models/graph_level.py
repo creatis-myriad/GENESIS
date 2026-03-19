@@ -9,6 +9,7 @@ from torch_geometric.nn import aggr
 
 from genesis.models import MetricTrackingLitModule
 from genesis.models.gnn.transforms import LearnableTransform
+from genesis.models.nn.head import UnimodalLogits
 
 
 class GraphLevelLitModule(MetricTrackingLitModule):
@@ -104,10 +105,22 @@ class GraphLevelLitModule(MetricTrackingLitModule):
         return self.readout(x, ptr=data.ptr, dim_size=data.batch_size)
 
     def _head_step(self, data: Batch, x: torch.Tensor) -> torch.Tensor:
-        # After the readout step, each graph as been reduced to one vector representation,
-        # i.e. each element in the batch comes from a different graph, so we have to update the batch vector
-        batch = torch.arange(data.batch_size, device=x.device)
-        x = self.head(x, batch=batch, batch_size=data.batch_size)
+        kwargs = {}
+
+        # If head supports 'batch' args (e.g., PyG's MLP), include batch in args passed along to head's forward pass
+        head_params = inspect.signature(self.head.forward).parameters
+        if "batch" in head_params:
+            # After the readout step, each graph as been reduced to one vector representation,
+            # i.e. each element in the batch comes from a different graph, so we have to update the batch vector
+            batch = torch.arange(data.batch_size, device=x.device)
+            kwargs.update({"batch": batch, "batch_size": data.batch_size})
+
+        x = self.head(x, **kwargs)
+
+        if isinstance(self.head, UnimodalLogits):
+            # For the unimodal logits head, unpack the returned tuple to only keep the logits (1st element)
+            x = x[0]
+
         if self.hparams.task in ("binary", "regression"):
             x = x.squeeze(-1)  # Flatten the last dim when only one value is predicted
         return x
