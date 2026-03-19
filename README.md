@@ -200,7 +200,7 @@ Depending on the type of model (tabular or GNN) different Python entry point scr
 
 ### Ablation study of global features with tabular models for risk stratification
 
-To run tabular models (TabPFN, XGBoost) on combinations of global features (medical records, cardiac biomarkers, vascular biomarkers):
+To run tabular models (TabPFNv2, XGBoost) on combinations of global features (medical records, cardiac biomarkers, vascular biomarkers):
 
 ```bash
 scripts/train-persevere-tabular.sh
