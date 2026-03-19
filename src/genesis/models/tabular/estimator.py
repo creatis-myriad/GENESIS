@@ -15,6 +15,7 @@ from genesis.data import split
 from genesis.utils.logging_utils import log_nonscalar_metrics, split_scalar_nonscalar_metrics
 
 try:
+    from tabicl import TabICLClassifier, TabICLRegressor
     from tabpfn import TabPFNClassifier, TabPFNRegressor
 
     _baselines_available = True
@@ -230,12 +231,16 @@ class TabularEstimator:
                 "Re-install the project with the extra to enable the feature, e.g. `pip install genesis[baselines]`."
             )
 
-        if isinstance(self.model, (TabPFNClassifier, TabPFNRegressor)):
-            # Use TabPFN's built-in saving function
-            self.model.save_fit_state(ckpt)
-        else:
-            with Path(ckpt).open("wb") as f:
-                pickle.dump(self.model, f, protocol=pickle.HIGHEST_PROTOCOL)
+        match self.model:
+            case TabPFNClassifier() | TabPFNRegressor():
+                # Use TabPFN's built-in saving function
+                self.model.save_fit_state(ckpt)
+            case TabICLClassifier() | TabICLRegressor():
+                # Use TabICL's built-in saving function
+                self.model.save(ckpt)
+            case _:
+                with Path(ckpt).open("wb") as f:
+                    pickle.dump(self.model, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load(self, ckpt: Path | str) -> "TabularEstimator":
         """Load a model from disk.
@@ -246,6 +251,8 @@ class TabularEstimator:
         Returns:
             The loaded model.
         """
+        ckpt_is_backbone = False
+
         if Path(ckpt).suffix == ".tabpfn_fit":
             if not _baselines_available:
                 raise ModuleNotFoundError(
@@ -259,9 +266,21 @@ class TabularEstimator:
                     f"(type '{self.model.__class__.__name__}') does not expect a TabPFN backbone."
                 )
             # Use TabPFN's built-in loading function
-            self.model = self.model.__class__.load_from_fit_state(
+            loaded_model = self.model.__class__.load_from_fit_state(
                 ckpt, device="cuda" if torch.cuda.is_available() else "cpu"
             )
-            return self
+            ckpt_is_backbone = True
+
         with Path(ckpt).open("rb") as f:
-            return pickle.load(f)  # noqa: S301
+            loaded_model = pickle.load(f)  # noqa: S301
+
+        if _baselines_available and isinstance(loaded_model, (TabPFNClassifier, TabICLRegressor)):
+            ckpt_is_backbone = True
+
+        if ckpt_is_backbone:
+            # If the checkpoint included backbone `self.model` only, assign it and return `self`,
+            # i.e. the `TabularEstimator` wrapper
+            self.model = loaded_model
+            return self
+        # Otherwise, the checkpoint is assumed to be a `TabularEstimator` wrapper, so return the loaded model directly
+        return loaded_model

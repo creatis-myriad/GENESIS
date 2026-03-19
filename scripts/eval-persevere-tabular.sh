@@ -8,6 +8,9 @@ LOG_DIR=${5:-./logs}  # Default to "logs" if LOG_DIR is not set by the user
 
 # Determine (default) checkpoint filename based on the model type
 case "$MODEL" in
+  "tabicl")
+    ckpt_filename="model.pickle"
+    ;;
   "tabpfn")
     ckpt_filename="model.tabpfn_fit"
     ;;

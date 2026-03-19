@@ -24,4 +24,4 @@ _SH_AVAILABLE = not _IS_WINDOWS
 
 _WANDB_AVAILABLE = _package_available("wandb")
 
-_BASELINES_AVAILABLE = _package_available("tabpfn") and _package_available("xgboost")
+_BASELINES_AVAILABLE = _package_available("tabicl") and _package_available("tabpfn") and _package_available("xgboost")
