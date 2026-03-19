@@ -17,9 +17,9 @@ from genesis.utils.logging_utils import log_nonscalar_metrics, split_scalar_nons
 try:
     from tabpfn import TabPFNClassifier, TabPFNRegressor
 
-    _tabpfn_is_available = True
+    _baselines_available = True
 except ImportError:
-    _tabpfn_is_available = False
+    _baselines_available = False
 
 
 @runtime_checkable
@@ -224,10 +224,10 @@ class TabularEstimator:
         Args:
             ckpt: Path to save the backbone model to.
         """
-        if not _tabpfn_is_available:
+        if not _baselines_available:
             raise ModuleNotFoundError(
-                "No module named 'tabpfn' found in your Python environment. Install it through 'baselines' extra when "
-                "installing the project, e.g. pip install genesis[baselines], or manually via 'pip install tabpfn'."
+                "`baselines` extra required to save tabular backbones was not found in your Python environment. "
+                "Re-install the project with the extra to enable the feature, e.g. `pip install genesis[baselines]`."
             )
 
         if isinstance(self.model, (TabPFNClassifier, TabPFNRegressor)):
@@ -247,6 +247,12 @@ class TabularEstimator:
             The loaded model.
         """
         if Path(ckpt).suffix == ".tabpfn_fit":
+            if not _baselines_available:
+                raise ModuleNotFoundError(
+                    "`baselines` extra required to load already fitted TabPFN checkpoint was not found in your Python "
+                    "environment. Re-install the project with the extra to enable the feature, "
+                    "e.g. `pip install genesis[baselines]`."
+                )
             if not isinstance(self.model, (TabPFNClassifier, TabPFNRegressor)):
                 raise RuntimeError(
                     f"The checkpoint file provided is of a pre-fitted TabPFN, but the model its loaded into "

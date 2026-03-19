@@ -6,7 +6,7 @@ import pytest
 import torch
 from packaging.version import Version
 
-from .package_available import _IS_WINDOWS, _SH_AVAILABLE, _WANDB_AVAILABLE, _XGBOOST_AVAILABLE, _XLA_AVAILABLE
+from .package_available import _BASELINES_AVAILABLE, _IS_WINDOWS, _SH_AVAILABLE, _WANDB_AVAILABLE, _XLA_AVAILABLE
 
 if _SH_AVAILABLE:
     import sh
@@ -36,7 +36,7 @@ class RunIf:
         sh: bool = False,
         xla: bool = False,
         wandb: bool = False,
-        xgboost: bool = False,
+        baselines: bool = False,
         **kwargs: dict[Any, Any],
     ) -> pytest.MarkDecorator:
         """Creates a new `@RunIf` `MarkDecorator` decorator.
@@ -50,7 +50,7 @@ class RunIf:
             sh: If `sh` module is required to run the test.
             xla: If XLA is available.
             wandb: If `wandb` module is required to run the test.
-            xgboost: If `xgboost` module is required to run the test.
+            baselines: If `baselines` extra is required to run the test.
             **kwargs: Native `pytest.mark.skipif` keyword arguments.
         """
         conditions = []
@@ -91,9 +91,9 @@ class RunIf:
             conditions.append(not _WANDB_AVAILABLE)
             reasons.append("wandb")
 
-        if xgboost:
-            conditions.append(not _XGBOOST_AVAILABLE)
-            reasons.append("xgboost")
+        if baselines:
+            conditions.append(not _BASELINES_AVAILABLE)
+            reasons.append("`baselines` extra was not installed")
 
         reasons = [rs for cond, rs in zip(conditions, reasons, strict=False) if cond]
         return pytest.mark.skipif(

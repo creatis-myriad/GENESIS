@@ -112,7 +112,7 @@ def model_overrides(request: FixtureRequest) -> list[str]:
     ]
 
 
-@RunIf(xgboost=True)
+@RunIf(baselines=True)
 @pytest.mark.slow
 def test_train(cfg: DictConfig) -> None:
     """Fit model on training data and score on training/validation data.
@@ -129,7 +129,7 @@ def test_train(cfg: DictConfig) -> None:
     assert all(metric.startswith(("train/", "val/")) for metric in metric_dict)
 
 
-@RunIf(xgboost=True)
+@RunIf(baselines=True)
 @pytest.mark.slow
 def test_train_eval(cfg: DictConfig) -> None:
     """Fit model on training data and score on training/validation/test data.
@@ -150,7 +150,7 @@ def test_train_eval(cfg: DictConfig) -> None:
     assert all(metric.startswith(("train/", "val/", "test/")) for metric in metric_dict)
 
 
-@RunIf(xgboost=True)
+@RunIf(baselines=True)
 @pytest.mark.slow
 def test_train_resume_eval(tmp_path: Path, cfg: DictConfig) -> None:
     """Fit model on training data, save model, then load model and score on test data.
@@ -181,7 +181,7 @@ def test_train_resume_eval(tmp_path: Path, cfg: DictConfig) -> None:
     assert abs(train_metric_dict[metric].item() - test_metric_dict[metric].item()) < 0.001
 
 
-@RunIf(xgboost=True)
+@RunIf(baselines=True)
 @pytest.mark.slow
 def test_train_predict(tmp_path: Path, cfg: DictConfig) -> None:
     """Fit model on training data and generate predictions on train/val/test sets.
