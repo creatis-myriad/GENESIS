@@ -1,0 +1,22 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/risk_ESC-2014_unimodal_logits/gin+gavn
+
+defaults:
+  - /experiment/persevere/risk_ESC-2014/_base
+  - override /model/transforms: graph_attr_virtual_node
+  - override /model/encoder: gin
+  - override /model/head: unimodal_logits
+
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: mean
+
+model:
+  encoder:
+    hidden_channels: 64
+    num_layers: 4
+    dropout: 0.58
+    norm: BatchNorm
+  optimizer:
+    weight_decay: 1.6e-4
