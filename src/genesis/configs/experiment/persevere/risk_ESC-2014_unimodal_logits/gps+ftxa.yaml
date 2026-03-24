@@ -1,0 +1,28 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=persevere/risk_ESC-2014_unimodal_logits/gps+ftxa
+
+defaults:
+  - /experiment/persevere/risk_ESC-2014/_base
+  - override /model: graph_level_gps+ga
+  - override /model/encoder: gps+ftxa
+  - override /model/head: unimodal_logits
+
+  # Use the default config, and only define hparams tuned for the dataset+model using automated hyperparameter search
+  - override /model/readout: last
+
+model:
+  encoder:
+    hidden_channels: 32
+    pe_embed_dim: 4
+    num_layers: 7
+    gps_kwargs:
+      heads: 4
+      dropout: 0.01
+      norm: InstanceNorm
+      attn_kwargs:
+        dropout: 0.36
+  features_for_readout: graph
+  optimizer:
+    weight_decay: 1.8e-4
