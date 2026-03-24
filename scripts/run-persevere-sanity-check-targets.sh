@@ -13,8 +13,7 @@ targets_configs=(
 )
 declare -A targets_overrides
 targets_overrides=(
-  # Since the binary `risk_ESC-2014_elevated` targets uses the config from the multiclass `risk_ESC-2014` target,
-  # it must override multiclass metrics config with binary config
+  # Override metrics to regression for continuous targets
   [qanadli]="model/metrics=regression"
   [mastora_central]="model/metrics=regression"
   [mastora_peripheral]="model/metrics=regression"
