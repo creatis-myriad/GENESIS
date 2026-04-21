@@ -7,9 +7,9 @@ from torch_geometric.nn import aggr
 class SelectAggregation(aggr.Aggregation):
     """An aggregation operator that selects an item at a specific position in a sequence of elements.
 
-    Only defined with `ptr`-based aggregation, where elements are ordered and grouped together. The concept of
-    "first" and "last" elements does not make sense in the context of `index`-based aggregation, where groups are
-    potentially disjoint and unordered. If `index` is ordered and grouped, then `ptr` is typically also available.
+    Only defined with `ptr`-based aggregation, where elements are ordered and grouped together. The concept of "first"
+    and "last" elements does not make sense in the context of `index`-based aggregation, where groups are potentially
+    disjoint and unordered. If `index` is ordered and grouped, then `ptr` is typically also available.
     """
 
     def __init__(self, mode: Literal["first", "last"]) -> None:
