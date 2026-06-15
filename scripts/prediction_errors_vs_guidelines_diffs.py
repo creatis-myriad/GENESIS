@@ -128,7 +128,10 @@ def main() -> None:
 
         if args.output_dir:
             args.output_dir.mkdir(parents=True, exist_ok=True)
-            cm_filepath = args.output_dir / f"{subset}_confusion_matrix.{args.cm_format}"
+            output_filename = f"{subset}_confusion_matrix.{args.cm_format}"
+            if args.model_label:
+                output_filename = f"{args.model_label.lower()}_{output_filename}"
+            cm_filepath = args.output_dir / output_filename
             print(f"Saving confusion matrix for subset '{subset}' to '{cm_filepath}'.")
             plt.savefig(cm_filepath, bbox_inches="tight")
         else:
