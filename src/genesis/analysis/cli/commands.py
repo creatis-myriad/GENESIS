@@ -194,7 +194,7 @@ def rv_lv_ratio(obj: dict, annotations_ventricles_dir: Path, mask_pattern: str, 
 
             elif "Multiple matches" in str(e):
                 # Log and skip if multiple files are found
-                log.exception("", exc_info=True)
+                log.exception("")
                 continue
             else:
                 # Re-raise unexpected errors

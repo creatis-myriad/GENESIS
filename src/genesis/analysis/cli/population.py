@@ -58,7 +58,7 @@ def eval_population(
                 continue
             if "Multiple matches" in str(e):
                 # Log and skip if multiple files are found
-                log.exception("", exc_info=True)
+                log.exception("")
                 continue
             # Re-raise unexpected errors
             raise

@@ -57,7 +57,7 @@ class TabularEstimator:
             logger: Logger to log metrics to when scoring the model.
         """
         if not isinstance(model, BaseClassifier | BaseRegressor):
-            raise ValueError("Model must be an instance of either `BaseClassifier` or `BaseRegressor`")
+            raise TypeError("Model must be an instance of either `BaseClassifier` or `BaseRegressor`")
 
         self.model = model
 

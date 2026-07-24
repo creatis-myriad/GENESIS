@@ -245,7 +245,7 @@ class GAGPSConv(GPSConv):
         super().__init__(*args, **kwargs)
 
         if isinstance(self.attn, PerformerAttention):
-            raise ValueError(
+            raise NotImplementedError(
                 "'PerformerAttention' is currently not supported for extension of GPSConv that supports global "
                 "attributes."
             )

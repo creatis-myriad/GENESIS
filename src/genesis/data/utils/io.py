@@ -1,5 +1,4 @@
 import json
-import logging
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +10,9 @@ from monai.data import NibabelReader
 from torch_geometric.data import Data
 
 from genesis.data.utils import networkx_line_graph, networkx_to_pyg
+from genesis.utils import RankedLogger
+
+log = RankedLogger(__name__, rank_zero_only=True)
 
 
 def load_nifti(filepath: str | Path) -> tuple[np.ndarray, dict[str, Any]]:
@@ -175,7 +177,7 @@ def load_and_clean_tabular_features(csv_filepath: Path, drop_na_subset: list[str
         if isinstance(drop_na_subset, tuple):
             drop_na_subset = list(drop_na_subset)  # Convert tuple to list to correctly slice columns
         na_ids = df.index[df[drop_na_subset].isna().any(axis=1)].tolist()
-        logging.warning(
+        log.warning(
             f"Dropping clinical data from patients with at least one missing value in {drop_na_subset}: {na_ids}"
         )
         df.dropna(subset=drop_na_subset, inplace=True)
