@@ -42,7 +42,7 @@ totalsegmentator = [
     "TotalSegmentator>=2.5.0,<2.6",
 ]
 wandb = [
-    "wandb>=0.28,<0.29",
+    "wandb>=0.29,<0.30",
 ]
 # torch libraries are not included in the main dependencies because they can be platform-specific
 # rather, we leave them as optional dependencies (even though they are required for the code to run)
