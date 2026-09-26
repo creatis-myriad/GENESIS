@@ -20,9 +20,11 @@ Code repository for the Graph nEural Networks for pulmonary EmboliSm rIsk Strati
 <br>
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/creatis-myriad/GENESIS?tab=Apache-2.0-1-ov-file)
 
+</div>
+
 # Publications
 
-</div>
+- **[MICCAI 2026]** Pulmonary Embolism Risk Stratification from CTPA and Medical Records: Vascular Graphs Are Not All You Need [![Proceedings](http://img.shields.io/badge/Proceedings-4b44ce.svg)](https://doi.org/10.1007/978-3-032-38172-9_47) [![Open Access](http://img.shields.io/badge/Open%20Access-4b44ce.svg)](https://papers.miccai.org/miccai-2026/0837-Paper5113.html) [![ArXiv](http://img.shields.io/badge/arxiv-2606.25956-B31B1B.svg)](https://arxiv.org/abs/2606.25956)
 
 ## Description
 
