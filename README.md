@@ -57,7 +57,8 @@ to predict the risk of pulmonary embolism from the vascular graphs and global fe
    2. [Preset configs](#use-preset-configs)
    3. [Track experiments](#track-experiments)
    4. [Launch multiple experiments simultaneously](#run-multiple-experiments)
-   5. [Hyperparameter search with Optuna](#run-automatic-hyperparameter-search-with-optuna)
+   5. [Understand command to run tabular baselines](#detailed-breakdown-of-command-to-run-tabular-baselines)
+   6. [Hyperparameter search with Optuna](#run-automatic-hyperparameter-search-with-optuna)
 4. [Run tests](#run-tests)
 
 ## Installation
@@ -208,6 +209,10 @@ To run tabular models (TabPFNv2, XGBoost) on combinations of global features (me
 scripts/train-persevere-tabular.sh
 ```
 
+> [!TIP]
+> For a user-friendly explanation of the role of each parameter in the command in the script above, refer to the detailed breakdown
+> [here](#detailed-breakdown-of-command-to-run-tabular-baselines).
+
 ### Benchmark of GNNs on vascular graph and global features for risk stratification
 
 To run GNN backbones (GCN, GAT, GIN, GPS), with and without Virtual Nodes (VN) for MPNN backbones, and with different
@@ -339,6 +344,63 @@ Launch multiple experiments at once **in parallel** using the [Joblib launcher f
 # run multiple experiments in parallel, here w/ 5 different seeds
 gnn-train -m hydra/launcher=joblib seed=0,1,2,3,4
 ```
+
+### Detailed breakdown of command to run tabular baselines
+
+The [`train-persevere-tabular.sh`](scripts/train-persevere-tabular.sh) script [referenced earlier](#ablation-study-of-global-features-with-tabular-models-for-risk-stratification)
+contains the full command used to run tabular models to obtain the paper's baselines.
+However, the full command is likely hard to interpret and customize for new users, so below is a simpler example of a command
+to run tabular models, with important parameters explicitly set (and described after).
+
+```bash
+baseline-tabular -m \
+   experiment=tabular_baseline \
+   logger=wandb \
+   data=split_lightning_dataset \
+   data/split=k_fold \
+   'data.split_idx=range(10)' \
+   data/dataset=persevere_global_features \
+   data/dataset/target=risk_ESC-2014 \
+   data/dataset/usecols=spesi+cardiac_biomarkers+graph_biomarkers \
+   'data.dataset.src=${paths.data_dir}/PERSEVERE/global_features.csv' \
+   model=tabular_estimator \
+   model/model=tabpfn \
+   model/metrics=multi_classification \
+   test=True
+```
+
+> [!TIP]
+> Some parameters are in single quotes (e.g., `data.split_idx`) because their values use special characters (e.g., '()', '{}').
+> The single quotes allow the raw string values to be passed to Hydra by escaping the characters in the shell.
+> For more info, see [Hydra's documentation on override syntax](https://hydra.cc/docs/1.3/advanced/override_grammar/basic/#quoted-values).
+
+> [!NOTE]
+> All config folders/files paths given below are relative to the root Hydra config directory, located at [`src/genesis/configs`](src/genesis/configs/).
+
+#### General parameters
+
+- `experiment=tabular_baseline`: Base config to use around which to compose the rest of the config. Choose one of the options in [`experiment`](src/genesis/configs/experiment/).
+- `logger=wandb`: Config for the experiment tracker to use to log results. Choose one of the options in [`logger`](src/genesis/configs/logger/).
+
+#### Data parameters
+
+- `data=split_lightning_dataset`: Config for the `LightningDataModule`, which handles subset splits, batching/shuffling, etc., on top of the underlying dataset. Choose one of the options in [`data`](src/genesis/configs/data/).
+- `data/split=k_fold`: Config for how to split the data into subsets (i.e., hold-out test subset or k-fold cross-validation). Choose one of the options in [`data/split`](src/genesis/configs/data/split/).
+- `'data.split_idx=range(10)'`: Specify which cross-validation split to use. The `range(10)` keyword tells [Hydra to sweep over the range's values](https://hydra.cc/docs/1.3/advanced/override_grammar/extended/#range-sweep), launching a different job for each value in the range (i.e., 0, 1, ..., 8, 9). `range(10)` is used here because the `k_fold` split config uses a 10-fold cross-validation split by default.
+- `data/dataset=persevere_global_features`: Config for the PyTorch `Dataset`, called by the `LightingDataModule`. The dataset handles loading data from disk and structuring data samples. Choose one of the options in [`data/dataset`](src/genesis/configs/data/dataset/) (`persevere_global_features` is the only provided dataset designed for tabular models; the others are for graph-based models).
+- `data/dataset/target=risk_ESC-2014`: Config for the target variable to predict. It specifies the name of the variable in the tabular data (in the field `data.dataset.target_attr`), as well as metadata used to configure evaluation metrics appropriately (e.g. whether the task is classification/regression, number of classes, etc.). Choose one of the options in [`data/dataset/target`](src/genesis/configs/data/dataset/target/).
+- `data/dataset/usecols=spesi+cardiac_biomarkers+graph_biomarkers`: Config for the subset of variables to read from the CSV. These columns, minus the index and target column if specified, will be provided as input data to tabular models. Choose one of the options in [`data/dataset/usecols`](src/genesis/configs/data/dataset/usecols/).
+- `'data.dataset.src=${paths.data_dir}/PERSEVERE/global_features.csv'`: Path to the CSV file to read data from. By default, the `${paths.data_dir}` interpolation points to [`data`](data/), the project's root data folder.
+
+#### Model parameters
+
+- `model=tabular_estimator`: Config for the wrapper around backbone models that implement sklearn-like APIs. The wrapper adds functionalities typically handled by the `LightningModule` (e.g., metrics, logging, compatibility with `LightningDataModule`, etc.). Choose one of the options in [`model`](src/genesis/configs/model/) (`tabular_estimator` is the only provided model for wrapping tabular backbone models; the others are for graph-based models).
+- `model/model=tabpfn`: Config for the tabular model backbone to use. Choose one of the options in [`model/model`](src/genesis/configs/model/model/).
+
+#### Evaluation parameters
+
+- `model/metrics=multi_classification`: Config for the set of metrics to use to evaluate the model's performance. Curated sets of metrics are provided for common prediction tasks (i.e. `binary_classification`, `multi_classification`, `regression`). Choose one of the options in [`model/metrics`](src/genesis/configs/model/metrics/).
+- `test=True`: Whether to also evaluate the fitted model on the test set. By default, models are only run on the train and validation subsets, to avoid overfitting on the test set.
 
 ### Run automatic hyperparameter search with Optuna
 
