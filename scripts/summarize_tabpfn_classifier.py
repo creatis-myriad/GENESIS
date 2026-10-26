@@ -14,11 +14,12 @@ class LightningModuleWrapper(pl.LightningModule):
         self.model = model
 
 
-# Instantiate TabPFNClassifier and fit it on (any) data to fully create the model
-tabpfn_clf = TabPFNClassifier()
-X, y = load_breast_cancer(return_X_y=True)  # Used same dataset example as in TabPFN's readme
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
-tabpfn_clf.fit(X_train, y_train)
+if __name__ == "__main__":
+    # Instantiate TabPFNClassifier and fit it on (any) data to fully create the model
+    tabpfn_clf = TabPFNClassifier()
+    X, y = load_breast_cancer(return_X_y=True)  # Used same dataset example as in TabPFN's readme
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
+    tabpfn_clf.fit(X_train, y_train)
 
-pl_wrapper = LightningModuleWrapper(tabpfn_clf.model_)
-print(summarize(pl_wrapper, max_depth=-1))
+    pl_wrapper = LightningModuleWrapper(tabpfn_clf.model_)
+    print(summarize(pl_wrapper, max_depth=-1))
